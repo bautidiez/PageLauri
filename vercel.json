@@ -1,30 +1,12 @@
 {
-    "framework": "angular",
-    "buildCommand": "npm run build",
-    "outputDirectory": "dist/frontend/browser",
+    "buildCommand": "cd frontend && npm install && npm run build",
+    "outputDirectory": "frontend/dist/frontend/browser",
+    "installCommand": "cd frontend && npm install",
+    "framework": null,
     "rewrites": [
         {
             "source": "/(.*)",
             "destination": "/index.html"
-        }
-    ],
-    "headers": [
-        {
-            "source": "/(.*)",
-            "headers": [
-                {
-                    "key": "X-Content-Type-Options",
-                    "value": "nosniff"
-                },
-                {
-                    "key": "X-Frame-Options",
-                    "value": "DENY"
-                },
-                {
-                    "key": "X-XSS-Protection",
-                    "value": "1; mode=block"
-                }
-            ]
         }
     ]
 }
