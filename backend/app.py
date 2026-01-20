@@ -142,17 +142,23 @@ with app.app_context():
     from werkzeug.security import generate_password_hash
     
     admin = Admin.query.filter_by(username='admin').first()
-    if not admin:
-        initial_pass = os.environ.get('ADMIN_INITIAL_PASSWORD')
-        if initial_pass:
+    initial_pass = os.environ.get('ADMIN_INITIAL_PASSWORD')
+    
+    if initial_pass:
+        if not admin:
             default_admin = Admin(
                 username='admin',
                 password_hash=generate_password_hash(initial_pass),
                 email='admin@elvestuario.com'
             )
             db.session.add(default_admin)
-            db.session.commit()
-            print("Admin inicial creado con password de entorno.")
+            print("✓ Admin inicial creado.")
+        else:
+            # Forzamos actualización de password por si hubo error previo
+            admin.password_hash = generate_password_hash(initial_pass)
+            print("✓ Password de admin actualizado en cada reinicio.")
+        
+        db.session.commit()
             
     # Limpiamos imports incorrectos previos
 
