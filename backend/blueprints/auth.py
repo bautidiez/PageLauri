@@ -70,11 +70,13 @@ def verify_token():
 def emergency_reset_admin():
     """ENDPOINT TEMPORAL: Resetear password del admin (BORRAR DESPUÉS)"""
     import os
-    from werkzeug.security import generate_password_hash
+    from werkzeug.security import generate_password_hash, check_password_hash
     from models import db, Admin
     
     data = request.get_json()
     secret = data.get('secret')
+    # Permite pasar el nuevo password en el body
+    requested_password = data.get('new_password')
     
     # Verificar que tiene la clave secreta correcta
     if secret != os.environ.get('SECRET_KEY'):
@@ -82,8 +84,12 @@ def emergency_reset_admin():
     
     try:
         admin = Admin.query.filter_by(username='admin').first()
-        raw_password = os.environ.get('ADMIN_INITIAL_PASSWORD', 'ElVestuario2024!Admin')
-        new_password = raw_password.strip()
+        
+        if requested_password:
+            new_password = requested_password.strip()
+        else:
+            raw_password = os.environ.get('ADMIN_INITIAL_PASSWORD', 'ElVestuario2024!Admin')
+            new_password = raw_password.strip()
         
         if not admin:
             return jsonify({'error': 'Admin no encontrado'}), 404
@@ -91,7 +97,6 @@ def emergency_reset_admin():
         print(f"DEBUG EMERGENCY RESET: Generando hash para password largo {len(new_password)}")
         print(f"DEBUG EMERGENCY RESET: Peek: {new_password[:2]}...{new_password[-2:]}")
         
-        from werkzeug.security import generate_password_hash, check_password_hash
         new_hash = generate_password_hash(new_password)
         print(f"DEBUG EMERGENCY RESET: Nuevo hash generado: {new_hash[:50]}...")
         
