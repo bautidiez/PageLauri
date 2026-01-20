@@ -192,8 +192,10 @@ with app.app_context():
 @app.route('/')
 def home():
     """Ruta raíz para verificar que el servidor responde"""
+    db_type = "PostgreSQL" if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres') else "SQLite"
     return jsonify({
         "status": "online",
+        "database_engine": db_type,
         "message": "Backend de El Vestuario",
         "endpoints": ["/api/health", "/api/productos", "/api/auth/login"]
     }), 200
