@@ -18,11 +18,15 @@ def login():
         return jsonify({'error': 'Usuario y contraseña requeridos'}), 400
     
     print(f"DEBUG LOGIN ADMIN: Intentando login para usuario: {username}")
+    print(f"DEBUG LOGIN ADMIN: Password recibido: '{password}' (len={len(password)})")
+    
     admin = Admin.query.filter_by(username=username).first()
     
     if not admin:
         print(f"DEBUG LOGIN ADMIN: Usuario '{username}' no encontrado en la base de datos.")
-        return jsonify({'error': 'Credenciales inválidas'}), 401
+        return jsonify({'error': 'Usuario no encontrado'}), 401
+    
+    print(f"DEBUG LOGIN ADMIN: Hash guardado: {admin.password_hash[:50]}...")
     
     start_hash = time.time()
     is_valid = admin.check_password(password)
@@ -38,7 +42,7 @@ def login():
         }), 200
     
     print(f"DEBUG LOGIN ADMIN: Contraseña incorrecta para el usuario: {username}")
-    return jsonify({'error': 'Credenciales inválidas'}), 401
+    return jsonify({'error': 'Contraseña incorrecta'}), 401
 
 @auth_bp.route('/api/auth/verify', methods=['GET'])
 @jwt_required()
