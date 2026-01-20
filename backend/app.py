@@ -198,12 +198,15 @@ def home():
         "endpoints": ["/api/health", "/api/productos", "/api/auth/login"]
     }), 200
 
-def register_system_routes(app):
-    if 'health_check_main' not in app.view_functions:
-        @app.route('/api/health')
-        def health_check_main():
-            import time
-            return jsonify({"status": "ok", "time": time.time()}), 200
+# Health check con tipo de base de datos
+@app.route('/api/health')
+def health_check():
+    db_type = "PostgreSQL" if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres') else "SQLite"
+    return jsonify({
+        "status": "ok",
+        "database": db_type,
+        "time": time.time()
+    }), 200
 
 # ==================== LOGGING DE PETICIONES LENTAS ====================
 def register_hooks(app):
