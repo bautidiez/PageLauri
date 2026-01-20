@@ -152,13 +152,17 @@ with app.app_context():
                 email='admin@elvestuario.com'
             )
             db.session.add(default_admin)
+            db.session.commit()
             print("✓ Admin inicial creado.")
         else:
-            # Forzamos actualización de password por si hubo error previo
-            admin.password_hash = generate_password_hash(initial_pass)
-            print("✓ Password de admin actualizado en cada reinicio.")
-        
-        db.session.commit()
+            # Solo actualizamos si el password cambió (comprobando el hash)
+            from werkzeug.security import check_password_hash
+            if not check_password_hash(admin.password_hash, initial_pass):
+                admin.password_hash = generate_password_hash(initial_pass)
+                db.session.commit()
+                print("✓ Password de admin actualizado (detectado cambio en ENV).")
+            else:
+                print("✓ Password de admin ya está al día.")
             
     # Limpiamos imports incorrectos previos
 
