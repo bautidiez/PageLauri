@@ -73,11 +73,13 @@ def emergency_reset_admin():
     
     try:
         admin = Admin.query.filter_by(username='admin').first()
-        new_password = os.environ.get('ADMIN_INITIAL_PASSWORD', 'ElVestuario2024!Admin')
+        raw_password = os.environ.get('ADMIN_INITIAL_PASSWORD', 'ElVestuario2024!Admin')
+        new_password = raw_password.strip()
         
         if not admin:
             return jsonify({'error': 'Admin no encontrado'}), 404
         
+        print(f"DEBUG EMERGENCY RESET: Usando password de longitud {len(new_password)}")
         admin.password_hash = generate_password_hash(new_password)
         db.session.commit()
         
@@ -86,7 +88,7 @@ def emergency_reset_admin():
             'success': True,
             'message': 'Password reseteado exitosamente',
             'username': 'admin',
-            'password_hint': 'ADMIN_INITIAL_PASSWORD del env'
+            'debug_len': len(new_password)
         }), 200
     except Exception as e:
         db.session.rollback()
