@@ -34,8 +34,14 @@ export class LoginComponent {
       next: () => {
         this.router.navigate(['/admin']);
       },
-      error: (error) => {
-        this.error = 'Usuario o contraseña incorrectos';
+      error: (err) => {
+        console.error('Error en login:', err);
+        // Intentar obtener el mensaje de error del backend
+        if (err.error && err.error.error) {
+          this.error = err.error.error;
+        } else {
+          this.error = 'Error al conectar con el servidor. Intenta de nuevo.';
+        }
         this.loading = false;
       }
     });
