@@ -1,4 +1,8 @@
+import { isDevMode } from '@angular/core';
+
 export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:5000/api'
+  production: !isDevMode(),
+  apiUrl: !isDevMode()
+    ? 'https://elvestuario-backend.onrender.com/api'
+    : 'http://localhost:5000/api'
 };
