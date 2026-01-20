@@ -189,11 +189,21 @@ with app.app_context():
 
 # Health check simple que no usa BD
 # Health check simple que no usa BD
+@app.route('/')
+def home():
+    """Ruta raíz para verificar que el servidor responde"""
+    return jsonify({
+        "status": "online",
+        "message": "Backend de El Vestuario",
+        "endpoints": ["/api/health", "/api/productos", "/api/auth/login"]
+    }), 200
+
 def register_system_routes(app):
     if 'health_check_main' not in app.view_functions:
         @app.route('/api/health')
         def health_check_main():
             from flask import jsonify
+            import time
             return jsonify({"status": "ok", "time": time.time()}), 200
 
 # ==================== LOGGING DE PETICIONES LENTAS ====================

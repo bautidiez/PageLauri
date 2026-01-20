@@ -216,12 +216,14 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
 
 
     selectProductFromSearch(producto: Producto) {
+        console.log('🔵 selectProductFromSearch called with producto:', producto);
         this.productoSeleccionado = producto;
         this.nuevaVenta.producto_id = producto.id;
         this.nuevaVenta.precio_unitario = producto.precio_actual || producto.precio_base;
         this.searchQuery = producto.nombre;
         this.searchResults = [];
 
+        console.log('🔵 About to call onProductoSeleccionado, producto_id:', this.nuevaVenta.producto_id);
         // Cargar stock
         this.onProductoSeleccionado();
     }
@@ -235,7 +237,10 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
     }
 
     onProductoSeleccionado() {
+        console.log('🟢 onProductoSeleccionado called, producto_id:', this.nuevaVenta.producto_id);
+
         if (!this.nuevaVenta.producto_id) {
+            console.log('🔴 No producto_id, resetting');
             this.productoSeleccionado = null;
             this.stockProductoSeleccionado = [];
             this.nuevaVenta.precio_unitario = 0;
@@ -243,31 +248,38 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
         }
 
         this.productoSeleccionado = this.productos.find(p => p.id === this.nuevaVenta.producto_id) || null;
+        console.log('🟢 productoSeleccionado found:', this.productoSeleccionado);
 
         if (this.productoSeleccionado) {
             // Pre-llenar el precio con el precio actual del producto
             this.nuevaVenta.precio_unitario = this.productoSeleccionado.precio_actual || this.productoSeleccionado.precio_base;
-
-            // Cargar stock disponible para este producto
-            this.apiService.getStockByProducto(this.nuevaVenta.producto_id)
-                .pipe(takeUntil(this.destroy$))
-                .subscribe({
-                    next: (response: any) => {
-                        this.stockProductoSeleccionado = response.items || response || [];
-
-                        // ✨ FORZAR actualización de la vista
-                        this.cdr.detectChanges();
-                    },
-                    error: (error) => {
-                        console.error('Error loading stock:', error);
-                    }
-                });
         }
+
+        //  SIEMPRE cargar stock si tenemos producto_id, incluso si no encontramos el producto en la lista
+        console.log('🟡 Calling apiService.getStockByProducto with ID:', this.nuevaVenta.producto_id);
+        // Cargar stock disponible para este producto
+        this.apiService.getStockByProducto(this.nuevaVenta.producto_id)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (response: any) => {
+                    console.log('🟢 Stock API response received:', response);
+                    this.stockProductoSeleccionado = response.items || response || [];
+                    console.log('🟢 stockProductoSeleccionado set to:', this.stockProductoSeleccionado);
+
+                    // ✨ FORZAR actualización de la vista
+                    this.cdr.detectChanges();
+                },
+                error: (error) => {
+                    console.error('🔴 Error loading stock:', error);
+                }
+            });
     }
 
     getStockDisponible(talleId: number): number {
         const stock = this.stockProductoSeleccionado.find((s: any) => s.talle_id === talleId);
-        return stock ? stock.cantidad : 0;
+        const cantidad = stock ? stock.cantidad : 0;
+        console.log(`📊 getStockDisponible(${talleId}): found stock:`, stock, 'cantidad:', cantidad);
+        return cantidad;
     }
 
     registrarVenta() {
