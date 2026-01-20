@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 import sys
 
 # Evitar ejecución directa para prevenir errores de importación circular
@@ -202,7 +202,6 @@ def register_system_routes(app):
     if 'health_check_main' not in app.view_functions:
         @app.route('/api/health')
         def health_check_main():
-            from flask import jsonify
             import time
             return jsonify({"status": "ok", "time": time.time()}), 200
 
