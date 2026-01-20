@@ -233,8 +233,7 @@ def register_hooks(app):
     
     app._hooks_registered = True
 
-# Registrar todo
-register_system_routes(app)
+# Registrar hooks de logging
 register_hooks(app)
 
 # Para correr la aplicación, ejecutar: python run.py
