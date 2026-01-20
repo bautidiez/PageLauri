@@ -1,0 +1,134 @@
+<header class="header">
+  <div class="header-top">
+    <div class="container">
+      <div class="header-top-content">
+        <div class="header-links-custom">
+          <ng-container *ngIf="!isAdmin && !isCliente">
+            <a routerLink="/login" class="header-link">Iniciar sesión</a>
+            <a routerLink="/registro" class="header-link">Crear cuenta</a>
+          </ng-container>
+          <ng-container *ngIf="isAdmin || isCliente">
+            <span class="user-welcome" *ngIf="currentUser">Hola, {{ currentUser.username || currentUser.nombre }}</span>
+            <a *ngIf="isAdmin" routerLink="/admin" class="header-link">Panel Admin</a>
+            <a (click)="logout()" class="header-link" style="cursor: pointer;">Cerrar sesión</a>
+          </ng-container>
+        </div>
+        <div class="header-contact-custom">
+          <a routerLink="/contacto" class="header-link">Contacto</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-main">
+    <div class="container-full">
+      <div class="header-content-single-line">
+        <!-- Logo -->
+        <div class="logo">
+          <a routerLink="/">
+            <img src="/assets/logo.png" alt="elvestuario" class="logo-img"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <h1 class="logo-text" style="display: none;">EL VESTUARIO</h1>
+          </a>
+        </div>
+
+        <!-- Menú de navegación -->
+        <nav class="nav-desktop">
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Inicio</a>
+
+          <!-- Contenedor del menú de Productos -->
+          <div class="nav-dropdown">
+            <a routerLink="/productos" routerLinkActive="active" class="nav-link" (mouseenter)="openProductsMenu()"
+              (mouseleave)="scheduleCloseProductsMenu()">
+              Productos <span>▼</span>
+            </a>
+
+            <!-- MEGA MENU -->
+            <div class="mega-menu" [class.show]="isProductsMenuOpen" (mouseenter)="cancelCloseProductsMenu()"
+              (mouseleave)="closeProductsMenuNow()">
+              <div class="mega-menu-content">
+                <!-- Columna 1: Categorías Principales -->
+                <div class="mega-column main-cats">
+                  <a routerLink="/productos" class="mega-item total-link" (mouseenter)="clearActiveCategory()"
+                    (click)="closeProductsMenuNow()">
+                    Ver todos los productos
+                  </a>
+                  <a routerLink="/productos" [queryParams]="{ofertas: 'true'}" class="mega-item offers-link"
+                    (mouseenter)="clearActiveCategory()" (click)="closeProductsMenuNow()">
+                    🔥 OFERTAS
+                  </a>
+                  <hr class="mega-divider">
+                  <div *ngFor="let cat of categoriasTree" class="mega-item hierarchical-item"
+                    [class.active]="activeCategory?.id === cat.id" (mouseenter)="setActiveCategory(cat)"
+                    [routerLink]="['/categoria', cat.slug]" (click)="closeProductsMenuNow()">
+                    {{ cat.nombre }}
+                    <span class="arrow" *ngIf="cat.subcategorias && cat.subcategorias.length > 0">›</span>
+                  </div>
+                </div>
+
+                <!-- Columna 2: Subcategorías (Dinámica) -->
+                <div class="mega-column sub-cats" *ngIf="activeCategory?.subcategorias?.length > 0">
+                  <div *ngFor="let sub of activeCategory.subcategorias" class="mega-item sub-item"
+                    [routerLink]="['/categoria', activeCategory.slug, sub.slug]" (click)="closeProductsMenuNow()">
+                    {{ sub.nombre }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <a routerLink="/contacto" routerLinkActive="active">Contacto</a>
+          <a routerLink="/encargo-especial" routerLinkActive="active">Encargo personalizado</a>
+          <a routerLink="/politica-cambio" routerLinkActive="active">Política de cambio</a>
+          <a routerLink="/guia-talles" routerLinkActive="active">Guía de talles</a>
+        </nav>
+
+        <!-- Buscador estilo imagen -->
+        <div class="search-box-simple">
+          <span class="search-icon-left"></span>
+          <input type="text" class="search-input-simple" placeholder="Buscar" [(ngModel)]="busqueda"
+            (keyup.enter)="buscarProductos()">
+        </div>
+
+        <!-- Carrito con Badge -->
+        <button class="cart-btn-simple" (click)="goToCart()">
+          <span class="cart-icon"></span>
+          <span class="cart-total">{{ (cartTotal || 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
+
+          <!-- BADGE de cantidad en esquina superior derecha -->
+          <span class="cart-badge-count" *ngIf="cartItemCount > 0">{{ cartItemCount }}</span>
+        </button>
+
+        <!-- Toggle móvil -->
+        <button class="menu-toggle" (click)="toggleMenu()">
+          <span *ngIf="!menuOpen">☰</span>
+          <span *ngIf="menuOpen">✕</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav-mobile" [class.open]="menuOpen">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
+      (click)="menuOpen = false">Inicio</a>
+    <a routerLink="/productos" routerLinkActive="active" (click)="menuOpen = false">Productos</a>
+    <a routerLink="/productos" [queryParams]="{ofertas: 'true'}" (click)="menuOpen = false">🔥 OFERTAS</a>
+
+    <!-- Categorías dinámicas -->
+    <ng-container *ngFor="let cat of categoriasTree">
+      <a [routerLink]="['/categoria', cat.slug]" (click)="menuOpen = false">{{ cat.nombre }}</a>
+      <!-- Subcategorías (si existen) -->
+      <a *ngFor="let sub of cat.subcategorias" [routerLink]="['/categoria', cat.slug, sub.slug]"
+        (click)="menuOpen = false" class="subcategoria-mobile">
+        &nbsp;&nbsp;› {{ sub.nombre }}
+      </a>
+    </ng-container>
+
+    <a routerLink="/contacto" routerLinkActive="active" (click)="menuOpen = false">Contacto</a>
+    <a routerLink="/encargo-especial" routerLinkActive="active" (click)="menuOpen = false">Encargo personalizado</a>
+    <a routerLink="/politica-cambio" routerLinkActive="active" (click)="menuOpen = false">Política de cambio</a>
+    <a routerLink="/guia-talles" routerLinkActive="active" (click)="menuOpen = false">Guía de talles</a>
+    <a *ngIf="isAdmin" routerLink="/admin" (click)="menuOpen = false">Panel Admin</a>
+    <a *ngIf="isAdmin" (click)="logout(); menuOpen = false">Cerrar sesión</a>
+  </nav>
+</header>

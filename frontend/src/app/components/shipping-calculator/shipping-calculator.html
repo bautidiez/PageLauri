@@ -1,0 +1,53 @@
+<div class="shipping-calculator">
+    <div class="calculator-header">
+        <img src="/assets/envio.png" alt="Envío" class="shipping-icon">
+        <h3 class="calculator-title">Medios de envío</h3>
+    </div>
+
+    <div class="calculator-body">
+        <div class="input-group">
+            <input type="text" [(ngModel)]="codigoPostal" placeholder="Tu código postal" class="cp-input"
+                (keyup.enter)="calcular()">
+            <button class="calc-button" (click)="calcular()" [disabled]="calculando">
+                <span>{{ calculando ? 'CALCULANDO...' : 'CALCULAR' }}</span>
+            </button>
+            <button class="calc-button secondary" (click)="volver()">
+                <span>VOLVER</span>
+            </button>
+        </div>
+
+        <a href="https://www.correoargentino.com.ar/formularios/cpa" target="_blank" class="cp-link">
+            No sé mi código postal
+        </a>
+
+        <div class="error-msg" *ngIf="error">
+            {{ error }}
+        </div>
+    </div>
+
+    <div class="calculator-results" *ngIf="mostrarResultados">
+        <div class="shipping-options">
+            <div class="shipping-item" *ngFor="let opcion of opcionesEnvio">
+                <div class="item-main">
+                    <span class="metodo-nombre">{{ opcion.nombre }}</span>
+                    <span class="metodo-tiempo">{{ opcion.tiempo }}</span>
+                </div>
+                <div class="item-price">
+                    <span class="price-val" *ngIf="opcion.costo > 0">${{ opcion.costo | number:'1.0-0' }}</span>
+                    <span class="price-val free" *ngIf="opcion.costo === 0">Gratis</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="total-updated" *ngIf="precioBase > 0">
+            <div class="total-row main-total">
+                <span>Total con envío:</span>
+                <span class="total-val">${{ (precioBase + opcionesEnvio[0].costo) | number:'1.0-0' }}</span>
+            </div>
+            <div class="total-row promo-total">
+                <span class="promo-val">O ${{ getPrecioConTransferencia(opcionesEnvio[0].costo) | number:'1.2-2' }} con
+                    transferencia</span>
+            </div>
+        </div>
+    </div>
+</div>

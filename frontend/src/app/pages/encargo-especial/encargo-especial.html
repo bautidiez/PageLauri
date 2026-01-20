@@ -1,0 +1,137 @@
+<div class="encargo-especial-page">
+  <div class="container">
+    <div class="page-header">
+      <h1>🎯 Encargo Especial</h1>
+      <p>¿No encuentras lo que buscas? Solicita un producto personalizado</p>
+    </div>
+
+    <div class="encargo-form-container">
+      <form (ngSubmit)="enviarEncargo()" class="encargo-form">
+        <div class="form-section">
+          <h2>Información del Producto</h2>
+
+          <div class="form-group">
+            <label>Tipo de Producto *</label>
+            <select [(ngModel)]="encargo.tipo_producto" name="tipo_producto" (change)="onTipoProductoChange()" required>
+              <option [value]="null">Seleccionar producto...</option>
+              <option value="remera">Remera</option>
+              <option value="short">Short</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Categoría Principal *</label>
+            <select [(ngModel)]="categoriaPrincipalId" (change)="onCategoriaPadreChange(categoriaPrincipalId!)"
+              name="categoria_padre" required>
+              <option [value]="null">Seleccionar categoría...</option>
+              <option *ngFor="let cat of categoriasPadre" [value]="cat.id">{{ cat.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="form-group" *ngIf="subcategoriasNivel1.length > 0">
+            <label>Tipo/Temporada *</label>
+            <select [(ngModel)]="subcategoriaNivel1Id" (change)="onSubcategoriaNivel1Change(subcategoriaNivel1Id!)"
+              name="subcategoria_nivel1">
+              <option [value]="null">Seleccionar...</option>
+              <option *ngFor="let sub of subcategoriasNivel1" [value]="sub.id">{{ sub.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="form-group" *ngIf="subcategoriasNivel2.length > 0">
+            <label>Liga *</label>
+            <select [(ngModel)]="encargo.categoria_id" (change)="onSubcategoriaNivel2Change(encargo.categoria_id!)"
+              name="subcategoria_nivel2">
+              <option [value]="null">Seleccionar liga...</option>
+              <option *ngFor="let subsub of subcategoriasNivel2" [value]="subsub.id">{{ subsub.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>{{ esCategoriaPais ? 'País' : 'Club' }}</label>
+              <input type="text" [(ngModel)]="encargo.club" name="club"
+                [placeholder]="esCategoriaPais ? 'Ej: Argentina' : 'Ej: Boca Juniors'">
+            </div>
+
+            <div class="form-group">
+              <label>Número</label>
+              <input type="number" [(ngModel)]="encargo.numero" name="numero" placeholder="Ej: 10" min="0">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Dorsal</label>
+              <input type="text" [(ngModel)]="encargo.dorsal" name="dorsal" placeholder="Ej: 10 - Messi">
+            </div>
+
+            <div class="form-group">
+              <label>Talle *</label>
+              <select [(ngModel)]="encargo.talle" name="talle" required>
+                <option [value]="null">Seleccionar talle...</option>
+                <option *ngFor="let talle of talles" [value]="talle.id">{{ talle.nombre }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Color</label>
+            <input type="text" [(ngModel)]="encargo.color" name="color" placeholder="Ej: Negro Y Plata">
+          </div>
+
+          <div class="form-group">
+            <label>Observaciones Adicionales</label>
+            <textarea [(ngModel)]="encargo.observaciones" name="observaciones" rows="4"
+              placeholder="Describe cualquier detalle adicional que necesites..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Datos de Contacto</h2>
+
+          <div class="form-group">
+            <label>Nombre Completo *</label>
+            <input type="text" [(ngModel)]="encargo.nombre_cliente" name="nombre_cliente" required
+              placeholder="Tu nombre">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email *</label>
+              <input type="email" [(ngModel)]="encargo.email_cliente" name="email_cliente" required
+                placeholder="tu@email.com">
+            </div>
+
+            <div class="form-group">
+              <label>Teléfono *</label>
+              <input type="tel" [(ngModel)]="encargo.telefono_cliente" name="telefono_cliente" required
+                placeholder="+54 9 11 1234-5678">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-messages">
+          <div *ngIf="mensajeError" class="error-message">
+            ⚠️ {{ mensajeError }}
+          </div>
+          <div *ngIf="mensajeExito" class="success-message">
+            ✅ Tu encargo especial ha sido enviado. Te contactaremos pronto por WhatsApp!
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-submit" [disabled]="enviando">
+            <span *ngIf="!enviando">📤 Enviar Encargo Especial</span>
+            <span *ngIf="enviando">⏳ Enviando...</span>
+          </button>
+          <button type="button" class="btn-reset" (click)="resetForm()">Limpiar Formulario</button>
+        </div>
+
+        <div class="info-box">
+          <p>ℹ️ <strong>Nota:</strong> Al enviar tu encargo especial, se abrirá WhatsApp para que puedas comunicarte
+            directamente con nosotros. Revisaremos tu solicitud y te responderemos a la brevedad.</p>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

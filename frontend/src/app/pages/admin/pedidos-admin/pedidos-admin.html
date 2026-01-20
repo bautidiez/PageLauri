@@ -1,0 +1,222 @@
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>📋 Gestión de Pedidos</h1>
+    <div class="actions">
+      <input type="text" [(ngModel)]="busquedaCliente" placeholder="🔍 Buscar por cliente, N° pedido..."
+        class="search-input">
+      <select [(ngModel)]="filtroEstado" (change)="filtrarPorEstado()" class="filter-select">
+        <option value="">Todos los estados</option>
+        <option *ngFor="let estado of estados" [value]="estado">{{ getEstadoLabel(estado) }}</option>
+      </select>
+      <button class="btn btn-secondary" (click)="limpiarFiltros()" *ngIf="filtroEstado || busquedaCliente">
+        🗑️ Limpiar
+      </button>
+    </div>
+  </div>
+
+  <!-- LISTA DE PEDIDOS -->
+  <div *ngIf="loading" class="loading">
+    <p>Cargando pedidos...</p>
+  </div>
+
+  <div *ngIf="!loading && pedidosFiltrados.length === 0" class="empty-state">
+    <p>📭 No se encontraron pedidos</p>
+  </div>
+
+  <div *ngIf="!loading && pedidosFiltrados.length > 0" class="pedidos-table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>N° Pedido</th>
+          <th>Cliente</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Aprobación</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let pedido of pedidosFiltrados">
+          <td><strong>{{ pedido.numero_pedido }}</strong></td>
+          <td>
+            <div class="cliente-info">
+              <div>{{ pedido.cliente_nombre }}</div>
+              <small>{{pedido.cliente_email }}</small>
+            </div>
+          </td>
+          <td>{{ getTotalItems(pedido) }} items</td>
+          <td><strong>${{ pedido.total | number:'1.0-0' }}</strong></td>
+          <td>
+            <span class="badge" [ngClass]="getEstadoClass(pedido.estado)">
+              {{ getEstadoLabel(pedido.estado) }}
+            </span>
+          </td>
+          <td>
+            <div *ngIf="!pedido.aprobado">
+              <span class="badge badge-warning">Pendiente</span>
+              <small *ngIf="pedido.fecha_expiracion"
+                [ngClass]="{'text-danger': isExpirando(pedido), 'text-muted': !isExpirando(pedido)}">
+                <br>{{ getDiasRestantes(pedido.fecha_expiracion) }} días
+              </small>
+            </div>
+            <span *ngIf="pedido.aprobado" class="badge badge-success">✓ Aprobado</span>
+          </td>
+          <td>
+            <small>{{ formatFecha(pedido.created_at) }}</small>
+          </td>
+          <td>
+            <button class="btn-icon" (click)="verDetalle(pedido)" title="Ver Detalle">👁️</button>
+            <button *ngIf="!pedido.aprobado" class="btn-icon btn-aprobar" (click)="aprobarPedido(pedido)"
+              [disabled]="isExpirando(pedido) && getDiasRestantes(pedido.fecha_expiracion!) < 0"
+              title="Aprobar Pedido">✓</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DETALLE DEL PEDIDO (MODAL) -->
+  <div *ngIf="pedidoSeleccionado" class="modal-overlay" (click)="cerrarDetalle()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Pedido {{ pedidoSeleccionado.numero_pedido }}</h2>
+        <span class="badge" [ngClass]="getEstadoClass(pedidoSeleccionado.estado)">
+          {{ getEstadoLabel(pedidoSeleccionado.estado) }}
+        </span>
+        <button class="btn-close" (click)="cerrarDetalle()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-columns">
+          <!-- COLUMNA IZQUIERDA -->
+          <div class="left-column">
+            <!-- Info Cliente -->
+            <div class="detail-card">
+              <h3>👤 Cliente</h3>
+              <p><strong>Nombre:</strong> {{ pedidoSeleccionado.cliente_nombre }}</p>
+              <p><strong>Email:</strong> {{ pedidoSeleccionado.cliente_email }}</p>
+              <p *ngIf="pedidoSeleccionado.cliente_telefono"><strong>Teléfono:</strong> {{
+                pedidoSeleccionado.cliente_telefono }}</p>
+              <p><strong>Dirección:</strong> {{ pedidoSeleccionado.cliente_direccion }}</p>
+              <p><strong>Localidad:</strong> {{ pedidoSeleccionado.cliente_localidad }},
+                {{pedidoSeleccionado.cliente_provincia }} (CP: {{ pedidoSeleccionado.cliente_codigo_postal }})</p>
+            </div>
+
+            <!-- Items -->
+            <div class="detail-card">
+              <h3>📦 Items del Pedido</h3>
+              <div class="items-list">
+                <div *ngFor="let item of pedidoSeleccionado.items" class="item-row">
+                  <div class="item-info">
+                    <strong>{{ item.producto_nombre }}</strong>
+                    <small>Talle: {{ item.talle_nombre }} × {{ item.cantidad }}</small>
+                  </div>
+                  <div class="item-price">
+                    ${{ item.subtotal | number:'1.0-0' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resumen -->
+            <div class="detail-card">
+              <h3>💰 Resumen</h3>
+              <div class="summary-row">
+                <span>Subtotal:</span>
+                <span>${{ pedidoSeleccionado.subtotal | number:'1.0-0' }}</span>
+              </div>
+              <div class="summary-row" *ngIf="pedidoSeleccionado.descuento > 0">
+                <span>Descuento:</span>
+                <span class="discount">-${{ pedidoSeleccionado.descuento | number:'1.0-0' }}</span>
+              </div>
+              <div class="summary-row">
+                <span>Envío:</span>
+                <span>${{ pedidoSeleccionado.costo_envio | number:'1.0-0' }}</span>
+              </div>
+              <div class="summary-row total-row">
+                <span>Total:</span>
+                <strong>${{ pedidoSeleccionado.total | number:'1.0-0' }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMNA DERECHA -->
+          <div class="right-column">
+            <!-- Info de Aprobación -->
+            <div class="detail-card info-aprobacion">
+              <h3>{{ pedidoSeleccionado.aprobado ? '✅ Aprobado' : '⏳ Pendiente de Aprobación' }}</h3>
+
+              <div *ngIf="!pedidoSeleccionado.aprobado">
+                <p *ngIf="pedidoSeleccionado.fecha_expiracion" class="expiracion-info"
+                  [ngClass]="{'expirando': isExpirando(pedidoSeleccionado)}">
+                  ⏰ Expira en: <strong>{{ getDiasRestantes(pedidoSeleccionado.fecha_expiracion!) }} días</strong>
+                  <br><small>{{ formatFecha(pedidoSeleccionado.fecha_expiracion!) }}</small>
+                </p>
+                <button class="btn btn-success full-width" (click)="aprobarPedido(pedidoSeleccionado)"
+                  [disabled]="getDiasRestantes(pedidoSeleccionado.fecha_expiracion!) < 0">
+                  ✓ APROBAR PEDIDO
+                </button>
+                <small class="help-text">Al aprobar se reducirá el stock y se procesará el pedido</small>
+              </div>
+
+              <div *ngIf="pedidoSeleccionado.aprobado">
+                <p><strong>Aprobado por:</strong> {{ pedidoSeleccionado.admin_aprobador_username || 'Sistema' }}</p>
+                <p><strong>Fecha:</strong> {{ formatFecha(pedidoSeleccionado.fecha_aprobacion!) }}</p>
+              </div>
+            </div>
+
+            <!-- Cambiar Estado -->
+            <div class="detail-card">
+              <h3>🔄 Actualizar Estado</h3>
+              <div class="form-group">
+                <label>Nuevo Estado:</label>
+                <select [(ngModel)]="nuevoEstado" class="form-control">
+                  <option *ngFor="let estado of estados" [value]="estado">{{ getEstadoLabel(estado) }}</option>
+                </select>
+              </div>
+              <button class="btn btn-primary full-width" (click)="actualizarEstado()">
+                💾 Actualizar Estado
+              </button>
+            </div>
+
+            <!-- Notas Internas -->
+            <div class="detail-card notes-card">
+              <h3>📝 Notas Internas</h3>
+
+              <!-- Agregar nota -->
+              <div class="add-note">
+                <textarea [(ngModel)]="nuevaNota" placeholder="Escribe una nota interna..." rows="3"
+                  class="form-control"></textarea>
+                <button class="btn btn-success" (click)="agregarNota()" [disabled]="!nuevaNota.trim()">
+                  ➕ Agregar Nota
+                </button>
+              </div>
+
+              <!-- Lista de notas -->
+              <div class="notes-list">
+                <div *ngIf="loadingNotas" class="loading-notes">
+                  Cargando notas...
+                </div>
+
+                <div *ngIf="!loadingNotas && notasInternas.length === 0" class="no-notes">
+                  <small>Sin notas aún</small>
+                </div>
+
+                <div *ngFor="let nota of notasInternas" class="note-item">
+                  <div class="note-header">
+                    <strong>{{ nota.admin_username }}</strong>
+                    <button class="btn-icon-sm" (click)="eliminarNota(nota.id)" title="Eliminar">🗑️</button>
+                  </div>
+                  <p>{{ nota.contenido }}</p>
+                  <small class="note-date">{{ formatFecha(nota.created_at) }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

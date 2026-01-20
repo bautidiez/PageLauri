@@ -1,0 +1,285 @@
+<div class="productos-page">
+  <div class="container">
+    <div class="page-header">
+      <h1>{{ tituloActual }}</h1>
+      <p>Encuentra la ropa deportiva perfecta para ti</p>
+    </div>
+
+    <!-- Sidebar + Content Layout -->
+    <div class="sidebar-content-layout">
+      <!-- Left Sidebar Navigation -->
+      <aside class="category-sidebar">
+        <div class="sidebar-header">
+          <h3>{{ getSidebarTitle() }}</h3>
+          <button class="btn-back" *ngIf="currentCategoryLevel > 0" (click)="navigateBack()">
+            ← Volver
+          </button>
+        </div>
+
+        <nav class="sidebar-nav">
+          <ul class="category-list">
+            <li *ngFor="let cat of getSidebarCategories()" class="category-item"
+              [class.active]="filtros.categoria_id === cat.id">
+              <a (click)="navigateToCategory(cat.id)" class="category-link">
+                {{ cat.nombre }}
+              </a>
+            </li>
+          </ul>
+
+          <div class="sidebar-empty" *ngIf="getSidebarCategories().length === 0">
+            <p>No hay subcategorías disponibles</p>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Búsqueda y Ordenamiento en la misma línea -->
+        <div class="search-and-sort">
+          <div class="search-box">
+            <img src="/assets/lupa.png" alt="Buscar" class="search-icon-inside">
+            <input type="text" class="search-input-page" placeholder="Buscar productos..." [(ngModel)]="busqueda"
+              (keyup.enter)="buscar()">
+          </div>
+
+          <div class="sort-container">
+            <label>Ordenar por:</label>
+            <select class="sort-select" [(ngModel)]="filtros.ordenar_por" (ngModelChange)="cambiarOrdenamiento($event)">
+              <option value="destacado">Destacado</option>
+              <option value="mas_vendido">Más Vendido</option>
+              <option value="alfabetico">Orden Alfabético</option>
+              <option value="precio_asc">Precio: Menor a Mayor</option>
+              <option value="precio_desc">Precio: Mayor a Menor</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Botón para mostrar/ocultar filtros -->
+        <div class="filters-toggle">
+          <button class="btn-toggle-filters" (click)="mostrarFiltros = !mostrarFiltros">
+            {{ mostrarFiltros ? 'Ocultar Filtros' : 'Mostrar Filtros' }} {{ mostrarFiltros ? '▲' : '▼' }}
+          </button>
+        </div>
+
+        <!-- Panel de Filtros -->
+        <div class="filters-panel" *ngIf="mostrarFiltros">
+          <div class="filters-content">
+            <!-- Categorías -->
+            <div class="filter-section">
+              <h3>Categorías</h3>
+              <div class="filter-options">
+                <label class="filter-checkbox">
+                  <input type="radio" name="categoria" [checked]="filtros.categoria_id === null"
+                    (change)="filtrarPorCategoria(null)">
+                  <span>Todas</span>
+                </label>
+
+                <!-- Categorías padre (Remeras y Shorts) -->
+                <ng-container *ngFor="let catPadre of categorias">
+                  <label class="filter-checkbox categoria-padre">
+                    <input type="radio" name="categoria" [checked]="filtros.categoria_id === catPadre.id"
+                      (change)="filtrarPorCategoria(catPadre.id || null)">
+                    <span><strong>{{ catPadre.nombre }}</strong></span>
+                  </label>
+
+                  <!-- Subcategorías -->
+                  <label class="filter-checkbox subcategoria" *ngFor="let subcat of catPadre.subcategorias || []">
+                    <input type="radio" name="categoria" [checked]="filtros.categoria_id === subcat.id"
+                      (change)="filtrarPorCategoria(subcat.id || null)">
+                    <span> └ {{ subcat.nombre }}</span>
+                  </label>
+                </ng-container>
+              </div>
+            </div>
+
+            <!-- Color -->
+            <div class="filter-section" *ngIf="coloresDisponibles.length > 0">
+              <h3>Color</h3>
+              <div class="filter-options">
+                <label class="filter-checkbox">
+                  <input type="radio" name="color" [checked]="filtros.color === ''"
+                    (change)="filtros.color = ''; aplicarFiltros()">
+                  <span>Todos</span>
+                </label>
+                <label class="filter-checkbox" *ngFor="let color of coloresDisponibles">
+                  <input type="radio" name="color" [checked]="filtros.color === color"
+                    (change)="filtros.color = color; aplicarFiltros()">
+                  <span>{{ color }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Talle -->
+            <div class="filter-section">
+              <h3>Talle</h3>
+              <div class="filter-options">
+                <label class="filter-checkbox">
+                  <input type="radio" name="talle" [checked]="filtros.talle_id === null"
+                    (change)="filtros.talle_id = null; aplicarFiltros()">
+                  <span>Todos</span>
+                </label>
+                <label class="filter-checkbox" *ngFor="let talle of talles">
+                  <input type="radio" name="talle" [checked]="filtros.talle_id === talle.id"
+                    (change)="filtros.talle_id = talle.id; aplicarFiltros()">
+                  <span>{{ talle.nombre }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Dorsal -->
+            <div class="filter-section" *ngIf="dorsalesDisponibles.length > 0">
+              <h3>Dorsal</h3>
+              <div class="filter-options">
+                <label class="filter-checkbox">
+                  <input type="radio" name="dorsal" [checked]="filtros.dorsal === ''"
+                    (change)="filtros.dorsal = ''; aplicarFiltros()">
+                  <span>Todos</span>
+                </label>
+                <label class="filter-checkbox" *ngFor="let dorsal of dorsalesDisponibles">
+                  <input type="radio" name="dorsal" [checked]="filtros.dorsal === dorsal"
+                    (change)="filtros.dorsal = dorsal; aplicarFiltros()">
+                  <span>{{ dorsal }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Número -->
+            <div class="filter-section" *ngIf="numerosDisponibles.length > 0">
+              <h3>Número</h3>
+              <div class="filter-options">
+                <label class="filter-checkbox">
+                  <input type="radio" name="numero" [checked]="filtros.numero === null"
+                    (change)="filtros.numero = null; aplicarFiltros()">
+                  <span>Todos</span>
+                </label>
+                <label class="filter-checkbox" *ngFor="let num of numerosDisponibles">
+                  <input type="radio" name="numero" [checked]="filtros.numero === num"
+                    (change)="filtros.numero = num; aplicarFiltros()">
+                  <span>{{ num }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Versión -->
+            <div class="filter-section" *ngIf="versionesDisponibles.length > 0">
+              <h3>Tipo de Versión</h3>
+              <div class="filter-options">
+                <label class="filter-checkbox">
+                  <input type="radio" name="version" [checked]="filtros.version === ''"
+                    (change)="filtros.version = ''; aplicarFiltros()">
+                  <span>Todas</span>
+                </label>
+                <label class="filter-checkbox" *ngFor="let version of versionesDisponibles">
+                  <input type="radio" name="version" [checked]="filtros.version === version"
+                    (change)="filtros.version = version; aplicarFiltros()">
+                  <span>{{ version }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Precio -->
+            <div class="filter-section">
+              <h3>Precio</h3>
+              <div class="price-filter">
+                <div class="price-input-group">
+                  <label>Desde:</label>
+                  <input type="number" class="price-input" [(ngModel)]="precioMinInput" placeholder="0" min="0">
+                </div>
+                <div class="price-input-group">
+                  <label>Hasta:</label>
+                  <input type="number" class="price-input" [(ngModel)]="precioMaxInput" placeholder="210000" min="0">
+                </div>
+                <button class="btn-apply-price" (click)="aplicarFiltros()">Aplicar</button>
+              </div>
+            </div>
+
+            <!-- Destacados -->
+            <div class="filter-section">
+              <label class="filter-checkbox">
+                <input type="checkbox" [(ngModel)]="filtros.destacados" (change)="aplicarFiltros()">
+                <span>Solo Destacados</span>
+              </label>
+            </div>
+
+            <!-- Botón Limpiar Filtros -->
+            <div class="filter-actions">
+              <button class="btn-clear-filters" (click)="limpiarFiltros()">Limpiar Filtros</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultados -->
+        <div class="results-info" *ngIf="!loading">
+          <p>{{ productos.length }} producto(s) encontrado(s)</p>
+        </div>
+
+        <div *ngIf="loading" class="loading">
+          <p>Cargando productos...</p>
+        </div>
+
+        <div *ngIf="!loading && productos.length === 0" class="no-products">
+          <p>No se encontraron productos</p>
+          <button class="btn-clear-filters" (click)="limpiarFiltros()" *ngIf="busqueda || filtros.categoria_id">Limpiar
+            Filtros</button>
+        </div>
+
+        <div class="products-grid" *ngIf="!loading && productos.length > 0">
+          <div class="product-card" *ngFor="let producto of productos" [routerLink]="['/productos', producto.id]">
+            <div class="product-image-container">
+              <img [src]="getImagenPrincipal(producto)" [alt]="producto.nombre" class="product-image" loading="lazy">
+              <div class="product-badge-destacado" *ngIf="producto.destacado">Destacado</div>
+              <div class="product-badge-promo" *ngIf="producto.promociones && producto.promociones.length > 0">
+                {{ producto.promociones[0].tipo_promocion_nombre }}
+              </div>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">{{ producto.nombre }}</h3>
+
+              <div class="product-pricing">
+                <!-- 1. Precio Base tachado (Solo si hay descuento) -->
+                <div class="precio-tachado"
+                  *ngIf="producto.precio_descuento && producto.precio_descuento < producto.precio_base">
+                  ${{ producto.precio_base | number:'1.0-0' }}
+                </div>
+
+                <!-- 2. Precio Actual (Destaque principal) -->
+                <!-- Si hay descuento, mostramos precio_descuento. Si no, precio_base -->
+                <div class="precio-principal-container">
+                  <div class="precio-principal">
+                    ${{ (producto.precio_descuento || producto.precio_base) | number:'1.2-2' }}
+                  </div>
+                  <!-- Badge de descuento si corresponde -->
+                  <div class="discount-badge-text"
+                    *ngIf="producto.precio_descuento && producto.precio_descuento < producto.precio_base">
+                    {{ getDescuentoPorcentaje(producto) }}% OFF
+                  </div>
+                </div>
+
+                <!-- 3. Precio con Transferencia (Calculado sobre el precio actual) -->
+                <div class="precio-transferencia-container">
+                  <div class="precio-transferencia">
+                    ${{ getPrecioTransferencia(producto) | number:'1.2-2' }}
+                  </div>
+                  <div class="texto-transferencia">CON TRANSFERENCIA</div>
+                </div>
+
+                <!-- 4. Cuotas sin interés -->
+                <div class="cuotas-info">
+                  3 CUOTAS SIN INTERÉS DE ${{ getCuotaSinInteres(producto) | number:'1.0-0' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón Cargar Más -->
+        <div class="load-more-container" *ngIf="!loading && productos.length > 0 && hasMoreProducts">
+          <button class="btn-load-more" (click)="loadMoreProductos()" [disabled]="loadingMore">
+            {{ loadingMore ? 'Cargando...' : 'Cargar más productos' }}
+          </button>
+          <p class="load-more-info">Mostrando {{ productos.length }} de {{ totalProducts }} productos</p>
+        </div>
+      </div> <!-- end main-content -->
+    </div> <!-- end sidebar-content-layout -->
+  </div>
+</div>

@@ -1,0 +1,88 @@
+<div class="panel-gestion-page">
+  <div class="panel-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="header-title">
+          <button class="btn-back" (click)="goToPanelPrincipal()" title="Volver al Panel Principal">
+            <span class="icon">←</span>
+          </button>
+          <h1>Panel de Gestión</h1>
+        </div>
+        <div class="header-actions">
+          <a routerLink="/" class="btn btn-secondary">Ver Tienda</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-content">
+    <div class="container">
+      <div class="gestion-grid">
+        <div class="gestion-card productos" (click)="goToProductos()">
+          <div class="card-icon">📦</div>
+          <h2>Gestión de Productos</h2>
+          <p>Agregar, editar y eliminar productos. Modificar precios, descripciones e imágenes.</p>
+          <div class="card-features">
+            <span>✓ Crear productos</span>
+            <span>✓ Editar productos</span>
+            <span>✓ Eliminar productos</span>
+            <span>✓ Subir imágenes</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+
+        <div class="gestion-card categorias" (click)="goToCategorias()">
+          <div class="card-icon">📂</div>
+          <h2>Gestión de Categorías</h2>
+          <p>Crear jerarquía de categorías de 3 niveles. Asociar y organizar subcategorías.</p>
+          <div class="card-features">
+            <span>✓ Árbol jerárquico</span>
+            <span>✓ Wizard de 3 pasos</span>
+            <span>✓ Asociar subcategorías</span>
+            <span>✓ Reordenar categorías</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+
+        <div class="gestion-card stock" (click)="goToStock()">
+          <div class="card-icon">📊</div>
+          <h2>Gestión de Stock</h2>
+          <p>Modificar stock por producto y talle. Ver disponibilidad y controlar inventario.</p>
+          <div class="card-features">
+            <span>✓ Ver stock por talle</span>
+            <span>✓ Modificar cantidades</span>
+            <span>✓ Ver disponibilidad</span>
+            <span>✓ Control de inventario</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+
+        <div class="gestion-card pedidos" (click)="goToPedidos()">
+          <div class="card-icon">📋</div>
+          <h2>Gestión de Pedidos</h2>
+          <p>Ver todos los pedidos, actualizar estados y agregar notas. Seguimiento completo.</p>
+          <div class="card-features">
+            <span>✓ Ver todos los pedidos</span>
+            <span>✓ Actualizar estados</span>
+            <span>✓ Ver detalles</span>
+            <span>✓ Agregar notas</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+
+        <div class="gestion-card promociones" (click)="goToPromociones()">
+          <div class="card-icon">🎁</div>
+          <h2>Gestión de Promociones</h2>
+          <p>Crear y editar promociones. Configurar 2x1, 3x2, descuentos y fechas.</p>
+          <div class="card-features">
+            <span>✓ Crear promociones</span>
+            <span>✓ 2x1, 3x2, descuentos</span>
+            <span>✓ Configurar fechas</span>
+            <span>✓ Activar/desactivar</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

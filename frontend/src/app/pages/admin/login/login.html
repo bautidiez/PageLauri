@@ -1,0 +1,41 @@
+<div class="login-page"
+  style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/assets/portada3.png') center/cover no-repeat fixed !important;">
+  <div class="container">
+    <div class="login-card">
+      <div class="login-header">
+        <img src="/assets/logo.png" alt="Logo" class="login-logo">
+        <h1>Panel de Control</h1>
+        <p>Administración de El Vestuario</p>
+      </div>
+
+      <form (ngSubmit)="login()" class="login-form">
+        <div class="form-group">
+          <label>Usuario</label>
+          <input type="text" [(ngModel)]="username" name="username" placeholder="Tu usuario" required>
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required>
+        </div>
+
+        <div class="error-message" *ngIf="error">
+          ⚠️ {{ error }}
+        </div>
+
+        <button type="submit" class="btn-login" [disabled]="loading">
+          <span *ngIf="!loading">Iniciar Sesión</span>
+          <span *ngIf="loading">Autenticando...</span>
+        </button>
+
+        <div class="admin-info">
+          <p>Acceso restringido solo para personal autorizado.</p>
+        </div>
+
+        <div class="home-link">
+          <a routerLink="/">← Volver a la tienda</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

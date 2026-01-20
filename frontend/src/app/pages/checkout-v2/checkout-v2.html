@@ -1,0 +1,408 @@
+<div class="checkout-v2-container">
+    <!-- Header Stepper -->
+    <div class="stepper-header" *ngIf="currentStep < 4">
+        <div class="step" [class.active]="currentStep >= 1">
+            <div class="step-num">1</div>
+            <span>Carrito</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" [class.active]="currentStep >= 2">
+            <div class="step-num">2</div>
+            <span>Entrega</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" [class.active]="currentStep >= 3">
+            <div class="step-num">3</div>
+            <span>Pago</span>
+        </div>
+    </div>
+
+    <div class="checkout-content">
+        <div class="main-form">
+            <div [ngSwitch]="currentStep">
+
+                <!-- STEP 1: RESUMEN CARRITO -->
+                <div *ngSwitchCase="1" class="step-content">
+                    <h2>Tus Productos</h2>
+                    <div class="cart-items-list">
+                        <div class="cart-item-card" *ngFor="let item of items">
+                            <img
+                                [src]="item.producto.imagenes[0]?.url ? 'http://localhost:5000' + item.producto.imagenes[0].url : 'assets/no-img.png'">
+                            <div class="item-details">
+                                <h4>{{ item.producto.nombre }}</h4>
+                                <p>Talle: {{ item.talle.nombre }} | Cantidad: {{ item.cantidad }}</p>
+                                <span class="price">${{ (item.precio_unitario * item.cantidad) | number:'1.0-0'
+                                    }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-primary" (click)="nextStep()">Siguiente: Datos de Entrega</button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: DATOS + ENVIO (Merged) -->
+                <div *ngSwitchCase="2" class="step-content" [formGroup]="datosForm">
+
+                    <!-- 2.1 DATOS DE CONTACTO -->
+                    <div class="section-block">
+                        <h3 class="section-title">DATOS DE CONTACTO</h3>
+                        <div class="field full">
+                            <input type="email" formControlName="email" placeholder="Email"
+                                [class.invalid]="datosForm.get('email')?.invalid && datosForm.get('email')?.touched">
+                            <div class="error-msg"
+                                *ngIf="datosForm.get('email')?.invalid && datosForm.get('email')?.touched">Este campo
+                                debería estar completo</div>
+                        </div>
+                        <div class="field full">
+                            <input type="text" formControlName="dni" placeholder="DNI / CUIT"
+                                [class.invalid]="datosForm.get('dni')?.invalid && datosForm.get('dni')?.touched">
+                            <div class="error-msg"
+                                *ngIf="datosForm.get('dni')?.invalid && datosForm.get('dni')?.touched">Este campo es
+                                requerido para la facturación</div>
+                        </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked> Quiero recibir ofertas y novedades por e-mail
+                        </label>
+                    </div>
+
+                    <!-- 2.2 ENTREGA -->
+                    <div class="section-block">
+                        <h3 class="section-title">ENTREGA</h3>
+                        <div class="zip-row">
+                            <div class="field full">
+                                <label>Código Postal</label>
+                                <div class="input-with-action">
+                                    <input type="text" formControlName="codigo_postal" placeholder="Ej: 5800"
+                                        (blur)="calculateShipping()">
+                                    <button type="button" class="btn-link"
+                                        (click)="calculateShipping()">Calcular</button>
+                                </div>
+                                <div class="error-msg"
+                                    *ngIf="datosForm.get('codigo_postal')?.invalid && datosForm.get('codigo_postal')?.touched">
+                                    Este campo es requerido</div>
+                            </div>
+                        </div>
+
+                        <div class="loading-spinner" *ngIf="loading">Calculando opciones...</div>
+
+                        <!-- Shipping Options List -->
+                        <div class="shipping-options-list" *ngIf="shippingOptions.length > 0 && !loading"
+                            [formGroup]="envioForm">
+                            <label class="shipping-option-item" *ngFor="let opt of shippingOptions"
+                                [class.selected]="envioForm.get('metodo_id')?.value === opt.id">
+                                <input type="radio" formControlName="metodo_id" [value]="opt.id">
+                                <div class="ship-info">
+                                    <span class="ship-name">{{ opt.nombre }}</span>
+                                    <span class="ship-time">{{ opt.tiempo_estimado }}</span>
+                                </div>
+                                <div class="ship-price">
+                                    {{ opt.costo === 0 ? 'Gratis' : '$' + (opt.costo | number:'1.0-0') }}
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 2.3 DATOS DEL DESTINATARIO -->
+                    <div class="section-block">
+                        <h3 class="section-title">DATOS DEL DESTINATARIO</h3>
+                        <div class="form-grid">
+                            <div class="field">
+                                <input type="text" formControlName="nombre" placeholder="Nombre"
+                                    [class.invalid]="datosForm.get('nombre')?.invalid && datosForm.get('nombre')?.touched">
+                                <div class="error-msg"
+                                    *ngIf="datosForm.get('nombre')?.invalid && datosForm.get('nombre')?.touched">Este
+                                    campo debería estar completo</div>
+                            </div>
+                            <div class="field">
+                                <input type="text" formControlName="apellido" placeholder="Apellido"
+                                    [class.invalid]="datosForm.get('apellido')?.invalid && datosForm.get('apellido')?.touched">
+                                <div class="error-msg"
+                                    *ngIf="datosForm.get('apellido')?.invalid && datosForm.get('apellido')?.touched">
+                                    Este campo debería estar completo</div>
+                            </div>
+                            <div class="field full">
+                                <input type="text" formControlName="telefono" placeholder="Teléfono"
+                                    [class.invalid]="datosForm.get('telefono')?.invalid && datosForm.get('telefono')?.touched">
+                                <div class="error-msg"
+                                    *ngIf="datosForm.get('telefono')?.invalid && datosForm.get('telefono')?.touched">
+                                    Este campo debería estar completo</div>
+                            </div>
+                            <div class="field full">
+                                <input type="text" formControlName="calle" placeholder="Calle / Dirección"
+                                    [class.invalid]="datosForm.get('calle')?.invalid && datosForm.get('calle')?.touched">
+                                <div class="error-msg"
+                                    *ngIf="datosForm.get('calle')?.invalid && datosForm.get('calle')?.touched">Este
+                                    campo debería estar completo</div>
+                            </div>
+                            <div class="field">
+                                <input type="text" formControlName="altura" placeholder="Número">
+                            </div>
+                            <div class="field">
+                                <input type="text" formControlName="piso" placeholder="Depto (Opcional)">
+                            </div>
+                            <div class="field full">
+                                <input type="text" formControlName="ciudad" placeholder="Ciudad / Localidad"
+                                    [class.invalid]="datosForm.get('ciudad')?.invalid && datosForm.get('ciudad')?.touched">
+                            </div>
+                            <div class="field full">
+                                <select formControlName="provincia"
+                                    [class.invalid]="datosForm.get('provincia')?.invalid && datosForm.get('provincia')?.touched">
+                                    <option value="">Provincia...</option>
+                                    <option value="Buenos Aires">Buenos Aires</option>
+                                    <option value="CABA">CABA</option>
+                                    <option value="Catamarca">Catamarca</option>
+                                    <option value="Chaco">Chaco</option>
+                                    <option value="Chubut">Chubut</option>
+                                    <option value="Córdoba">Córdoba</option>
+                                    <option value="Corrientes">Corrientes</option>
+                                    <option value="Entre Ríos">Entre Ríos</option>
+                                    <option value="Formosa">Formosa</option>
+                                    <option value="Jujuy">Jujuy</option>
+                                    <option value="La Pampa">La Pampa</option>
+                                    <option value="La Rioja">La Rioja</option>
+                                    <option value="Mendoza">Mendoza</option>
+                                    <option value="Misiones">Misiones</option>
+                                    <option value="Neuquén">Neuquén</option>
+                                    <option value="Río Negro">Río Negro</option>
+                                    <option value="Salta">Salta</option>
+                                    <option value="San Juan">San Juan</option>
+                                    <option value="San Luis">San Luis</option>
+                                    <option value="Santa Cruz">Santa Cruz</option>
+                                    <option value="Santa Fe">Santa Fe</option>
+                                    <option value="Santiago del Estero">Santiago del Estero</option>
+                                    <option value="Tierra del Fuego">Tierra del Fuego</option>
+                                    <option value="Tucumán">Tucumán</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-block">
+                        <h3 class="section-title">DATOS DE FACTURACIÓN</h3>
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked> Mis datos de facturación y entrega son los mismos
+                        </label>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn-primary" (click)="nextStep()">CONTINUAR PARA EL PAGO</button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: PAGO -->
+                <div *ngSwitchCase="3" class="step-content" [formGroup]="pagoForm">
+                    <h3 class="section-title">MEDIO DE PAGO</h3>
+                    <div class="payment-accordion">
+                        <!-- Efectivo en el local (MOVED TO TOP) -->
+                        <div class="payment-item">
+                            <label class="payment-header">
+                                <div class="radio-wrapper">
+                                    <input type="radio" formControlName="metodo" value="efectivo_local">
+                                    <span>Efectivo en el local</span>
+                                </div>
+                                <span class="badge">15% OFF</span>
+                                <span class="price-info">Pagás ${{ (getFinalTotal() * (pagoForm.get('metodo')?.value ===
+                                    'efectivo_local' ? 1 : 0.85)) | number:'1.2-2' }}</span>
+                            </label>
+                            <div class="payment-body" *ngIf="pagoForm.get('metodo')?.value === 'efectivo_local'">
+                                <p>Pagás al retirar tu pedido en nuestro local. <strong>¡Tenés un 15% de
+                                        descuento!</strong></p>
+                            </div>
+                        </div>
+
+                        <!-- Card -->
+                        <div class="payment-item">
+                            <label class="payment-header">
+                                <div class="radio-wrapper">
+                                    <input type="radio" formControlName="metodo" value="mercadopago_card">
+                                    <span>Tarjeta de crédito o débito</span>
+                                </div>
+                                <span class="badge">Hasta 3 cuotas sin interés</span>
+                            </label>
+                            <div class="payment-body" *ngIf="pagoForm.get('metodo')?.value === 'mercadopago_card'">
+                                <div class="form-grid">
+                                    <div class="field full"><input type="text" placeholder="Número de tarjeta"></div>
+                                    <div class="field full"><input type="text" placeholder="Nombre del titular"></div>
+                                    <div class="field"><input type="text" placeholder="Vencimiento (MM/AA)"></div>
+                                    <div class="field"><input type="text" placeholder="CVV"></div>
+                                    <div class="field full">
+                                        <select>
+                                            <option>DNI</option>
+                                        </select>
+                                    </div>
+                                    <div class="field full"><input type="text" placeholder="Número de documento"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transferencia -->
+                        <div class="payment-item">
+                            <label class="payment-header">
+                                <div class="radio-wrapper">
+                                    <input type="radio" formControlName="metodo" value="transferencia">
+                                    <span>Transferencia</span>
+                                </div>
+                                <span class="badge">15% OFF</span>
+                                <span class="price-info">Pagás ${{ (getFinalTotal() * (pagoForm.get('metodo')?.value ===
+                                    'transferencia' ? 1 : 0.85)) | number:'1.2-2' }}</span>
+                            </label>
+                            <div class="payment-body" *ngIf="pagoForm.get('metodo')?.value === 'transferencia'">
+                                <p>Pagás ${{ getFinalTotal() | number:'1.2-2' }}. <strong>¡Tenés un 15% de
+                                        descuento!</strong>. Cuando termines la compra, vas a ver la información de
+                                    pago.</p>
+                            </div>
+                        </div>
+
+                        <!-- Efectivo (Rapipago) -->
+                        <div class="payment-item">
+                            <label class="payment-header">
+                                <div class="radio-wrapper">
+                                    <input type="radio" formControlName="metodo" value="efectivo">
+                                    <span>Efectivo (Pago Fácil / Rapipago)</span>
+                                </div>
+                                <span class="badge">15% OFF</span>
+                            </label>
+                            <div class="payment-body" *ngIf="pagoForm.get('metodo')?.value === 'efectivo'">
+                                <p>Pagás ${{ getFinalTotal() | number:'1.2-2' }}. <strong>¡Tenés un 15% de
+                                        descuento!</strong></p>
+                            </div>
+                        </div>
+
+                        <!-- MP -->
+                        <div class="payment-item">
+                            <label class="payment-header">
+                                <div class="radio-wrapper">
+                                    <input type="radio" formControlName="metodo" value="mercadopago">
+                                    <span>Mercado Pago</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn-secondary" (click)="prevStep()">Volver</button>
+                        <button class="btn-primary full-width" [disabled]="pagoForm.invalid || loading"
+                            (click)="finalizarCompra()">
+                            {{ loading ? 'Pprocesando...' : 'REALIZAR PEDIDO' }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 4: ÉXITO -->
+                <div *ngSwitchCase="4" class="success-screen">
+                    <div class="success-icon">✅</div>
+                    <h2>¡Gracias por tu compra, {{ orderCreated?.cliente_nombre }}!</h2>
+                    <p>Tu pedido <strong>#{{ orderCreated?.numero_pedido }}</strong> ha sido registrado.</p>
+                    <div class="next-steps">
+                        <div *ngIf="orderCreated?.metodo_pago === 'transferencia'">
+                            <p>Por favor realizá la transferencia por <strong>${{ orderCreated?.total | number:'1.0-0'
+                                    }}</strong> a la siguiente cuenta:</p>
+
+                            <div class="bank-details-card"
+                                style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left;">
+                                <p style="margin: 5px 0;"><strong>Mercado Pago</strong></p>
+                                <p style="margin: 5px 0;"><strong>Nombre:</strong> Tomas Cruseno</p>
+                                <p style="margin: 5px 0;"><strong>CVU:</strong> 0000003100068933152485</p>
+                                <p style="margin: 5px 0;"><strong>Alias:</strong> el.vestuario.r4</p>
+                            </div>
+
+                            <p class="whatsapp-instruction" style="color: #d32f2f; font-weight: 500;">
+                                ⚠️ IMPORTANTE: Enviá el comprobante de transferencia por WhatsApp para confirmar tu
+                                pedido.
+                            </p>
+                        </div>
+
+                        <div *ngIf="orderCreated?.metodo_pago === 'efectivo'">
+                            <p>Acercate a cualquier sucursal de Pago Fácil / Rapipago.</p>
+                            <p><strong>Deberás indicar el siguiente CVU al cajero para ingresar dinero:</strong></p>
+
+                            <div class="cvu-display"
+                                style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 10px 0; text-align: center; font-size: 1.2em; font-weight: bold; user-select: all;">
+                                0000003100068933152485
+                            </div>
+
+                            <p class="whatsapp-instruction" style="color: #d32f2f; font-weight: 500; margin-top: 15px;">
+                                ⚠️ IMPORTANTE: Una vez realizado el depósito, enviá el comprobante por WhatsApp para
+                                confirmar tu pedido.
+                            </p>
+                        </div>
+                        <button class="btn-primary" routerLink="/productos">Seguir Comprando</button>
+                        <button class="btn-secondary" routerLink="/mis-pedidos">Ver Mis Pedidos</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SIDEBAR RESUMEN -->
+        <div class="summary-sidebar" *ngIf="currentStep < 4">
+            <div class="summary-card">
+                <h3>Resumen del pedido</h3>
+                <!-- Item simplified list in sidebar -->
+                <div class="mini-items">
+                    <div class="mini-item" *ngFor="let item of items">
+                        <img
+                            [src]="item.producto.imagenes[0]?.url ? 'http://localhost:5000' + item.producto.imagenes[0].url : 'assets/no-img.png'">
+                        <div class="mini-details">
+                            <span>{{ item.producto.nombre }} x {{ item.cantidad }}</span>
+                            <strong>${{ (item.precio_unitario * item.cantidad) | number:'1.0-0' }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>${{ total | number:'1.0-0' }}</span>
+                </div>
+                <div class="summary-row" *ngIf="getSelectedShipping()">
+                    <span>Envío ({{ getSelectedShipping().nombre }})</span>
+                    <span>${{ getSelectedShipping().costo | number:'1.0-0' }}</span>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>${{ getFinalTotal() | number:'1.2-2' }}</span>
+                </div>
+                <p class="transfer-promo" *ngIf="pagoForm.get('metodo')?.value === 'transferencia'">
+                    Total con descuento transferencia: <strong>${{ getFinalTotal() | number:'1.2-2' }}</strong>
+                </p>
+                <p class="transfer-promo" *ngIf="pagoForm.get('metodo')?.value === 'efectivo'">
+                    Total con descuento Efectivo: <strong>${{ getFinalTotal() | number:'1.2-2' }}</strong>
+                </p>
+                <p class="transfer-promo" *ngIf="pagoForm.get('metodo')?.value === 'efectivo_local'">
+                    Total con descuento Efectivo: <strong>${{ getFinalTotal() | number:'1.2-2' }}</strong>
+                </p>
+                <div class="coupon-section" [formGroup]="couponForm">
+                    <div class="coupon-input-group">
+                        <input type="text" formControlName="code" placeholder="Código de cupón">
+                        <button class="btn-small" (click)="validateCoupon()"
+                            [disabled]="couponForm.invalid || validatingCoupon">
+                            {{ validatingCoupon ? '...' : 'Aplicar' }}
+                        </button>
+                    </div>
+                    <p class="error-msg" *ngIf="couponError">{{ couponError }}</p>
+                    <p class="success-msg" *ngIf="couponSuccess">{{ couponSuccess }}</p>
+
+                    <div class="applied-coupon" *ngIf="appliedCoupon">
+                        <div class="coupon-info">
+                            <strong>🏷️ {{ appliedCoupon.codigo }}</strong>
+                            <span *ngIf="appliedCoupon.envio_gratis">Envío Gratis</span>
+                            <span
+                                *ngIf="!appliedCoupon.envio_gratis && appliedCoupon.tipo_promocion_nombre === 'descuento_porcentaje'">
+                                {{ appliedCoupon.valor }}% OFF
+                            </span>
+                            <span
+                                *ngIf="!appliedCoupon.envio_gratis && appliedCoupon.tipo_promocion_nombre === 'descuento_fijo'">
+                                ${{ appliedCoupon.valor }} OFF
+                            </span>
+                        </div>
+                        <button class="remove-coupon" (click)="appliedCoupon = null; couponSuccess = ''">✕</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

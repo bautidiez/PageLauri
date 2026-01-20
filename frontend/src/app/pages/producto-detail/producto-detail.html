@@ -1,0 +1,128 @@
+<div class="producto-detail-page">
+  <div class="container" *ngIf="!loading && producto">
+    <div class="product-detail-wrapper">
+      <!-- Subcategorías a la izquierda -->
+      <aside class="subcategorias-sidebar" *ngIf="subcategorias.length > 0">
+        <h3>Subcategorías</h3>
+        <ul class="subcategorias-list">
+          <li *ngFor="let subcat of subcategorias" [class.active]="producto.categoria_id === subcat.id">
+            <a [routerLink]="['/productos']" [queryParams]="{categoria_id: subcat.id}">
+              {{ subcat.nombre }}
+            </a>
+          </li>
+        </ul>
+      </aside>
+
+      <div class="product-detail-content">
+        <div class="product-images">
+          <div class="main-image">
+            [alt]="producto.nombre" class="product-main-image" loading="eager">
+
+            <!-- Badge overlay -->
+            <div class="product-promo-badge-detail" *ngIf="producto.promociones && producto.promociones.length > 0">
+              {{ producto.promociones[0].tipo_promocion_nombre }}
+            </div>
+          </div>
+          <div class="thumbnail-images" *ngIf="producto.imagenes && producto.imagenes.length > 1">
+            <img *ngFor="let img of producto.imagenes" [src]="getImagenUrl(img)" [alt]="producto.nombre"
+              [class.active]="imagenSeleccionada?.id === img.id" (click)="cambiarImagen(img)" class="thumbnail"
+              loading="lazy">
+          </div>
+        </div>
+
+        <div class="product-info">
+          <h1 class="product-title">{{ producto.nombre }}</h1>
+
+          <p class="product-category">{{ producto.categoria_nombre }}</p>
+
+          <div class="product-price-section">
+            <div class="price-main">
+              <span class="product-price" *ngIf="producto.precio_descuento">
+                ${{ producto.precio_descuento | number:'1.0-0' }}
+              </span>
+              <span class="product-price-old" *ngIf="producto.precio_descuento">
+                ${{ producto.precio_base | number:'1.0-0' }}
+              </span>
+              <span class="product-price" *ngIf="!producto.precio_descuento">
+                ${{ producto.precio_base | number:'1.0-0' }}
+              </span>
+            </div>
+            <div class="price-descuento-transferencia">
+              <p class="price-label">En efectivo o transferencia:</p>
+              <p class="price-descuento">${{ getPrecioConDescuento() | number:'1.0-0' }}</p>
+              <p class="price-cuotas">3 cuotas sin interés de ${{ getPrecioCuotas() | number:'1.0-0' }}</p>
+            </div>
+          </div>
+
+          <!-- Selector de Colores -->
+          <div class="product-colores" *ngIf="coloresDisponibles.length > 0">
+            <h3>Colores disponibles:</h3>
+            <div class="colores-grid">
+              <div *ngFor="let colorProd of coloresDisponibles" class="color-item"
+                [class.selected]="colorProd.id === producto.id" (click)="cambiarColor(colorProd)"
+                [title]="colorProd.color || 'Color disponible'">
+                <div class="color-circle" [style.background-color]="colorProd.color_hex || '#ccc'"></div>
+                <span>{{ colorProd.color || 'Sin color' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-description">
+            <h3>Descripción</h3>
+            <p>{{ producto.descripcion || 'Sin descripción disponible' }}</p>
+          </div>
+
+          <div class="product-talles">
+            <h3>Selecciona tu talle:</h3>
+            <div class="talles-grid">
+              <button *ngFor="let talle of talles" class="talle-btn"
+                [class.selected]="talleSeleccionado?.id === talle.id" [class.disabled]="!tieneStockTalle(talle.id)"
+                [disabled]="!tieneStockTalle(talle.id)" (click)="seleccionarTalle(talle)">
+                {{ talle.nombre }}
+                <span class="stock-indicator" *ngIf="tieneStockTalle(talle.id)">
+                  ({{ getStockTalle(talle.id) }} disponibles)
+                </span>
+                <span class="stock-indicator agotado" *ngIf="!tieneStockTalle(talle.id)">
+                  Agotado
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div class="product-cantidad" *ngIf="talleSeleccionado">
+            <h3>Cantidad:</h3>
+            <div class="cantidad-controls">
+              <button (click)="disminuirCantidad()" [disabled]="cantidad <= 1">-</button>
+              <input type="number" [(ngModel)]="cantidad" min="1" [max]="getStockTalle(talleSeleccionado.id)" readonly>
+              <button (click)="aumentarCantidad()"
+                [disabled]="cantidad >= getStockTalle(talleSeleccionado.id)">+</button>
+            </div>
+            <p class="stock-info">Stock disponible: {{ getStockTalle(talleSeleccionado.id) }}</p>
+          </div>
+
+          <div class="product-actions">
+            <button class="btn btn-primary btn-large" (click)="agregarAlCarrito()"
+              [disabled]="!talleSeleccionado || agregandoAlCarrito || !producto.tiene_stock">
+              {{ agregandoAlCarrito ? 'Agregando...' : 'Agregar al Carrito' }}
+            </button>
+          </div>
+
+          <app-shipping-calculator
+            [precioBase]="producto.precio_descuento || producto.precio_base"></app-shipping-calculator>
+
+          <div class="product-stock-status" *ngIf="!producto.tiene_stock">
+            <p class="error">Este producto está agotado</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <p>No disponible</p>
+  </div>
+
+  <div class="no-data" *ngIf="!loading && !producto">
+    <p>No disponible</p>
+  </div>
+</div>

@@ -1,0 +1,114 @@
+<div class="contacto-page">
+  <div class="container">
+    <div class="page-header">
+      <h1>Contacto</h1>
+      <p>¿Tenés alguna consulta? Escribinos</p>
+    </div>
+
+    <div class="contacto-content">
+      <div class="contacto-form-section">
+        <h2>Envíanos un mensaje</h2>
+        <form (ngSubmit)="enviarMensaje()" #contactoForm="ngForm" *ngIf="!enviado">
+          <div class="form-group">
+            <label>Nombre completo *</label>
+            <input type="text" [(ngModel)]="contacto.nombre" name="nombre" #nombre="ngModel" required
+              [class.invalid]="nombre.invalid && nombre.touched">
+            <div class="error-text" *ngIf="nombre.invalid && nombre.touched">
+              El nombre es obligatorio.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" [(ngModel)]="contacto.email" name="email" #email="ngModel" required email
+              [class.invalid]="email.invalid && email.touched">
+            <div class="error-text" *ngIf="email.invalid && email.touched">
+              <span *ngIf="email.errors?.['required']">El email es obligatorio.</span>
+              <span *ngIf="email.errors?.['email']">Ingresa un email válido.</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Teléfono *</label>
+            <input type="tel" [(ngModel)]="contacto.telefono" name="telefono" #telefono="ngModel" required minlength="9"
+              maxlength="11" pattern="^[0-9]+$" [class.invalid]="telefono.invalid && telefono.touched">
+            <div class="error-text" *ngIf="telefono.invalid && telefono.touched">
+              <span *ngIf="telefono.errors?.['required']">El teléfono es obligatorio.</span>
+              <span *ngIf="telefono.errors?.['pattern']">Solo se permiten números.</span>
+              <span *ngIf="telefono.errors?.['minlength'] || telefono.errors?.['maxlength']">
+                El teléfono debe tener entre 9 y 11 dígitos.
+              </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Mensaje *</label>
+            <textarea [(ngModel)]="contacto.mensaje" name="mensaje" #mensaje="ngModel" rows="6" required
+              placeholder="Escribí tu consulta aquí..." [class.invalid]="mensaje.invalid && mensaje.touched"></textarea>
+            <div class="error-text" *ngIf="mensaje.invalid && mensaje.touched">
+              El mensaje es obligatorio.
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-large" [disabled]="contactoForm.invalid || enviando">
+            <span *ngIf="!enviando">Enviar Mensaje</span>
+            <span *ngIf="enviando">Enviando...</span>
+          </button>
+
+          <div class="error-message" *ngIf="error">
+            <p>{{ error }}</p>
+          </div>
+        </form>
+
+        <div class="success-message" *ngIf="enviado">
+          <h3>¡Mensaje enviado!</h3>
+          <p>Gracias por contactarnos. Te responderemos a la brevedad.</p>
+        </div>
+      </div>
+
+      <div class="contacto-info-section">
+        <h2>Información de contacto</h2>
+
+        <div class="contact-grid">
+          <div class="info-card">
+            <h3>📱 Teléfonos</h3>
+            <p>+54 9 358 5164402</p>
+            <p>+54 9 358 4825640</p>
+          </div>
+
+          <div class="info-card">
+            <h3>📧 Emails</h3>
+            <p>tomasgomezz411@gmail.com</p>
+            <p>lauribenitez.2016@gmail.com</p>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>📍 Ubicación</h3>
+          <p>Río Cuarto, Córdoba, Argentina</p>
+        </div>
+
+        <div class="info-card">
+          <h3>🕐 Horario de atención</h3>
+          <p>Lunes a Viernes: 9:00 - 18:00</p>
+          <p>Sábados: 10:00 - 14:00</p>
+        </div>
+
+        <div class="social-links">
+          <h3>Seguinos</h3>
+          <div class="social-buttons">
+            <a href="https://instagram.com/elvestuario.r4" target="_blank" rel="noopener noreferrer" class="social-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" class="instagram-icon">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+              <span>Instagram</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

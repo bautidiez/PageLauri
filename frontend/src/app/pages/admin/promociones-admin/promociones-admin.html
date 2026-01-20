@@ -1,0 +1,269 @@
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>🎁 Gestión de Promociones</h1>
+    <div class="header-stats">
+      <div class="stat-card success">
+        <span class="stat-number">{{ stats.activas }}</span>
+        <span class="stat-label">Activas</span>
+      </div>
+      <div class="stat-card info">
+        <span class="stat-number">{{ stats.programadas }}</span>
+        <span class="stat-label">Programadas</span>
+      </div>
+      <div class="stat-card muted">
+        <span class="stat-number">{{ stats.expiradas }}</span>
+        <span class="stat-label">Expiradas</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" (click)="nuevo()">
+      ➕ Nueva Promoción
+    </button>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filters-bar">
+    <input type="text" [(ngModel)]="busqueda" placeholder="🔍 Buscar producto..." class="search-input">
+
+    <div class="filter-tabs">
+      <button class="tab" [class.active]="filtroEstado === 'todas'" (click)="filtroEstado = 'todas'">
+        Todas
+      </button>
+      <button class="tab" [class.active]="filtroEstado === 'activas'" (click)="filtroEstado = 'activas'">
+        Activas
+      </button>
+      <button class="tab" [class.active]="filtroEstado === 'programadas'" (click)="filtroEstado = 'programadas'">
+        Programadas
+      </button>
+      <button class="tab" [class.active]="filtroEstado === 'expiradas'" (click)="filtroEstado = 'expiradas'">
+        Expiradas
+      </button>
+    </div>
+  </div>
+
+  <!-- WIZARD -->
+  <div *ngIf="mostrarWizard" class="modal-overlay" (click)="cancelar()">
+    <div class="modal-wizard" (click)="$event.stopPropagation()">
+      <div class="wizard-header">
+        <h2>{{ modoEdicion ? 'Editar Promoción' : 'Nueva Promoción' }}</h2>
+        <div class="steps">
+          <div class="step" [class.active]="pasoActual === 1" [class.completed]="pasoActual > 1">
+            <span class="step-number">1</span>
+            <span>Alcance y Tipo</span>
+          </div>
+          <div class="step" [class.active]="pasoActual === 2">
+            <span class="step-number">2</span>
+            <span>Fechas y Resumen</span>
+          </div>
+        </div>
+        <button class="btn-close" (click)="cancelar()">✕</button>
+      </div>
+
+      <div class="wizard-body">
+        <!-- PASO 1: Producto y Tipo -->
+        <div *ngIf="pasoActual === 1" class="wizard-content">
+          <div class="form-group">
+            <label>Alcance de la Promoción *</label>
+            <div class="scope-selector">
+              <button type="button" class="scope-btn" [class.active]="nuevaPromocion.alcance === 'producto'"
+                (click)="nuevaPromocion.alcance = 'producto'">📦 Productos</button>
+              <button type="button" class="scope-btn" [class.active]="nuevaPromocion.alcance === 'categoria'"
+                (click)="nuevaPromocion.alcance = 'categoria'">📁 Categorías</button>
+              <button type="button" class="scope-btn" [class.active]="nuevaPromocion.alcance === 'tienda'"
+                (click)="nuevaPromocion.alcance = 'tienda'">🏪 Toda la tienda</button>
+            </div>
+          </div>
+
+          <!-- SELECTOR DE PRODUCTOS (Autocomplete) -->
+          <div class="form-group" *ngIf="nuevaPromocion.alcance === 'producto'">
+            <label>Seleccionar Producto(s) *</label>
+            <div class="autocomplete-container">
+              <input type="text" [(ngModel)]="searchQuery" (input)="onSearchInput()"
+                placeholder="🔍 Escribe para buscar productos..." class="form-control">
+              <div class="autocomplete-results" *ngIf="searchResults.length > 0">
+                <div *ngFor="let res of searchResults" (click)="selectProduct(res)" class="result-item">
+                  {{ res.nombre }}
+                </div>
+              </div>
+              <div class="autocomplete-results" *ngIf="searching">
+                <div class="result-item">Buscando...</div>
+              </div>
+            </div>
+
+            <div class="selected-items" *ngIf="productosSeleccionados.length > 0">
+              <div *ngFor="let p of productosSeleccionados" class="selected-badge">
+                {{ p.nombre }}
+                <span class="remove" (click)="removeProduct(p.id)">✕</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SELECTOR DE CATEGORÍAS (Multi-select) -->
+          <div class="form-group" *ngIf="nuevaPromocion.alcance === 'categoria'">
+            <label>Seleccionar Categoría(s) *</label>
+            <div class="category-grid">
+              <div *ngFor="let cat of categorias" class="category-group">
+                <div class="category-header" (click)="toggleCategoria(cat.id)"
+                  [class.selected]="isCategoriaSelected(cat.id)">
+                  <input type="checkbox" [checked]="isCategoriaSelected(cat.id)" readonly>
+                  <strong>{{ cat.nombre }}</strong>
+                </div>
+                <!-- Subcategorías -->
+                <div class="subcategory-list" *ngIf="cat.subcategorias">
+                  <div *ngFor="let sub of cat.subcategorias" class="subcategory-item" (click)="toggleCategoria(sub.id)"
+                    [class.selected]="isCategoriaSelected(sub.id)">
+                    <input type="checkbox" [checked]="isCategoriaSelected(sub.id)" readonly>
+                    <span>{{ sub.nombre }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de Promoción *</label>
+            <select [(ngModel)]="nuevaPromocion.tipo_promocion_id" class="form-control">
+              <option [ngValue]="null">Seleccionar tipo...</option>
+              <option *ngFor="let tipo of tiposPromocion" [ngValue]="tipo.id">
+                {{ tipo.descripcion }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="nuevaPromocion.envio_gratis">
+              🎁 Envío Gratis
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="nuevaPromocion.es_cupon">
+              🎟️ Es un cupón de descuento
+            </label>
+          </div>
+
+          <div class="form-group" *ngIf="nuevaPromocion.es_cupon">
+            <label>Código del Cupón *</label>
+            <input type="text" [(ngModel)]="nuevaPromocion.codigo" class="form-control" placeholder="Ej: VERANO2026"
+              style="text-transform: uppercase;">
+            <small class="help-text">El código que el cliente deberá ingresar.</small>
+          </div>
+
+          <div class="form-group" *ngIf="mostrarCampoValor()">
+            <label>Valor *</label>
+            <input type="number" [(ngModel)]="nuevaPromocion.valor" [placeholder]="getPlaceholderValor()"
+              class=" form-control" min="0">
+            <small class="help-text">{{ getPlaceholderValor() }}</small>
+          </div>
+        </div>
+
+        <!-- PASO 2: Fechas -->
+        <div *ngIf="pasoActual === 2" class="wizard-content">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha de Inicio *</label>
+              <input type="date" [(ngModel)]="nuevaPromocion.fecha_inicio" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Fecha de Fin *</label>
+              <input type="date" [(ngModel)]="nuevaPromocion.fecha_fin" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="nuevaPromocion.activa">
+              Promoción activa
+            </label>
+          </div>
+
+          <div class="resumen-promo">
+            <h4>📋 Resumen</h4>
+            <p><strong>Alcance:</strong> {{ getAlcanceResumen() }}</p>
+            <p><strong>Tipo:</strong> {{ getTipoPromocionNombre(nuevaPromocion.tipo_promocion_id) }}</p>
+            <p *ngIf="nuevaPromocion.envio_gratis"><strong>Beneficio:</strong> Envío Gratis</p>
+            <p *ngIf="nuevaPromocion.es_cupon"><strong>Cupón:</strong> {{ nuevaPromocion.codigo }}</p>
+            <p *ngIf="mostrarCampoValor()"><strong>Valor:</strong> {{ nuevaPromocion.valor }}</p>
+            <p><strong>Periodo:</strong> {{ formatFecha(nuevaPromocion.fecha_inicio) }} - {{
+              formatFecha(nuevaPromocion.fecha_fin) }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-footer">
+        <button class="btn btn-secondary" (click)="cancelar()">Cancelar</button>
+        <div class="footer-right">
+          <button class="btn btn-secondary" *ngIf="pasoActual > 1" (click)="pasoAnterior()">
+            ← Anterior
+          </button>
+          <button class="btn btn-primary" *ngIf="pasoActual < totalPasos" (click)="siguientePaso()">
+            Siguiente →
+          </button>
+          <button class="btn btn-success" *ngIf="pasoActual === totalPasos" (click)="guardar()">
+            💾 Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="loading" class="loading">
+    <p>Cargando promociones...</p>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div *ngIf="!loading && promocionesFiltradas.length === 0" class="empty-state">
+    <p>📭 No hay promociones que mostrar</p>
+    <button class="btn btn-primary" (click)="nuevo()">Crear Primera Promoción</button>
+  </div>
+
+  <!-- LISTA DE PROMOCIONES -->
+  <div *ngIf="!loading && promocionesFiltradas.length > 0" class="promociones-grid">
+    <div *ngFor="let promo of promocionesFiltradas" class="promo-card" [class]="'promo-' + promo.estado">
+      <div class="promo-header">
+        <h3>
+          <span *ngIf="promo.alcance === 'tienda'">🏪 Toda la tienda</span>
+          <span *ngIf="promo.alcance === 'producto'">📦 {{ promo.productos_ids.length }} producto(s)</span>
+          <span *ngIf="promo.alcance === 'categoria'">📁 {{ promo.categorias_ids.length }} categoría(s)</span>
+        </h3>
+        <span class="badge" [ngClass]="getEstadoClass(promo.estado!)">
+          {{ getEstadoLabel(promo.estado!) }}
+        </span>
+      </div>
+
+      <div class="promo-body">
+        <div class="promo-tipo">
+          <strong>{{ getTipoPromocionNombre(promo.tipo_promocion_id) }}</strong>
+          <span *ngIf="promo.envio_gratis" class="badge badge-success" style="margin-left: 5px;">Envío Gratis</span>
+        </div>
+        <div class="promo-codigo" *ngIf="promo.es_cupon">
+          <code>{{ promo.codigo }}</code>
+        </div>
+        <div class="promo-valor" *ngIf="promo.valor">
+          <span class="valor-grande">{{ promo.valor }}</span>
+          <span class="valor-unidad">{{ promo.tipo_nombre?.includes('porcentaje') ? '%' : '$' }} OFF</span>
+        </div>
+        <div class="promo-fechas">
+          <div>
+            <small>Inicio:</small>
+            <strong>{{ formatFecha(promo.fecha_inicio) }}</strong>
+          </div>
+          <div>
+            <small>Fin:</small>
+            <strong>{{ formatFecha(promo.fecha_fin) }}</strong>
+          </div>
+        </div>
+        <div class="promo-restante" *ngIf="promo.estado === 'activa'">
+          <small>{{ getDiasRestantes(promo.fecha_fin) }} días restantes</small>
+        </div>
+      </div>
+
+      <div class="promo-footer">
+        <button class="btn-icon" (click)="editar(promo)" title="Editar">✏️</button>
+        <button class="btn-icon" (click)="eliminar(promo.id)" title="Eliminar">🗑️</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<div class="color-picker">
+  <div class="color-preview" *ngIf="selectedColor">
+    <div class="color-square" [style.background-color]="selectedColor"></div>
+    <span class="color-name">{{ getColorName(selectedColor) }}</span>
+  </div>
+  <div class="color-grid">
+    <div 
+      *ngFor="let color of colors" 
+      class="color-item"
+      [class.selected]="selectedColor === color.hex"
+      (click)="selectColor(color)"
+      [title]="color.name">
+      <div class="color-circle" [style.background-color]="color.hex"></div>
+    </div>
+  </div>
+</div>

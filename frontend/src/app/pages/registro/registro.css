@@ -1,0 +1,218 @@
+.registro-page {
+    min-height: 90vh;
+    padding: 60px 20px;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/assets/portada3.png') center/cover no-repeat fixed !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.registro-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.registro-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.registro-header h1 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.registro-header p {
+    color: #666;
+    font-size: 16px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-checkbox {
+    margin: 20px 0;
+}
+
+.form-checkbox label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.form-checkbox input[type="checkbox"] {
+    margin-top: 4px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.form-checkbox span {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.btn-register {
+    width: 100%;
+    padding: 14px;
+    background-image: url('/assets/fondo.png');
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.btn-register:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+.btn-register:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.error-message {
+    background: #fee;
+    color: #c33;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.login-link p {
+    color: #666;
+    font-size: 14px;
+}
+
+.login-link a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+.success-message-box {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.success-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.success-message-box h2 {
+    color: #27ae60;
+    font-size: 28px;
+    margin-bottom: 15px;
+}
+
+.success-message-box p {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.redirect-message {
+    color: #999 !important;
+    font-size: 14px !important;
+    font-style: italic;
+}
+
+/* Estilos de Verificación */
+.verification-step {
+    text-align: center;
+}
+
+.verification-header {
+    margin-bottom: 30px;
+}
+
+.sms-icon {
+    font-size: 50px;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.verification-header h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.code-input {
+    text-align: center;
+    font-size: 24px !important;
+    letter-spacing: 12px;
+    font-weight: bold;
+    max-width: 250px;
+    margin: 0 auto;
+}
+
+.btn-verify {
+    width: 100%;
+    padding: 14px;
+    background-image: url('/assets/fondo.png');
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.resend-link {
+    margin-top: 25px;
+}
+
+.resend-link a {
+    color: #667eea;
+    font-weight: bold;
+    text-decoration: underline;
+}

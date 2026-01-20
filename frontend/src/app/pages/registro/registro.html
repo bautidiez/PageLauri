@@ -1,0 +1,97 @@
+<div class="registro-page"
+    style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/assets/portada3.png') center/cover no-repeat fixed !important;">
+    <div class="container">
+        <div class="registro-card">
+            <div class="registro-header">
+                <h1>Crear Cuenta</h1>
+                <p>Regístrate para recibir nuestras ofertas semanales</p>
+            </div>
+
+            <!-- Formulario de Registro -->
+            <form (ngSubmit)="registrar()" class="registro-form" *ngIf="!mensajeExito && !esperandoVerificacion">
+                <div class="form-group">
+                    <label>Nombre Completo *</label>
+                    <input type="text" [(ngModel)]="cliente.nombre" name="nombre" placeholder="Tu nombre completo"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" [(ngModel)]="cliente.email" name="email" placeholder="tu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Contraseña *</label>
+                    <input type="password" [(ngModel)]="cliente.password" name="password" placeholder="Tu contraseña"
+                        required>
+                    <small class="form-hint">Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 número</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Teléfono *</label>
+                    <input type="tel" [(ngModel)]="cliente.telefono" name="telefono" placeholder="+54 9 358 123456"
+                        required>
+                </div>
+
+                <div class="form-checkbox">
+                    <label>
+                        <input type="checkbox" [(ngModel)]="cliente.acepta_newsletter" name="acepta_newsletter">
+                        <span>Acepto recibir notificaciones semanales sobre nuevas ofertas y productos</span>
+                    </label>
+                </div>
+
+                <div class="error-message" *ngIf="mensajeError && !esperandoVerificacion">
+                    ⚠️ {{ mensajeError }}
+                </div>
+
+                <button type="submit" class="btn-register" [disabled]="registrando">
+                    <span *ngIf="!registrando">Crear Cuenta</span>
+                    <span *ngIf="registrando">Registrando...</span>
+                </button>
+
+                <div class="login-link">
+                    <p>¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a></p>
+                </div>
+            </form>
+
+            <!-- Formulario de Verificación -->
+            <div class="verification-step" *ngIf="esperandoVerificacion && !mensajeExito">
+                <div class="verification-header">
+                    <span class="sms-icon">📱</span>
+                    <h2>Verifica tu Teléfono</h2>
+                    <p>Hemos enviado un código de 6 dígitos vía WhatsApp o SMS a tu número.</p>
+                </div>
+
+                <form (ngSubmit)="verificarCodigo()" class="verification-form">
+                    <div class="form-group">
+                        <label>Código de Validación</label>
+                        <input type="text" [(ngModel)]="codigoVerificacion" name="codigo" maxlength="6"
+                            placeholder="000000" class="code-input" required>
+                    </div>
+
+                    <div class="error-message" *ngIf="mensajeError">
+                        ⚠️ {{ mensajeError }}
+                    </div>
+
+                    <button type="submit" class="btn-verify" [disabled]="verificando">
+                        <span *ngIf="!verificando">Validar Teléfono</span>
+                        <span *ngIf="verificando">Verificando...</span>
+                    </button>
+
+                    <div class="resend-link">
+                        <p>¿No recibiste el código? <a (click)="reenviarCodigo()" style="cursor: pointer;">Reenviar</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Mensaje de Éxito Final -->
+            <div class="success-message-box" *ngIf="mensajeExito">
+                <div class="success-icon">✅</div>
+                <h2>¡Teléfono Verificado!</h2>
+                <p>Tu cuenta ha sido activada correctamente.</p>
+                <p class="redirect-message">Redirigiendo al inicio de sesión...</p>
+            </div>
+        </div>
+    </div>
+</div>

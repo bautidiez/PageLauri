@@ -1,0 +1,34 @@
+<div class="recovery-page">
+    <div class="container">
+        <div class="recovery-card">
+            <div class="recovery-header">
+                <h2>Recuperar Contraseña</h2>
+                <p>Ingresa tu email y te enviaremos instrucciones.</p>
+            </div>
+
+            <form (ngSubmit)="onSubmit()" class="recovery-form">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" [(ngModel)]="email" name="email" placeholder="tu@email.com" required email>
+                </div>
+
+                <div class="message success" *ngIf="message">
+                    ✅ {{ message }}
+                </div>
+
+                <div class="message error" *ngIf="error">
+                    ⚠️ {{ error }}
+                </div>
+
+                <button type="submit" class="btn-submit" [disabled]="loading">
+                    <span *ngIf="!loading">Enviar Instrucciones</span>
+                    <span *ngIf="loading">Enviando...</span>
+                </button>
+
+                <div class="back-link">
+                    <a routerLink="/login">← Volver al login</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

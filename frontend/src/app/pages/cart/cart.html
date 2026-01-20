@@ -1,0 +1,58 @@
+<div class="cart-page">
+  <div class="container">
+    <h1>Carrito de Compras</h1>
+
+    <div *ngIf="items.length === 0" class="empty-cart">
+      <p>Tu carrito está vacío</p>
+      <a routerLink="/productos" class="btn btn-primary">Ver Productos</a>
+    </div>
+
+    <div *ngIf="items.length > 0" class="cart-content">
+      <div class="cart-items">
+        <div class="cart-item" *ngFor="let item of items; let i = index">
+          <div class="item-image">
+            <img
+              [src]="item.producto.imagenes && item.producto.imagenes.length > 0 ? 'http://localhost:5000' + item.producto.imagenes[0].url : 'https://via.placeholder.com/150x150?text=Sin+imagen'"
+              [alt]="item.producto.nombre">
+          </div>
+          <div class="item-info">
+            <h3>{{ item.producto.nombre }}</h3>
+            <p>Talle: {{ item.talle.nombre }}</p>
+            <p class="item-price">${{ item.precio_unitario | number:'1.0-0' }}</p>
+          </div>
+          <div class="item-quantity">
+            <button (click)="updateQuantity(i, item.cantidad - 1)">-</button>
+            <span>{{ item.cantidad }}</span>
+            <button (click)="updateQuantity(i, item.cantidad + 1)">+</button>
+          </div>
+          <div class="item-total">
+            <p>${{ (item.precio_unitario * item.cantidad) | number:'1.0-0' }}</p>
+          </div>
+          <div class="item-actions">
+            <button class="btn-remove" (click)="removeItem(i)">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <app-shipping-calculator [precioBase]="total"></app-shipping-calculator>
+
+      <div class="cart-summary">
+        <h2>Resumen del Pedido</h2>
+        <div class="summary-row">
+          <span>Subtotal:</span>
+          <span>${{ getSubtotal() | number:'1.0-0' }}</span>
+        </div>
+        <div class="summary-row" *ngIf="getDescuentoTotal() > 0">
+          <span>Descuento:</span>
+          <span class="discount">-${{ getDescuentoTotal() | number:'1.0-0' }}</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total:</span>
+          <span>${{ total | number:'1.0-0' }}</span>
+        </div>
+        <a routerLink="/checkout" class="btn btn-primary btn-large">Continuar con la Compra</a>
+        <a routerLink="/productos" class="btn btn-secondary">Seguir Comprando</a>
+      </div>
+    </div>
+  </div>
+</div>

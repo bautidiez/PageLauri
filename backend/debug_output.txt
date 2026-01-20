@@ -1,0 +1,15 @@
+--- DEBUG REPORT ---
+Total Categorias: 43
+Total Productos: 75
+Active Products: 75
+Destacados: 15
+Sample Product: Remera 1 (Activo: True, Categoria: Remeras)
+Imagenes: 0 associated
+
+--- API SIMULATION (/api/productos) ---
+DEBUG IN: GET /api/productos
+DEBUG OUT: GET /api/productos - 132.7ms
+Status Code: 200
+API Returned Total: 75
+API Returned Items Count: 20
+Debug report written to debug_output.txt

@@ -1,0 +1,197 @@
+<div class="panel-principal-page">
+  <div class="panel-header">
+    <div class="container">
+      <div class="header-content">
+        <h1>Panel Principal</h1>
+        <div class="header-actions">
+          <button class="btn-icon btn-primary" (click)="goToPanelGestion()" title="Ir al Panel de Gestión">
+            <span class="icon">⚙️</span>
+            <span>Panel de Gestión</span>
+          </button>
+          <a routerLink="/" class="btn btn-secondary">Ver Tienda</a>
+          <button class="btn btn-danger" (click)="logout()">Cerrar Sesión</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-content">
+    <div class="container">
+      <!-- Estadísticas Generales -->
+      <div *ngIf="loading" class="loading">
+        <p>Cargando estadísticas...</p>
+      </div>
+
+      <div *ngIf="!loading && !estadisticas" class="no-data-error">
+        <p *ngIf="!errorMessage">No disponible</p>
+        <p *ngIf="errorMessage" class="error-text">❌ {{ errorMessage }}</p>
+        <small *ngIf="errorMessage">Por favor revisa la consola del servidor (terminal).</small>
+      </div>
+
+      <div *ngIf="!loading && estadisticas" class="estadisticas-generales">
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <h3>Total de Productos</h3>
+          <div class="stat-value">{{ estadisticas.productos.total }}</div>
+          <div class="stat-details">
+            <span>Activos: {{ estadisticas.productos.activos }}</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <h3>Total de Pedidos</h3>
+          <div class="stat-value">{{ estadisticas.pedidos.total }}</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">⏳</div>
+          <h3>Pedidos Pendientes a Entregar</h3>
+          <div class="stat-value">{{ estadisticas.pedidos.pendientes }}</div>
+        </div>
+
+        <div class="stat-card destacado">
+          <div class="stat-icon">💰</div>
+          <h3>Ganancia Total</h3>
+          <div class="stat-value">${{ estadisticas.ventas.total | number:'1.0-0' }}</div>
+        </div>
+      </div>
+
+      <!-- Estadísticas de Ventas por Período -->
+      <div class="estadisticas-ventas-section">
+        <h2>📈 Análisis de Ventas</h2>
+
+        <div *ngIf="loadingVentas" class="loading">
+          <p>Cargando estadísticas de ventas...</p>
+        </div>
+
+        <div
+          *ngIf="!loadingVentas && (!estadisticasVentas || !estadisticasVentas.datos || estadisticasVentas.datos.length === 0)"
+          class="no-data">
+          <p>No disponible</p>
+        </div>
+
+        <div
+          *ngIf="!loadingVentas && estadisticasVentas && estadisticasVentas.datos && estadisticasVentas.datos.length > 0">
+          <div class="periodo-selector">
+            <div class="selector-tabs">
+              <button class="periodo-btn" [class.active]="periodoSeleccionado === 'dia'"
+                (click)="cambiarPeriodo('dia')">
+                Día a Día
+              </button>
+              <button class="periodo-btn" [class.active]="periodoSeleccionado === 'semana'"
+                (click)="cambiarPeriodo('semana')">
+                Semana a Semana
+              </button>
+              <button class="periodo-btn" [class.active]="periodoSeleccionado === 'mes'"
+                (click)="cambiarPeriodo('mes')">
+                Mes a Mes
+              </button>
+              <button class="periodo-btn" [class.active]="periodoSeleccionado === 'año'"
+                (click)="cambiarPeriodo('año')">
+                Año Tras Año
+              </button>
+            </div>
+
+            <!-- Controles de Navegación Histórica -->
+            <div class="history-controls">
+              <button class="nav-arrow" (click)="paginarAtras()">
+                <span class="arrow-icon">◀</span>
+              </button>
+
+              <!-- Selectores de Historia (Solo visible en modos específicos si es necesario, o podemos confiar solo en las flechas) -->
+              <!-- Mantenemos los selectores para salto rápido si el usuario quiere, pero las flechas son lo principal pedido -->
+              <div class="history-label" *ngIf="periodoSeleccionado === 'dia'">
+                Semana del {{ estadisticasVentas.datos[0].fecha | date:'dd/MM' }} al {{
+                estadisticasVentas.datos[6]?.fecha | date:'dd/MM' }}
+              </div>
+              <div class="history-label" *ngIf="periodoSeleccionado === 'semana'">
+                Últimas 8 Semanas
+              </div>
+              <div class="history-label" *ngIf="periodoSeleccionado === 'mes'">
+                Año {{ anioSeleccionado }}
+              </div>
+
+              <button class="nav-arrow" (click)="paginarAdelante()">
+                <span class="arrow-icon">▶</span>
+              </button>
+            </div>
+
+            <!-- Selectores antiguos ocultos o movidos si se requiere -->
+            <div class="history-selects" *ngIf="periodoSeleccionado === 'mes'">
+              <select id="anio" class="select-history" [value]="anioSeleccionado" (change)="cambiarAnio($event)">
+                <option *ngFor="let a of aniosDisponibles" [value]="a">{{ a }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="ventas-resumen" *ngIf="estadisticasVentas.datos && estadisticasVentas.datos.length > 0">
+            <div class="resumen-card">
+              <h4>Total del Período</h4>
+              <p class="resumen-valor">${{ estadisticasVentas.total_periodo | number:'1.0-0' }}</p>
+            </div>
+            <div class="resumen-card" *ngIf="getVentaMaxima()">
+              <h4>Mejor Venta</h4>
+              <p class="resumen-valor verde">{{ getVentaMaxima().label }}</p>
+              <p class="resumen-descripcion">${{ getVentaMaxima().ventas | number:'1.0-0' }}</p>
+            </div>
+            <div class="resumen-card" *ngIf="getVentaMinima()">
+              <h4>Menor Venta</h4>
+              <p class="resumen-valor rojo">{{ getVentaMinima().label }}</p>
+              <p class="resumen-descripcion">${{ getVentaMinima().ventas | number:'1.0-0' }}</p>
+            </div>
+          </div>
+
+          <div class="grafico-ventas" *ngIf="estadisticasVentas.datos && estadisticasVentas.datos.length > 0">
+            <div class="grafico-barras">
+              <div class="barra-container" *ngFor="let item of estadisticasVentas.datos">
+                <div class="barra-wrapper">
+                  <div class="barra" [style.height.%]="(item.ventas / estadisticasVentas.max_venta * 100)"
+                    [title]="item.label + ': $' + item.ventas">
+                  </div>
+                </div>
+                <div class="barra-label">{{ item.label }}</div>
+                <div class="barra-valor">${{ item.ventas | number:'1.0-0' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accesos Rápidos -->
+        <div class="accesos-rapidos">
+          <h2>⚡ Accesos Rápidos</h2>
+          <div class="acciones-grid">
+            <div class="accion-card" (click)="goToGestionProductos()">
+              <div class="accion-icon">📦</div>
+              <h3>Gestionar Productos</h3>
+              <p>Agregar, editar y eliminar productos</p>
+            </div>
+
+            <div class="accion-card" (click)="goToGestionCategorias()">
+              <div class="accion-icon">📂</div>
+              <h3>Gestionar Categorías</h3>
+              <p>Crear y editar categorías</p>
+            </div>
+
+            <div class="accion-card" (click)="goToGestionStock()">
+              <div class="accion-icon">📊</div>
+              <h3>Gestionar Stock</h3>
+              <p>Modificar stock por producto y talle</p>
+            </div>
+
+            <div class="accion-card" (click)="goToGestionPedidos()">
+              <div class="accion-icon">📋</div>
+              <h3>Gestionar Pedidos</h3>
+              <p>Ver y actualizar estado de pedidos</p>
+            </div>
+
+            <div class="accion-card" (click)="goToGestionPromociones()">
+              <div class="accion-icon">🎁</div>
+              <h3>Gestionar Promociones</h3>
+              <p>Crear y editar promociones</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

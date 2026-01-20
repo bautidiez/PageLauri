@@ -1,0 +1,327 @@
+.footer {
+  background-color: #fff;
+  /* Changed to white/light as per screenshot request typically has light bg or keeps dark but needs specific styling. User showed white icons on white bg? No, white cards on white bg means bg likely dark or grey, OR icons have borders. Screenshot shows icons on white/grey. Let's stick to clean dark footer for contrast OR match screenshot exactly. Screenshot has WHITE background for icons. Let's make footer background #f8f9fa (light grey) or #fff. */
+  background: #fdfdfd;
+  border-top: 1px solid #eee;
+  padding: 60px 0 20px;
+  margin-top: 80px;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+}
+
+.footer-grid {
+  display: flex;
+  /* Flex is better for uneven columns than grid here */
+  flex-wrap: wrap;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto 50px;
+  justify-content: space-between;
+}
+
+.footer-column {
+  flex: 1;
+  min-width: 150px;
+}
+
+.footer-column.wide {
+  flex: 2;
+  min-width: 300px;
+}
+
+.footer-column.medium {
+  flex: 1.5;
+  min-width: 250px;
+}
+
+h3 {
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #333;
+  /* Dark text for light bg */
+  margin-bottom: 25px;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #333;
+  /* Underline title style */
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+/* Links */
+.footer-links {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links li {
+  margin-bottom: 12px;
+}
+
+.footer-links a {
+  color: #666;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover {
+  color: #000;
+}
+
+/* Payment Grid */
+.payment-icons-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.payment-icons-grid img {
+  height: 40px;
+  width: auto;
+  max-width: 70px;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.payment-icons-grid img:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* CSS Simulated Logos (Fallbacks) */
+.visa {
+  color: #1a1f71;
+  font-weight: 900;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.mastercard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-circles {
+  display: flex;
+  position: relative;
+  width: 24px;
+  height: 16px;
+}
+
+.mc-circles span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  opacity: 0.8;
+  position: absolute;
+  top: 0;
+}
+
+.mc-circles span:first-child {
+  background: #eb001b;
+  left: 0;
+}
+
+.mc-circles span:last-child {
+  background: #f79e1b;
+  right: 0;
+}
+
+.amex {
+  background: #2e77bc;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+.cabal {
+  font-weight: 900;
+  font-style: italic;
+  color: #005691;
+  font-size: 11px;
+}
+
+.naranja {
+  color: #f76801;
+  font-weight: 800;
+  font-size: 11px;
+}
+
+.shopping {
+  background: #ffcc00;
+  color: #000066;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px;
+}
+
+.pagofacil {
+  background: #ffcc00;
+  color: #e5007e;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px;
+  transform: rotate(-5deg);
+}
+
+.rapipago {
+  color: #003399;
+  font-weight: 900;
+  font-size: 10px;
+  font-style: italic;
+}
+
+.diners {
+  color: #004a98;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.argencard {
+  color: #e30613;
+  font-weight: 700;
+  font-size: 10px;
+}
+
+.pay-icon small {
+  font-size: 7px;
+  line-height: 1;
+  color: #666;
+  margin-top: 1px;
+  text-transform: uppercase;
+}
+
+/* Shipping Grid */
+.shipping-icons-grid {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.shipping-icons-grid img {
+  height: 50px;
+  width: auto;
+  max-width: 120px;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.shipping-icons-grid img:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Contact */
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.footer-contact-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .footer-contact-grid {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+
+.contact-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contact-item .label {
+  font-weight: 700;
+  font-size: 13px;
+  color: #000;
+}
+
+.contact-item .val {
+  color: #666;
+  font-size: 14px;
+}
+
+.instagram-link {
+  color: #E4405F;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.email-link {
+  color: #666;
+  text-decoration: none;
+  font-size: 14px;
+  display: block;
+  /* Make them stack if they are inline-block by default, or just to be safe */
+  transition: color 0.2s;
+}
+
+.email-link:hover {
+  color: #000;
+  text-decoration: underline;
+}
+
+/* Footer Bottom */
+.footer-bottom {
+  border-top: 1px solid #eee;
+  padding-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.copyright {
+  color: #999;
+  font-size: 13px;
+}
+
+.consumer-protection a {
+  color: #333;
+  font-weight: 600;
+  font-size: 12px;
+  text-decoration: none;
+  border: 1px solid #ddd;
+  padding: 8px 15px;
+  border-radius: 4px;
+  background: #fff;
+  display: inline-block;
+}
+
+@media (max-width: 900px) {
+  .footer-grid {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .footer-column,
+  .footer-column.wide {
+    width: 100%;
+    min-width: 0;
+  }
+}
