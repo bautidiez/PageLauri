@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from './api.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -21,23 +21,16 @@ export class AuthService {
   }
 
   login(username: string, password: string): Observable<any> {
-    return new Observable(observer => {
-      this.apiService.login(username, password).subscribe({
-        next: (response) => {
-          localStorage.setItem('token', response.access_token);
-          localStorage.setItem('admin', JSON.stringify(response.admin));
-          localStorage.removeItem('cliente'); // Asegurar única sesión
-          localStorage.setItem('lastActivity', Date.now().toString());
-          this.isAuthenticatedSubject.next(true);
-          this.resetInactivityTimer();
-          observer.next(response);
-          observer.complete();
-        },
-        error: (error) => {
-          observer.error(error);
-        }
-      });
-    });
+    return this.apiService.login(username, password).pipe(
+      tap((response) => {
+        localStorage.setItem('token', response.access_token);
+        localStorage.setItem('admin', JSON.stringify(response.admin));
+        localStorage.removeItem('cliente'); // Asegurar única sesión
+        localStorage.setItem('lastActivity', Date.now().toString());
+        this.isAuthenticatedSubject.next(true);
+        this.resetInactivityTimer();
+      })
+    );
   }
 
   loginCliente(email: string, password: string): Observable<any> {
