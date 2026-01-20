@@ -11,11 +11,8 @@ jwt = JWTManager()
 mail = Mail()
 compress = Compress()
 
-# Configure CORS - Allow all origins for now (can restrict later)
-cors = CORS(
-    supports_credentials=True,
-    origins=["*"]  # Allow all origins
-)
+# Configure CORS - Allow all origins (simpler for deployment)
+cors = CORS()
 
 # Default limits, can be overridden per route
 limiter = Limiter(
