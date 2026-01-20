@@ -145,6 +145,7 @@ with app.app_context():
     initial_pass = os.environ.get('ADMIN_INITIAL_PASSWORD')
     
     if initial_pass:
+        initial_pass = initial_pass.strip() # Limpiar posibles espacios accidentales
         if not admin:
             default_admin = Admin(
                 username='admin',
@@ -153,16 +154,16 @@ with app.app_context():
             )
             db.session.add(default_admin)
             db.session.commit()
-            print("✓ Admin inicial creado.")
+            print("✓ Admin inicial 'admin' creado exitosamente.")
         else:
-            # Solo actualizamos si el password cambió (comprobando el hash)
+            # Solo actualizamos si el password cambió
             from werkzeug.security import check_password_hash
             if not check_password_hash(admin.password_hash, initial_pass):
                 admin.password_hash = generate_password_hash(initial_pass)
                 db.session.commit()
-                print("✓ Password de admin actualizado (detectado cambio en ENV).")
+                print("✓ Password de admin sincronizado con ENV.")
             else:
-                print("✓ Password de admin ya está al día.")
+                print("✓ Password de admin ya está sincronizado.")
             
     # Limpiamos imports incorrectos previos
 
