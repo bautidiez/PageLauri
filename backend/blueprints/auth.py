@@ -52,3 +52,38 @@ def verify_token():
             'authenticated': True
         }
     }), 200
+
+@auth_bp.route('/api/auth/emergency-reset-admin', methods=['POST'])
+def emergency_reset_admin():
+    """ENDPOINT TEMPORAL: Resetear password del admin (BORRAR DESPUÉS)"""
+    import os
+    from werkzeug.security import generate_password_hash
+    from models import db, Admin
+    
+    data = request.get_json()
+    secret = data.get('secret')
+    
+    # Verificar que tiene la clave secreta correcta
+    if secret != os.environ.get('SECRET_KEY'):
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    try:
+        admin = Admin.query.filter_by(username='admin').first()
+        new_password = os.environ.get('ADMIN_INITIAL_PASSWORD', 'ElVestuario2024!Admin')
+        
+        if not admin:
+            return jsonify({'error': 'Admin no encontrado'}), 404
+        
+        admin.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        
+        print(f"✓ EMERGENCY RESET: Password actualizado para admin")
+        return jsonify({
+            'success': True,
+            'message': 'Password reseteado exitosamente',
+            'username': 'admin',
+            'password_hint': 'ADMIN_INITIAL_PASSWORD del env'
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
