@@ -10,7 +10,16 @@ from flask_cors import CORS
 jwt = JWTManager()
 mail = Mail()
 compress = Compress()
-cors = CORS()
+
+# Configure CORS to allow Vercel frontend
+cors = CORS(
+    resources={r"/api/*": {"origins": [
+        "https://elvestuario-r4.vercel.app",
+        "https://*.vercel.app",  # Allow all Vercel preview deployments
+        "http://localhost:4200"   # Local development
+    ]}},
+    supports_credentials=True
+)
 
 # Default limits, can be overridden per route
 limiter = Limiter(
