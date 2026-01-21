@@ -11,6 +11,7 @@ import os
 import json
 from PIL import Image
 from pathlib import Path
+from services.admin_service import AdminService
 import logging
 
 logger = logging.getLogger(__name__)
