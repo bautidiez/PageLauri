@@ -568,17 +568,32 @@ export class ProductosAdminComponent implements OnInit {
     this.productosRelacionadosFiltrados = [];
   }
 
-  getCategoryPath(catId: number | null): string {
-    if (!catId) return '-';
+  getCleanCategoryPath(catId: number | null): string {
+    if (!catId) return '';
     const cat = this.categorias.find(c => c.id === catId);
-    if (!cat) return '-';
+    if (!cat) return '';
 
     if (!cat.categoria_padre_id) {
       return cat.nombre;
     }
 
     const padre = this.categorias.find(c => c.id === cat.categoria_padre_id);
-    return padre ? `${this.getCategoryPath(padre.id)} > ${cat.nombre}` : cat.nombre;
+    return padre ? `${this.getCleanCategoryPath(padre.id)} > ${cat.nombre}` : cat.nombre;
+  }
+
+  getCategoryPath(catId: number | null): string {
+    if (!catId) return '-';
+
+    // Obtenemos el path sin iconos
+    const path = this.getCleanCategoryPath(catId);
+
+    // Verificamos si es una categoría principal para poner el icono
+    const cat = this.categorias.find(c => c.id === catId);
+    if (cat && !cat.categoria_padre_id) {
+      return `🏠 ${path}`;
+    }
+
+    return path || '-';
   }
 
   formatPrecio(precio: number): string {

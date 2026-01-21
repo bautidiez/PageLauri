@@ -449,16 +449,30 @@ export class PromocionesAdminComponent implements OnInit {
     return this.categoriasSeleccionadas.includes(catId);
   }
 
-  getCategoryLabel(catId: number): string {
+  getCleanCategoryPath(catId: number | null): string {
+    if (!catId) return '';
     const cat = this.categorias.find(c => c.id === catId);
-    if (!cat) return '-';
+    if (!cat) return '';
 
     if (!cat.categoria_padre_id) {
       return cat.nombre;
     }
 
     const padre = this.categorias.find(p => p.id === cat.categoria_padre_id);
-    return padre ? `${this.getCategoryLabel(padre.id)} > ${cat.nombre}` : cat.nombre;
+    return padre ? `${this.getCleanCategoryPath(padre.id)} > ${cat.nombre}` : cat.nombre;
+  }
+
+  getCategoryLabel(catId: number): string {
+    // Obtenemos el path sin iconos
+    const path = this.getCleanCategoryPath(catId);
+
+    // Verificamos si es una categoría principal
+    const cat = this.categorias.find(c => c.id === catId);
+    if (cat && !cat.categoria_padre_id) {
+      return `🏠 ${path}`;
+    }
+
+    return path || '-';
   }
 
   getAlcanceResumen(): string {

@@ -257,18 +257,17 @@ export class CategoriasAdminComponent implements OnInit {
         return padre ? padre.nombre : '-';
     }
 
-    getCategoriaPadreLabel(cat: Categoria): string {
-        // Usamos un prefijo de emoji para confirmar que la versión es la nueva
-        if (!cat.categoria_padre_id) {
-            return `🏠 ${cat.nombre}`;
-        }
-
+    getCleanCategoryPath(cat: Categoria): string {
+        if (!cat.categoria_padre_id) return cat.nombre;
         const padre = this.categorias.find(c => c.id === cat.categoria_padre_id);
-        if (padre) {
-            return `${this.getCategoriaPadreLabel(padre)} > ${cat.nombre}`;
-        }
+        return padre ? `${this.getCleanCategoryPath(padre)} > ${cat.nombre}` : cat.nombre;
+    }
 
-        return cat.nombre;
+    getCategoriaPadreLabel(cat: Categoria): string {
+        // Obtenemos el path sin iconos primero
+        const path = this.getCleanCategoryPath(cat);
+        // Solo agregamos el icono si es una categoría principal (sin padre)
+        return !cat.categoria_padre_id ? `🏠 ${path}` : path;
     }
 
     getCategoriaActualNivel(): number {
