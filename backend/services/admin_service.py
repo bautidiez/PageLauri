@@ -120,11 +120,16 @@ class AdminService:
                 intervalos.append((meses_es[mes_num], inicio, fin))
                 
         elif periodo == 'anio':
-            # Año a año: Mostrar todos los años desde 2024 hasta el actual
-            # En 2026 muestra: 2024, 2025, 2026
-            # En 2027 muestra: 2024, 2025, 2026, 2027
+            # Año a año: Arrancar desde el año actual y crecer con el tiempo
+            # En 2026 muestra solo: 2026
+            # En 2027 muestra: 2026, 2027
+            # En 2028 muestra: 2026, 2027, 2028
             anio_actual = ahora.year
-            anio_inicio = 2024  # Primer año del sistema
+            anio_inicio = 2026  # Año de lanzamiento del sistema
+            
+            # Si estamos antes de 2026, usar el año actual
+            if anio_actual < anio_inicio:
+                anio_inicio = anio_actual
             
             for year in range(anio_inicio, anio_actual + 1):
                 inicio = datetime(year, 1, 1, 0, 0, 0)
