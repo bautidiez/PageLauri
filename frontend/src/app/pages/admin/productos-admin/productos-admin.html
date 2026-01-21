@@ -227,7 +227,7 @@
             <h4>Imágenes Actuales:</h4>
             <div class="imagenes-grid">
               <div *ngFor="let img of imagenesExistentes" class="imagen-item">
-                <img [src]="'http://localhost:5000' + img.url" [alt]="nuevoProducto.nombre">
+                <img [src]="getFormattedImageUrl(img.url)" [alt]="nuevoProducto.nombre">
                 <div class="imagen-badge" *ngIf="img.es_principal">Principal</div>
                 <button type="button" class="btn-eliminar-imagen" (click)="eliminarImagenExistente(img.id)">✕</button>
               </div>

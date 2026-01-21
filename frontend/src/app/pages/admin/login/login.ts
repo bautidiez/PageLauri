@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -18,7 +18,8 @@ export class LoginComponent {
   loading = false;
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) { }
 
   login() {
@@ -43,6 +44,7 @@ export class LoginComponent {
           this.error = 'Error al conectar con el servidor. Intenta de nuevo.';
         }
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }

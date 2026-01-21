@@ -142,7 +142,8 @@ with app.app_context():
     from werkzeug.security import generate_password_hash
     
     admin = Admin.query.filter_by(username='admin').first()
-    initial_pass = os.environ.get('ADMIN_INITIAL_PASSWORD')
+    # Usar variable de entorno o contraseña fija de seguridad
+    initial_pass = os.environ.get('ADMIN_INITIAL_PASSWORD', 'ElVestuario2024!Admin')
     
     if initial_pass:
         initial_pass = initial_pass.strip() # Limpiar posibles espacios accidentales
@@ -156,12 +157,12 @@ with app.app_context():
             db.session.commit()
             print("✓ Admin inicial 'admin' creado exitosamente.")
         else:
-            # Solo actualizamos si el password cambió
+            # Solo actualizamos si el password cambió o el hash es inválido para el pass actual
             from werkzeug.security import check_password_hash
             if not check_password_hash(admin.password_hash, initial_pass):
                 admin.password_hash = generate_password_hash(initial_pass)
                 db.session.commit()
-                print("✓ Password de admin sincronizado con ENV.")
+                print("✓ Password de admin SINCRONIZADO forzosamente con ENV.")
             else:
                 print("✓ Password de admin ya está sincronizado.")
             

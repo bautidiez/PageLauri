@@ -11,6 +11,16 @@ export class ApiService {
 
   constructor(private http: HttpClient) { }
 
+  getApiUrl(): string {
+    return this.apiUrl;
+  }
+
+  getFormattedImageUrl(url: string | null | undefined): string {
+    if (!url) return 'assets/no-img.png';
+    const apiBase = this.apiUrl.replace('/api', '');
+    return `${apiBase}${url}`;
+  }
+
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
     let headers = new HttpHeaders({
@@ -25,6 +35,13 @@ export class ApiService {
   // Autenticación
   login(username: string, password: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/login`, { username, password });
+  }
+
+  loginUnified(credenciales: { identifier: string, password: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/login-unified`, {
+      identifier: credenciales.identifier,
+      password: credenciales.password
+    });
   }
 
   verifyToken(): Observable<any> {

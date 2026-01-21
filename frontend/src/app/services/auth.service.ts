@@ -33,6 +33,26 @@ export class AuthService {
     );
   }
 
+  loginUnified(identifier: string, password: string): Observable<any> {
+    return this.apiService.loginUnified({ identifier, password }).pipe(
+      tap((response) => {
+        localStorage.setItem('token', response.access_token);
+        localStorage.setItem('lastActivity', Date.now().toString());
+
+        if (response.user_type === 'admin') {
+          localStorage.setItem('admin', JSON.stringify(response.admin));
+          localStorage.removeItem('cliente');
+        } else {
+          localStorage.setItem('cliente', JSON.stringify(response.cliente));
+          localStorage.removeItem('admin');
+        }
+
+        this.isAuthenticatedSubject.next(true);
+        this.resetInactivityTimer();
+      })
+    );
+  }
+
   loginCliente(email: string, password: string): Observable<any> {
     return new Observable(observer => {
       this.apiService.loginCliente({ email, password }).subscribe({

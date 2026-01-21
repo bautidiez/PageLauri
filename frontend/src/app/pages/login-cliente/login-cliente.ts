@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -19,7 +19,8 @@ export class LoginClienteComponent {
 
     constructor(
         private authService: AuthService,
-        private router: Router
+        private router: Router,
+        private cdr: ChangeDetectorRef
     ) { }
 
     login() {
@@ -31,31 +32,23 @@ export class LoginClienteComponent {
         this.loading = true;
         this.error = '';
 
-        // Intentar primero como cliente (el campo se llama 'email' pero puede ser el 'username' del admin)
-        this.authService.loginCliente(this.email, this.password).subscribe({
-            next: () => {
-                this.router.navigate(['/']);
+        this.authService.loginUnified(this.email, this.password).subscribe({
+            next: (response) => {
+                if (response.user_type === 'admin') {
+                    this.router.navigate(['/admin']);
+                } else {
+                    this.router.navigate(['/']);
+                }
             },
-            error: (clientError) => {
-                // Si el error es falta de verificación, manejamos eso específicamente
-                if (clientError.status === 403 && clientError.error?.requires_verification) {
+            error: (err) => {
+                this.loading = false;
+                if (err.status === 403 && err.error?.requires_verification) {
                     alert('Debes verificar tu teléfono antes de entrar. Te redirigimos.');
-                    // Podemos guardar el email en un service o pasar por queryParams para el componente de registro
                     this.router.navigate(['/registro'], { queryParams: { email: this.email, verify: true } });
                     return;
                 }
-
-                // Si falla como cliente, probamos como administrador
-                this.authService.login(this.email, this.password).subscribe({
-                    next: () => {
-                        this.router.navigate(['/admin']);
-                    },
-                    error: (adminError) => {
-                        // Si ambos fallan, mostramos el error
-                        this.error = 'Credenciales incorrectas';
-                        this.loading = false;
-                    }
-                });
+                this.error = 'Credenciales incorrectas';
+                this.cdr.detectChanges();
             }
         });
     }

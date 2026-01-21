@@ -109,7 +109,7 @@ export class SeoService {
             'name': product.nombre,
             'description': product.descripcion || `${product.nombre} - El Vestuario`,
             'image': product.imagenes && product.imagenes.length > 0
-                ? `http://localhost:5000${product.imagenes[0].url}`
+                ? `https://elvestuario-backend.onrender.com${product.imagenes[0].url}`
                 : '',
             'brand': {
                 '@type': 'Brand',
@@ -148,8 +148,8 @@ export class SeoService {
             '@context': 'https://schema.org',
             '@type': 'Organization',
             'name': 'El Vestuario',
-            'url': 'http://localhost:4200',
-            'logo': 'http://localhost:4200/assets/logo.png',
+            'url': 'https://elvestuario-r4.vercel.app',
+            'logo': 'https://elvestuario-r4.vercel.app/assets/logo.png',
             'contactPoint': {
                 '@type': 'ContactPoint',
                 'contactType': 'customer service',

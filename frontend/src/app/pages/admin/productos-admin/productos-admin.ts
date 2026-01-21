@@ -530,8 +530,8 @@ export class ProductosAdminComponent implements OnInit {
   getImagenPrincipal(producto: any): string {
     if (producto.imagenes && producto.imagenes.length > 0) {
       const principal = producto.imagenes.find((img: any) => img.es_principal);
-      if (principal) return `http://localhost:5000${principal.url}`;
-      return `http://localhost:5000${producto.imagenes[0].url}`;
+      if (principal) return this.apiService.getFormattedImageUrl(principal.url);
+      return this.apiService.getFormattedImageUrl(producto.imagenes[0].url);
     }
     return 'https://via.placeholder.com/150x150?text=Sin+imagen';
   }

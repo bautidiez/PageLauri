@@ -497,12 +497,13 @@ export class ProductosComponent implements OnInit, OnDestroy {
   }
 
   getImagenPrincipal(producto: any): string {
+    const apiBase = this.apiService.getApiUrl().replace('/api', '');
     if (producto.imagenes && producto.imagenes.length > 0) {
       const principal = producto.imagenes.find((img: any) => img.es_principal);
       if (principal) {
-        return `http://localhost:5000${principal.url}`;
+        return `${apiBase}${principal.url}`;
       }
-      return `http://localhost:5000${producto.imagenes[0].url}`;
+      return `${apiBase}${producto.imagenes[0].url}`;
     }
     return 'https://via.placeholder.com/300x300?text=Sin+imagen';
   }

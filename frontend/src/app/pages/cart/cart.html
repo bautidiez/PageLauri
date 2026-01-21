@@ -11,9 +11,7 @@
       <div class="cart-items">
         <div class="cart-item" *ngFor="let item of items; let i = index">
           <div class="item-image">
-            <img
-              [src]="item.producto.imagenes && item.producto.imagenes.length > 0 ? 'http://localhost:5000' + item.producto.imagenes[0].url : 'https://via.placeholder.com/150x150?text=Sin+imagen'"
-              [alt]="item.producto.nombre">
+            <img [src]="getFormattedImageUrl(item.producto.imagenes[0]?.url)" [alt]="item.producto.nombre">
           </div>
           <div class="item-info">
             <h3>{{ item.producto.nombre }}</h3>

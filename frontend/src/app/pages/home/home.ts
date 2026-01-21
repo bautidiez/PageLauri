@@ -30,22 +30,15 @@ export class HomeComponent implements OnInit {
   }
 
   loadProductosDestacados() {
-    this.loading = true;
-
     this.apiService.getProductos({ destacados: true }).subscribe({
       next: (data) => {
-        // El backend ahora devuelve { items: [...], total: X }
         const productos = data.items || data;
         this.productosDestacados = productos.slice(0, 9);
-        this.loading = false;
-
-        // 🔥 FORZAR Change Detection
-        this.cdr.detectChanges();
+        this.checkAllLoaded();
       },
       error: (error) => {
         console.error('Error cargando productos destacados:', error);
-        this.loading = false;
-        this.cdr.detectChanges();
+        this.checkAllLoaded();
       }
     });
   }
@@ -53,20 +46,14 @@ export class HomeComponent implements OnInit {
   loadProductosOfertas() {
     this.apiService.getProductos({ ofertas: true }).subscribe({
       next: (data) => {
-        // El backend ahora devuelve { items: [...], total: X }
         const productos = data.items || data;
-
-        // El backend ya filtra por ofertas (precio_descuento o promociones activas)
-        // No necesitamos filtrar de nuevo aquí
         this.productosOfertas = productos.slice(0, 9);
-
-        // 🔥 FORZAR Change Detection
-        this.cdr.detectChanges();
+        this.checkAllLoaded();
       },
       error: (error) => {
         console.error('Error cargando productos en oferta:', error);
-        this.productosOfertas = []; // Asegurar array vacío en caso de error
-        this.cdr.detectChanges();
+        this.productosOfertas = [];
+        this.checkAllLoaded();
       }
     });
   }
@@ -74,26 +61,33 @@ export class HomeComponent implements OnInit {
   loadCategorias() {
     this.apiService.getCategorias().subscribe({
       next: (data) => {
-        // Mostrar solo categorías padre (Remeras y Shorts)
         this.categorias = data.filter((cat: any) => !cat.categoria_padre_id);
-
-        // 🔥 FORZAR Change Detection
-        this.cdr.detectChanges();
+        this.checkAllLoaded();
       },
       error: (error) => {
         console.error('Error cargando categorías:', error);
-        this.cdr.detectChanges();
+        this.checkAllLoaded();
       }
     });
   }
 
+  private loadCount = 0;
+  private checkAllLoaded() {
+    this.loadCount++;
+    if (this.loadCount >= 3) {
+      this.loading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
   getImagenPrincipal(producto: any): string {
+    const apiBase = this.apiService.getApiUrl().replace('/api', '');
     if (producto.imagenes && producto.imagenes.length > 0) {
       const principal = producto.imagenes.find((img: any) => img.es_principal);
       if (principal) {
-        return `http://localhost:5000${principal.url}`;
+        return `${apiBase}${principal.url}`;
       }
-      return `http://localhost:5000${producto.imagenes[0].url}`;
+      return `${apiBase}${producto.imagenes[0].url}`;
     }
     return 'https://via.placeholder.com/300x300?text=Sin+imagen';
   }

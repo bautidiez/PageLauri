@@ -26,8 +26,7 @@
                     <h2>Tus Productos</h2>
                     <div class="cart-items-list">
                         <div class="cart-item-card" *ngFor="let item of items">
-                            <img
-                                [src]="item.producto.imagenes[0]?.url ? 'http://localhost:5000' + item.producto.imagenes[0].url : 'assets/no-img.png'">
+                            <img [src]="getFormattedImageUrl(item.producto.imagenes[0]?.url)">
                             <div class="item-details">
                                 <h4>{{ item.producto.nombre }}</h4>
                                 <p>Talle: {{ item.talle.nombre }} | Cantidad: {{ item.cantidad }}</p>
@@ -342,8 +341,7 @@
                 <!-- Item simplified list in sidebar -->
                 <div class="mini-items">
                     <div class="mini-item" *ngFor="let item of items">
-                        <img
-                            [src]="item.producto.imagenes[0]?.url ? 'http://localhost:5000' + item.producto.imagenes[0].url : 'assets/no-img.png'">
+                        <img [src]="getFormattedImageUrl(item.producto.imagenes[0]?.url)">
                         <div class="mini-details">
                             <span>{{ item.producto.nombre }} x {{ item.cantidad }}</span>
                             <strong>${{ (item.precio_unitario * item.cantidad) | number:'1.0-0' }}</strong>

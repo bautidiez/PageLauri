@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
 import { CartService } from '../../services/cart.service';
 import { CheckoutService } from '../../services/checkout.service';
+import { ApiService } from '../../services/api.service';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
     selector: 'app-checkout-v2',
@@ -37,6 +38,7 @@ export class CheckoutV2Component implements OnInit {
         private fb: FormBuilder,
         private cartService: CartService,
         private checkoutService: CheckoutService,
+        private apiService: ApiService,
         private router: Router
     ) {
         this.datosForm = this.fb.group({
@@ -235,5 +237,9 @@ export class CheckoutV2Component implements OnInit {
                 this.loading = false;
             }
         });
+    }
+
+    getFormattedImageUrl(url: string | null | undefined): string {
+        return this.apiService.getFormattedImageUrl(url);
     }
 }

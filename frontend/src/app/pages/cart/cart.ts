@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CartService, CartItem } from '../../services/cart.service';
+import { ApiService } from '../../services/api.service';
 import { ShippingCalculatorComponent } from '../../components/shipping-calculator/shipping-calculator';
 
 @Component({
@@ -15,7 +16,10 @@ export class CartComponent implements OnInit {
   items: CartItem[] = [];
   total = 0;
 
-  constructor(private cartService: CartService) { }
+  constructor(
+    private cartService: CartService,
+    private apiService: ApiService
+  ) { }
 
   ngOnInit() {
     this.cartService.cart$.subscribe(items => {
@@ -44,5 +48,9 @@ export class CartComponent implements OnInit {
     return this.items.reduce((sum, item) => {
       return sum + (item.descuento || 0);
     }, 0);
+  }
+
+  getFormattedImageUrl(url: string | null | undefined): string {
+    return this.apiService.getFormattedImageUrl(url);
   }
 }

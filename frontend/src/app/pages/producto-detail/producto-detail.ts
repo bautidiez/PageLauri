@@ -97,9 +97,10 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   private updateSeoTags() {
     if (!this.producto) return;
 
+    const apiBase = this.apiService.getApiUrl().replace('/api', '');
     const imageUrl = this.producto.imagenes && this.producto.imagenes.length > 0
-      ? `http://localhost:5000${this.producto.imagenes[0].url}`
-      : 'http://localhost:4200/assets/logo.png';
+      ? `${apiBase}${this.producto.imagenes[0].url}`
+      : 'https://elvestuario-r4.vercel.app/assets/logo.png';
 
     // Update meta tags
     this.seoService.updateMetaTags({
@@ -116,8 +117,8 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
 
     // Add breadcrumb structured data
     const breadcrumbs = [
-      { name: 'Inicio', url: 'http://localhost:4200/' },
-      { name: 'Productos', url: 'http://localhost:4200/productos' },
+      { name: 'Inicio', url: 'https://elvestuario-r4.vercel.app/' },
+      { name: 'Productos', url: 'https://elvestuario-r4.vercel.app/productos' },
       { name: this.producto.nombre, url: window.location.href }
     ];
     const breadcrumbSchema = this.seoService.generateBreadcrumbSchema(breadcrumbs);
@@ -180,7 +181,8 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   }
 
   getImagenUrl(imagen: any): string {
-    return `http://localhost:5000${imagen.url}`;
+    const apiBase = this.apiService.getApiUrl().replace('/api', '');
+    return `${apiBase}${imagen.url}`;
   }
 
   aumentarCantidad() {
