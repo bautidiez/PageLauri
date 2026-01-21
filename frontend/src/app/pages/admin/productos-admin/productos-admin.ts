@@ -536,6 +536,10 @@ export class ProductosAdminComponent implements OnInit {
     return 'https://via.placeholder.com/150x150?text=Sin+imagen';
   }
 
+  getFormattedImageUrl(url: string | null | undefined): string {
+    return this.apiService.getFormattedImageUrl(url);
+  }
+
   // --- MÉTODOS PARA PRODUCTO RELACIONADO (AUTOCOMPLETE) ---
 
   buscarProductoRelacionado() {
