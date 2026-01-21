@@ -373,11 +373,16 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
                 next: () => {
                     this.success = 'Venta eliminada y stock restaurado';
                     this.loadVentas();
-                    setTimeout(() => this.success = '', 3000);
+                    this.cdr.detectChanges(); // Forzar actualización inmediata
+                    setTimeout(() => {
+                        this.success = '';
+                        this.cdr.detectChanges();
+                    }, 3000);
                 },
                 error: (error) => {
                     console.error('Error eliminando venta:', error);
                     this.error = error.error?.error || 'Error al eliminar la venta';
+                    this.cdr.detectChanges(); // Forzar actualización de error
                 }
             });
     }
