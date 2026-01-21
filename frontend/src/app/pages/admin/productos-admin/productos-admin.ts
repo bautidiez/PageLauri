@@ -577,7 +577,7 @@ export class ProductosAdminComponent implements OnInit {
       return cat.nombre;
     }
 
-    const padre = this.categorias.find(c => p.id === cat.categoria_padre_id);
+    const padre = this.categorias.find(c => c.id === cat.categoria_padre_id);
     return padre ? `${this.getCategoryPath(padre.id)} > ${cat.nombre}` : cat.nombre;
   }
 

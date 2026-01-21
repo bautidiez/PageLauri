@@ -162,7 +162,7 @@ export class PromocionesAdminComponent implements OnInit {
   }
 
   loadCategorias() {
-    this.apiService.getCategoriasTree().subscribe({
+    this.apiService.getCategorias(true).subscribe({
       next: (data: any) => {
         this.categorias = data;
       },
@@ -447,6 +447,18 @@ export class PromocionesAdminComponent implements OnInit {
 
   isCategoriaSelected(catId: number): boolean {
     return this.categoriasSeleccionadas.includes(catId);
+  }
+
+  getCategoryLabel(catId: number): string {
+    const cat = this.categorias.find(c => c.id === catId);
+    if (!cat) return '-';
+
+    if (!cat.categoria_padre_id) {
+      return cat.nombre;
+    }
+
+    const padre = this.categorias.find(p => p.id === cat.categoria_padre_id);
+    return padre ? `${this.getCategoryLabel(padre.id)} > ${cat.nombre}` : cat.nombre;
   }
 
   getAlcanceResumen(): string {
