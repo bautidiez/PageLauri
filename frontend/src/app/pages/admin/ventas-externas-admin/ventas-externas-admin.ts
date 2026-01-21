@@ -289,18 +289,22 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
         // Validaciones
         if (!this.nuevaVenta.producto_id) {
             this.error = 'Debe seleccionar un producto';
+            this.cdr.detectChanges(); // Forzar actualización inmediata
             return;
         }
         if (!this.nuevaVenta.talle_id) {
             this.error = 'Debe seleccionar un talle';
+            this.cdr.detectChanges(); // Forzar actualización inmediata
             return;
         }
         if (this.nuevaVenta.cantidad <= 0) {
             this.error = 'La cantidad debe ser mayor a 0';
+            this.cdr.detectChanges(); // Forzar actualización inmediata
             return;
         }
         if (this.nuevaVenta.precio_unitario <= 0) {
             this.error = 'El precio unitario debe ser mayor a 0';
+            this.cdr.detectChanges(); // Forzar actualización inmediata
             return;
         }
 
@@ -308,10 +312,12 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
         const stockDisponible = this.getStockDisponible(this.nuevaVenta.talle_id);
         if (this.nuevaVenta.cantidad > stockDisponible) {
             this.error = `Stock insuficiente. Disponible: ${stockDisponible} unidades`;
+            this.cdr.detectChanges(); // Forzar actualización inmediata
             return;
         }
 
         this.submitting = true;
+        this.cdr.detectChanges(); // Mostrar estado de carga inmediatamente
 
         this.apiService.crearVentaExterna(this.nuevaVenta)
             .pipe(takeUntil(this.destroy$))
@@ -319,6 +325,7 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
                 next: (response: any) => {
                     this.success = 'Venta externa registrada exitosamente. Stock descontado.';
                     this.submitting = false;
+                    this.cdr.detectChanges(); // Forzar actualización inmediata
 
                     // Resetear formulario
                     this.resetFormulario();
@@ -327,12 +334,16 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
                     this.loadVentas();
 
                     // Limpiar mensaje después de 3 segundos
-                    setTimeout(() => this.success = '', 3000);
+                    setTimeout(() => {
+                        this.success = '';
+                        this.cdr.detectChanges();
+                    }, 3000);
                 },
                 error: (error) => {
                     console.error('Error registrando venta:', error);
                     this.error = error.error?.error || 'Error al registrar la venta externa';
                     this.submitting = false;
+                    this.cdr.detectChanges(); // Forzar actualización inmediata
                 }
             });
     }

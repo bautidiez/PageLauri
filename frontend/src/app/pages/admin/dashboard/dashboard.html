@@ -111,6 +111,9 @@
               <div class="history-label" *ngIf="periodoSeleccionado === 'mes'">
                 Año {{ anioSeleccionado }}
               </div>
+              <div class="history-label" *ngIf="periodoSeleccionado === 'año'">
+                Últimos 3 Años
+              </div>
 
               <button class="nav-arrow" (click)="paginarAdelante()">
                 <span class="arrow-icon">▶</span>
