@@ -11,19 +11,12 @@ jwt = JWTManager()
 mail = Mail()
 compress = Compress()
 
-# Configure CORS - Allow Vercel frontend
+# Configure CORS - Allow all origins for now (will restrict later)
 cors = CORS(
-    resources={r"/api/*": {
-        "origins": [
-            "http://localhost:4200",
-            "https://elvestuario-r4.vercel.app",
-            "https://*.vercel.app"
-        ],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True,
-        "max_age": 3600
-    }}
+    resources={r"/*": {"origins": "*"}},
+    supports_credentials=False,
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
 )
 
 # Default limits, can be overridden per route
