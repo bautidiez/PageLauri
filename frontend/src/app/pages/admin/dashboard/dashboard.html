@@ -120,13 +120,6 @@
                 <span class="arrow-icon">▶</span>
               </button>
             </div>
-
-            <!-- Selectores antiguos ocultos o movidos si se requiere -->
-            <div class="history-selects" *ngIf="periodoSeleccionado === 'mes'">
-              <select id="anio" class="select-history" [value]="anioSeleccionado" (change)="cambiarAnio($event)">
-                <option *ngFor="let a of aniosDisponibles" [value]="a">{{ a }}</option>
-              </select>
-            </div>
           </div>
 
           <div class="ventas-resumen" *ngIf="estadisticasVentas.datos && estadisticasVentas.datos.length > 0">
