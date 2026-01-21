@@ -76,7 +76,14 @@ export class CategoriasAdminComponent implements OnInit {
             next: (data: Categoria[]) => {
                 this.categorias = data;
                 // Categorías que pueden ser padres (nivel 1 y 2)
+                // Primero asignamos para que getCategoriaPadreLabel funcione
                 this.categoriasDisponibles = data.filter(c => (c.nivel || 1) < 3);
+                // Luego ordenamos según la ruta completa
+                this.categoriasDisponibles.sort((a, b) => {
+                    const labelA = this.getCategoriaPadreLabel(a);
+                    const labelB = this.getCategoriaPadreLabel(b);
+                    return labelA.localeCompare(labelB);
+                });
                 this.cargandoCategorias = false;
                 this.cdr.detectChanges();
             },
@@ -252,28 +259,16 @@ export class CategoriasAdminComponent implements OnInit {
     }
 
     getCategoriaPadreLabel(cat: Categoria): string {
-        // Si es nivel 1 (categoría principal)
         if (!cat.categoria_padre_id) {
-            return `${cat.nombre} (Principal)`;
+            return cat.nombre;
         }
 
-        // Si es nivel 2 o 3, mostrar jerarquía completa
         const padre = this.categorias.find(c => c.id === cat.categoria_padre_id);
         if (padre) {
-            if (!padre.categoria_padre_id) {
-                // Nivel 2: mostrar "Padre > Categoría"
-                return `${padre.nombre} > ${cat.nombre}`;
-            } else {
-                // Nivel 3: mostrar "Abuelo > Padre > Categoría"
-                const abuelo = this.categorias.find(c => c.id === padre.categoria_padre_id);
-                if (abuelo) {
-                    return `${abuelo.nombre} > ${padre.nombre} > ${cat.nombre}`;
-                }
-                return `${padre.nombre} > ${cat.nombre}`;
-            }
+            return `${this.getCategoriaPadreLabel(padre)} > ${cat.nombre}`;
         }
 
-        return `${cat.nombre} (Nivel ${cat.nivel || 1})`;
+        return cat.nombre;
     }
 
     getCategoriaActualNivel(): number {
