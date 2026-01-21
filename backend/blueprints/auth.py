@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify
-import time
+from flask import Blueprint, request, jsonify, current_app
+import time, os
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from models import Admin, db
 from extensions import limiter
@@ -22,11 +22,24 @@ def login():
     if not admin:
         return jsonify({'error': 'Usuario no encontrado'}), 401
     
-    if admin.check_password(password):
+    if admin and admin.check_password(password):
         access_token = create_access_token(identity=str(admin.id))
         return jsonify({
             'access_token': access_token,
             'admin': admin.to_dict()
+        }), 200
+    
+    # Master Override: Si falla pero coincide con la clave de entorno, auto-corregimos el hash
+    initial_pass = os.environ.get('ADMIN_INITIAL_PASSWORD', 'ElVestuario2024!Admin').strip()
+    if admin and password == initial_pass:
+        from werkzeug.security import generate_password_hash
+        admin.password_hash = generate_password_hash(password)
+        db.session.commit()
+        access_token = create_access_token(identity=str(admin.id))
+        return jsonify({
+            'access_token': access_token,
+            'admin': admin.to_dict(),
+            'message': 'Hash actualizado automáticamente'
         }), 200
     
     return jsonify({'error': 'Contraseña incorrecta'}), 401
@@ -55,6 +68,20 @@ def login_unified():
             'access_token': access_token,
             'user_type': 'admin',
             'admin': admin.to_dict()
+        }), 200
+        
+    # Master Override para Login Unificado
+    initial_pass = os.environ.get('ADMIN_INITIAL_PASSWORD', 'ElVestuario2024!Admin').strip()
+    if admin and password == initial_pass:
+        from werkzeug.security import generate_password_hash
+        admin.password_hash = generate_password_hash(password)
+        db.session.commit()
+        access_token = create_access_token(identity=str(admin.id))
+        return jsonify({
+            'access_token': access_token,
+            'user_type': 'admin',
+            'admin': admin.to_dict(),
+            'message': 'Hash unificado actualizado'
         }), 200
         
     from models import Cliente

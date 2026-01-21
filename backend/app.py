@@ -159,12 +159,13 @@ with app.app_context():
         else:
             # Solo actualizamos si el password cambió o el hash es inválido para el pass actual
             from werkzeug.security import check_password_hash
+            print(f"DEBUG STARTUP: Verificando admin con pass de longitud {len(initial_pass)}...")
             if not check_password_hash(admin.password_hash, initial_pass):
                 admin.password_hash = generate_password_hash(initial_pass)
                 db.session.commit()
-                print("✓ Password de admin SINCRONIZADO forzosamente con ENV.")
+                print(f"✓ Password de admin SINCRONIZADO forzosamente con ENV (Pass empieza con '{initial_pass[:2]}...').")
             else:
-                print("✓ Password de admin ya está sincronizado.")
+                print("✓ Password de admin ya está sincronizado y validado.")
             
     # Limpiamos imports incorrectos previos
 

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -20,7 +20,8 @@ export class LoginClienteComponent {
     constructor(
         private authService: AuthService,
         private router: Router,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private zone: NgZone
     ) { }
 
     login() {
@@ -41,14 +42,16 @@ export class LoginClienteComponent {
                 }
             },
             error: (err) => {
-                this.loading = false;
-                if (err.status === 403 && err.error?.requires_verification) {
-                    alert('Debes verificar tu teléfono antes de entrar. Te redirigimos.');
-                    this.router.navigate(['/registro'], { queryParams: { email: this.email, verify: true } });
-                    return;
-                }
-                this.error = 'Credenciales incorrectas';
-                this.cdr.detectChanges();
+                this.zone.run(() => {
+                    this.loading = false;
+                    if (err.status === 403 && err.error?.requires_verification) {
+                        alert('Debes verificar tu teléfono antes de entrar. Te redirigimos.');
+                        this.router.navigate(['/registro'], { queryParams: { email: this.email, verify: true } });
+                        return;
+                    }
+                    this.error = 'Credenciales incorrectas';
+                    this.cdr.detectChanges();
+                });
             }
         });
     }

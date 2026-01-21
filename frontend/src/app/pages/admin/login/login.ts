@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -19,7 +19,8 @@ export class LoginComponent {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
   ) { }
 
   login() {
@@ -36,15 +37,17 @@ export class LoginComponent {
         this.router.navigate(['/admin']);
       },
       error: (err) => {
-        console.error('Error en login:', err);
-        // Intentar obtener el mensaje de error del backend
-        if (err.error && err.error.error) {
-          this.error = err.error.error;
-        } else {
-          this.error = 'Error al conectar con el servidor. Intenta de nuevo.';
-        }
-        this.loading = false;
-        this.cdr.detectChanges();
+        this.zone.run(() => {
+          console.error('Error en login:', err);
+          // Intentar obtener el mensaje de error del backend
+          if (err.error && err.error.error) {
+            this.error = err.error.error;
+          } else {
+            this.error = 'Error al conectar con el servidor. Intenta de nuevo.';
+          }
+          this.loading = false;
+          this.cdr.detectChanges();
+        });
       }
     });
   }
