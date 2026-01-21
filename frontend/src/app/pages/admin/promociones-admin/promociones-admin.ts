@@ -162,7 +162,7 @@ export class PromocionesAdminComponent implements OnInit {
   }
 
   loadCategorias() {
-    this.apiService.getCategorias(true).subscribe({
+    this.apiService.getCategorias(true, undefined, true).subscribe({
       next: (data: any) => {
         this.categorias = data;
       },

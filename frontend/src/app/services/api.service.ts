@@ -228,21 +228,26 @@ export class ApiService {
 
   // Categorías
   getCategorias(incluirSubcategorias?: boolean, categoriaPadreId?: number, flat: boolean = false): Observable<any> {
-    let url = `${this.apiUrl}/categorias?incluir_subcategorias=${incluirSubcategorias !== false}`;
+    const params: any = {
+      incluir_subcategorias: incluirSubcategorias !== false
+    };
 
     if (categoriaPadreId !== undefined && categoriaPadreId !== null) {
-      url += `&categoria_padre_id=${categoriaPadreId}`;
+      params.categoria_padre_id = categoriaPadreId;
     }
 
     if (flat) {
-      url += `&flat=true`;
+      params.flat = 'true';
     }
 
     // Agregar ver_todo para admin
     const token = localStorage.getItem('token');
     if (token) {
-      url += '&ver_todo=true';
+      params.ver_todo = 'true';
     }
+
+    const queryString = Object.keys(params).map(key => `${key}=${params[key]}`).join('&');
+    const url = `${this.apiUrl}/categorias?${queryString}`;
 
     return this.http.get(url, { headers: this.getHeaders() });
   }

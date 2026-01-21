@@ -164,7 +164,7 @@ export class ProductosAdminComponent implements OnInit {
   }
 
   loadCategorias() {
-    this.apiService.getCategorias(true).subscribe({
+    this.apiService.getCategorias(true, undefined, true).subscribe({
       next: (data) => {
         // Asegurar que todos los IDs sean números y filtrar 'Ofertas'
         this.categorias = data.map((c: any) => ({

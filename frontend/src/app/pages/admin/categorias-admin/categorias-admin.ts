@@ -72,11 +72,10 @@ export class CategoriasAdminComponent implements OnInit {
 
     loadCategorias() {
         this.cargandoCategorias = true;
-        this.apiService.get('/categorias?ver_todo=true').subscribe({
+        this.apiService.getCategorias(true, undefined, true).subscribe({
             next: (data: Categoria[]) => {
                 this.categorias = data;
-                // Categorías que pueden ser padres (nivel 1 y 2)
-                // Primero asignamos para que getCategoriaPadreLabel funcione
+                // Todas las categorías pueden ser candidatas a padre si nivel < 3
                 this.categoriasDisponibles = data.filter(c => (c.nivel || 1) < 3);
                 // Luego ordenamos según la ruta completa
                 this.categoriasDisponibles.sort((a, b) => {
