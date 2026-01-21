@@ -1,6 +1,11 @@
 <div class="admin-container">
   <div class="admin-header">
-    <h1>📋 Gestión de Pedidos</h1>
+    <div class="header-title">
+      <button class="btn-back" routerLink="/admin/gestion" title="Volver al Panel de Gestión">
+        <span>←</span>
+      </button>
+      <h1>📋 Gestión de Pedidos</h1>
+    </div>
     <div class="actions">
       <input type="text" [(ngModel)]="busquedaCliente" placeholder="🔍 Buscar por cliente, N° pedido..."
         class="search-input">

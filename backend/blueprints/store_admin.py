@@ -333,6 +333,74 @@ def manage_single_stock(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+@store_admin_bp.route('/api/admin/stock/add', methods=['POST'])
+@jwt_required()
+def add_stock_by_sizes():
+    """
+    Incrementa el stock de un producto para múltiples talles.
+    Recibe: { product_id: int, increments: { "S": 5, "M": 10, "L": 3 } }
+    """
+    try:
+        data = request.get_json()
+        product_id = data.get('product_id')
+        increments = data.get('increments', {})
+        
+        if not product_id:
+            return jsonify({'error': 'product_id es requerido'}), 400
+        
+        if not increments:
+            return jsonify({'error': 'increments es requerido'}), 400
+        
+        # Verificar que el producto existe
+        producto = Producto.query.get(product_id)
+        if not producto:
+            return jsonify({'error': 'Producto no encontrado'}), 404
+        
+        updated_sizes = []
+        
+        for size_name, quantity in increments.items():
+            if quantity <= 0:
+                continue
+                
+            # Buscar el talle por nombre
+            talle = Talle.query.filter_by(nombre=size_name).first()
+            if not talle:
+                continue
+            
+            # Buscar stock existente o crear nuevo
+            stock = StockTalle.query.filter_by(
+                producto_id=product_id,
+                talle_id=talle.id
+            ).first()
+            
+            if stock:
+                # Incrementar stock existente
+                stock.cantidad += int(quantity)
+            else:
+                # Crear nuevo registro de stock
+                stock = StockTalle(
+                    producto_id=product_id,
+                    talle_id=talle.id,
+                    cantidad=int(quantity)
+                )
+                db.session.add(stock)
+            
+            updated_sizes.append({
+                'talle': size_name,
+                'nueva_cantidad': stock.cantidad
+            })
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Stock actualizado exitosamente',
+            'updated': updated_sizes
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 # ==================== IMAGES ====================
 
 @store_admin_bp.route('/api/admin/productos/<int:producto_id>/imagenes', methods=['POST'])
