@@ -284,4 +284,8 @@ export class CategoriasAdminComponent implements OnInit {
 
         return (padre.nivel || 1) + 1;
     }
+
+    volverAlPanel() {
+        this.router.navigate(['/admin/gestion']);
+    }
 }
