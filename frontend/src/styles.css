@@ -399,12 +399,14 @@ textarea:focus {
 .header-title {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
+  position: relative;
+  /* Anchor for absolute button */
 }
 
 .btn-back {
-  background: rgba(0, 0, 0, 0.6);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.75);
+  border: 2px solid rgba(255, 255, 255, 0.5);
   color: #fff;
   width: 44px;
   height: 44px;
@@ -417,18 +419,20 @@ textarea:focus {
   font-size: 24px;
   font-weight: 700;
   text-decoration: none;
-  margin-left: -60px;
-  /* Shift to the left */
-  margin-right: 10px;
+  position: absolute;
+  /* Take out of flow to not move the title */
+  left: -80px;
+  /* Shift even further to the left */
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 10;
 }
 
 .btn-back:hover {
   background: #000;
   transform: scale(1.15);
   border-color: #fff;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
 }
 
 .btn-back span {
@@ -437,7 +441,26 @@ textarea:focus {
 
 /* Responsivo para el botón back */
 @media (max-width: 1550px) {
+  .header-title {
+    padding-left: 60px;
+    /* Space for the button on smaller screens */
+  }
+
   .btn-back {
-    margin-left: 0;
+    left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-title {
+    padding-left: 0;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn-back {
+    position: relative;
+    left: 0;
+    margin-bottom: 15px;
   }
 }
