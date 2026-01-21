@@ -168,24 +168,105 @@ with app.app_context():
     # Limpiamos imports incorrectos previos
 
 
-    # Asegurar columna password_hash en clientes (para PostgreSQL)
     if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']:
         from sqlalchemy import text
+        # Migraciones para Clientes
         try:
             db.session.execute(text("ALTER TABLE clientes ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255)"))
             db.session.execute(text("ALTER TABLE clientes ADD COLUMN IF NOT EXISTS telefono_verificado BOOLEAN DEFAULT FALSE"))
             db.session.execute(text("ALTER TABLE clientes ADD COLUMN IF NOT EXISTS codigo_verificacion VARCHAR(6)"))
-            
-            # Migraciones para Pedidos (v2 checkout)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Nota: Error en migración clientes: {e}")
+
+        # Migraciones para Pedidos
+        try:
             db.session.execute(text("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS external_id VARCHAR(100)"))
             db.session.execute(text("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS comprobante_url VARCHAR(500)"))
             db.session.execute(text("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS codigo_pago_unico VARCHAR(50)"))
-            
             db.session.commit()
-            print("Verificación de esquema PostgreSQL completada (Campos de Verificación y Pedidos)")
         except Exception as e:
             db.session.rollback()
-            print(f"Nota: Error verificando columnas PostgreSQL (puede ser normal si ya existen): {e}")
+            print(f"Nota: Error en migración pedidos: {e}")
+
+        # Migraciones para Promociones
+        try:
+            db.session.execute(text("ALTER TABLE promociones_productos ADD COLUMN IF NOT EXISTS es_cupon BOOLEAN DEFAULT FALSE"))
+            db.session.execute(text("ALTER TABLE promociones_productos ADD COLUMN IF NOT EXISTS codigo VARCHAR(50)"))
+            db.session.execute(text("ALTER TABLE promociones_productos ADD COLUMN IF NOT EXISTS envio_gratis BOOLEAN DEFAULT FALSE"))
+            db.session.execute(text("ALTER TABLE promociones_productos ADD COLUMN IF NOT EXISTS compra_minima FLOAT DEFAULT 0.0"))
+            db.session.execute(text("ALTER TABLE promociones_productos ADD COLUMN IF NOT EXISTS max_usos INTEGER"))
+            db.session.execute(text("ALTER TABLE promociones_productos ADD COLUMN IF NOT EXISTS usos_actuales INTEGER DEFAULT 0"))
+            db.session.execute(text("ALTER TABLE promociones_productos ADD COLUMN IF NOT EXISTS alcance VARCHAR(20) DEFAULT 'producto'"))
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Nota: Error en migración promociones: {e}")
+
+        # Migraciones para Categorías
+        try:
+            db.session.execute(text("ALTER TABLE categorias ADD COLUMN IF NOT EXISTS slug VARCHAR(100)"))
+            db.session.execute(text("ALTER TABLE categorias ADD COLUMN IF NOT EXISTS imagen VARCHAR(500)"))
+            db.session.execute(text("ALTER TABLE categorias ADD COLUMN IF NOT EXISTS orden INTEGER DEFAULT 0"))
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Nota: Error en migración categorías: {e}")
+
+        # Migraciones para Productos
+        try:
+            db.session.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS precio_base FLOAT"))
+            db.session.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS precio_descuento FLOAT"))
+            db.session.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS color VARCHAR(100)"))
+            db.session.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS color_hex VARCHAR(7)"))
+            db.session.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS dorsal VARCHAR(100)"))
+            db.session.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS numero INTEGER"))
+            db.session.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS version VARCHAR(50)"))
+            db.session.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS producto_relacionado_id INTEGER"))
+            db.session.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS ventas_count INTEGER DEFAULT 0"))
+            db.session.execute(text("ALTER TABLE productos ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"))
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Nota: Error en migración productos: {e}")
+
+        # Migración de datos precios
+        try:
+            db.session.execute(text("UPDATE productos SET precio_base = precio WHERE precio_base IS NULL"))
+            db.session.execute(text("UPDATE productos SET precio_descuento = precio_oferta WHERE precio_descuento IS NULL"))
+            db.session.commit()
+        except Exception: db.session.rollback()
+
+        # Migraciones para StockTalles
+        try:
+            db.session.execute(text("ALTER TABLE stock_talles ADD COLUMN IF NOT EXISTS color_id INTEGER"))
+            db.session.execute(text("ALTER TABLE stock_talles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"))
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Nota: Error en migración stock: {e}")
+
+        # Constraints (en bloques separados por si ya existen)
+        try:
+            db.session.execute(text("ALTER TABLE productos ADD CONSTRAINT fk_producto_relacionado FOREIGN KEY (producto_relacionado_id) REFERENCES productos(id)"))
+            db.session.commit()
+        except Exception: db.session.rollback()
+
+        try:
+            db.session.execute(text("ALTER TABLE stock_talles ADD CONSTRAINT fk_stock_color FOREIGN KEY (color_id) REFERENCES colores(id)"))
+            db.session.commit()
+        except Exception: db.session.rollback()
+
+        # Migraciones para Imagenes (Corregido nombre de tabla a plural)
+        try:
+            db.session.execute(text("ALTER TABLE imagenes_productos ADD COLUMN IF NOT EXISTS orden INTEGER DEFAULT 0"))
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Nota: Error en migración imágenes: {e}")
+
+        print("✓ Verificación de esquema PostgreSQL completada")
 
 # Health check simple que no usa BD
 # Health check simple que no usa BD

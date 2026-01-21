@@ -82,7 +82,6 @@ class Categoria(db.Model):
             'imagen': self.imagen,
             'orden': self.orden,
             'categoria_padre_id': self.categoria_padre_id,
-            'categoria_padre_id': self.categoria_padre_id,
             'activa': self.activa,
             'slug': self.slug,
             'nivel': self.get_nivel(),

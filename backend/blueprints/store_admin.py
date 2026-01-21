@@ -11,7 +11,9 @@ import os
 import json
 from PIL import Image
 from pathlib import Path
-from services.admin_service import AdminService
+import logging
+
+logger = logging.getLogger(__name__)
 
 store_admin_bp = Blueprint('store_admin', __name__)
 
@@ -92,48 +94,166 @@ def search_products():
 @jwt_required()
 def create_producto():
     data = request.get_json()
-    if not data.get('nombre') or not data.get('categoria_id') or not data.get('precio'):
-        return jsonify({'error': 'Faltan campos requeridos'}), 400
+    if not data.get('nombre') or not data.get('categoria_id') or not data.get('precio_base'):
+        return jsonify({'error': 'Faltan campos requeridos (nombre, categoria_id, precio_base)'}), 400
         
-    producto = Producto(
-        nombre=data['nombre'],
-        descripcion=data.get('descripcion', ''),
-        categoria_id=data['categoria_id'],
-        precio=float(data['precio']),
-        precio_oferta=data.get('precio_oferta'),
-        destacado=data.get('destacado', False),
-        activo=data.get('activo', True),
-        tags=data.get('tags', ''),
-        equipo=data.get('equipo', 'Boca Juniors'),
-        liga=data.get('liga'),
-        dorsal=data.get('dorsal'),
-        numero=data.get('numero'),
-        version=data.get('version'),
-        marca=data.get('marca', 'Adidas')
-    )
-    db.session.add(producto)
-    db.session.commit()
-    invalidate_cache(pattern='productos')
-    return jsonify(producto.to_dict()), 201
+    try:
+        producto = Producto(
+            nombre=data['nombre'],
+            descripcion=data.get('descripcion', ''),
+            categoria_id=int(data['categoria_id']),
+            precio_base=float(data['precio_base']),
+            precio_descuento=float(data['precio_descuento']) if data.get('precio_descuento') else None,
+            destacado=data.get('destacado', False),
+            activo=data.get('activo', True),
+            color=data.get('color'),
+            color_hex=data.get('color_hex'),
+            dorsal=data.get('dorsal'),
+            numero=int(data['numero']) if data.get('numero') is not None and data.get('numero') != '' else None,
+            version=data.get('version'),
+            producto_relacionado_id=int(data['producto_relacionado_id']) if data.get('producto_relacionado_id') else None
+        )
+        db.session.add(producto)
+        db.session.commit()
+        invalidate_cache(pattern='productos')
+        return jsonify(producto.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @store_admin_bp.route('/api/admin/productos/<int:id>', methods=['PUT', 'DELETE'])
 @jwt_required()
 def manage_product(id):
     producto = Producto.query.get_or_404(id)
     if request.method == 'DELETE':
-        db.session.delete(producto)
-        db.session.commit()
-        invalidate_cache(pattern='productos')
-        return jsonify({'message': 'Producto eliminado'}), 200
+        try:
+            db.session.delete(producto)
+            db.session.commit()
+            invalidate_cache(pattern='productos')
+            return jsonify({'message': 'Producto eliminado'}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
     
     data = request.get_json()
-    producto.nombre = data.get('nombre', producto.nombre)
-    producto.precio = float(data.get('precio', producto.precio))
-    producto.activo = data.get('activo', producto.activo)
-    # ... update more fields
-    db.session.commit()
-    invalidate_cache(pattern='productos')
-    return jsonify(producto.to_dict()), 200
+    try:
+        if 'nombre' in data: producto.nombre = data['nombre']
+        if 'descripcion' in data: producto.descripcion = data['descripcion']
+        if 'precio_base' in data: producto.precio_base = float(data['precio_base'])
+        if 'precio_descuento' in data: 
+            producto.precio_descuento = float(data['precio_descuento']) if data['precio_descuento'] else None
+        if 'categoria_id' in data: producto.categoria_id = int(data['categoria_id'])
+        if 'activo' in data: producto.activo = data['activo']
+        if 'destacado' in data: producto.destacado = data['destacado']
+        if 'color' in data: producto.color = data['color']
+        if 'color_hex' in data: producto.color_hex = data['color_hex']
+        if 'dorsal' in data: producto.dorsal = data['dorsal']
+        if 'numero' in data: 
+            producto.numero = int(data['numero']) if data['numero'] is not None and data['numero'] != '' else None
+        if 'version' in data: producto.version = data['version']
+        if 'producto_relacionado_id' in data:
+            producto.producto_relacionado_id = int(data['producto_relacionado_id']) if data['producto_relacionado_id'] else None
+            
+        db.session.commit()
+        invalidate_cache(pattern='productos')
+        return jsonify(producto.to_dict()), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# ==================== CATEGORÍAS (ADMIN) ====================
+
+@store_admin_bp.route('/api/admin/categorias', methods=['POST'])
+@jwt_required()
+def create_categoria():
+    data = request.get_json()
+    if not data.get('nombre'):
+        return jsonify({'error': 'Nombre es requerido'}), 400
+        
+    try:
+        # Sanatizar categoria_padre_id (puede venir como string vacío o null)
+        padre_id = data.get('categoria_padre_id')
+        if padre_id == '' or padre_id == 'null' or padre_id == 0:
+            padre_id = None
+        else:
+            try:
+                padre_id = int(padre_id)
+            except (ValueError, TypeError):
+                padre_id = None
+
+        categoria = Categoria(
+            nombre=data['nombre'],
+            descripcion=data.get('descripcion', ''),
+            imagen=data.get('imagen'),
+            categoria_padre_id=padre_id,
+            orden=int(data.get('orden', 0)),
+            activa=data.get('activa', True),
+            slug=data.get('slug')
+        )
+        db.session.add(categoria)
+        
+        # Opcional: Procesar subcategorías nuevas si vienen en el payload
+        if 'subcategorias_nuevas' in data:
+            for sub_data in data['subcategorias_nuevas']:
+                sub_cat = Categoria(
+                    nombre=sub_data['nombre'],
+                    descripcion=sub_data.get('descripcion', ''),
+                    categoria_padre=categoria, # Relación directa
+                    orden=int(sub_data.get('orden', 0)),
+                    activa=sub_data.get('activa', True)
+                )
+                db.session.add(sub_cat)
+
+        db.session.commit()
+        invalidate_cache(pattern='categorias')
+        return jsonify(categoria.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@store_admin_bp.route('/api/admin/categorias/<int:id>', methods=['PUT', 'DELETE'])
+@jwt_required()
+def manage_category(id):
+    categoria = Categoria.query.get_or_404(id)
+    
+    if request.method == 'DELETE':
+        force = request.args.get('force', 'false') == 'true'
+        try:
+            if not force and categoria.productos:
+                return jsonify({'error': 'La categoría tiene productos asociados. Use force=true para borrar.'}), 400
+            db.session.delete(categoria)
+            db.session.commit()
+            invalidate_cache(pattern='categorias')
+            return jsonify({'message': 'Categoría eliminada'}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+            
+    data = request.get_json()
+    try:
+        if 'nombre' in data: categoria.nombre = data['nombre']
+        if 'descripcion' in data: categoria.descripcion = data['descripcion']
+        if 'imagen' in data: categoria.imagen = data['imagen']
+        if 'categoria_padre_id' in data: 
+            padre_id = data['categoria_padre_id']
+            if padre_id == '' or padre_id == 'null' or padre_id == 0:
+                categoria.categoria_padre_id = None
+            else:
+                try:
+                    categoria.categoria_padre_id = int(padre_id)
+                except (ValueError, TypeError):
+                    categoria.categoria_padre_id = None
+                    
+        if 'orden' in data: categoria.orden = int(data['orden'])
+        if 'activa' in data: categoria.activa = data['activa']
+        if 'slug' in data: categoria.slug = data['slug']
+        
+        db.session.commit()
+        invalidate_cache(pattern='categorias')
+        return jsonify(categoria.to_dict()), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 # ==================== STOCK ====================
 
@@ -142,14 +262,24 @@ def manage_product(id):
 def manage_stock():
     if request.method == 'POST':
         data = request.get_json()
-        existing = StockTalle.query.filter_by(producto_id=data['producto_id'], talle_id=data['talle_id']).first()
-        if existing:
-            existing.cantidad = int(data['cantidad'])
-        else:
-            stock = StockTalle(producto_id=data['producto_id'], talle_id=data['talle_id'], cantidad=int(data['cantidad']))
-            db.session.add(stock)
-        db.session.commit()
-        return jsonify({'message': 'Stock actualizado'}), 200
+        try:
+            existing = StockTalle.query.filter_by(producto_id=data['producto_id'], talle_id=data['talle_id']).first()
+            if existing:
+                existing.cantidad = int(data['cantidad'])
+                if 'color_id' in data: existing.color_id = data['color_id']
+            else:
+                stock = StockTalle(
+                    producto_id=data['producto_id'], 
+                    talle_id=data['talle_id'], 
+                    cantidad=int(data['cantidad']),
+                    color_id=data.get('color_id')
+                )
+                db.session.add(stock)
+            db.session.commit()
+            return jsonify({'message': 'Stock actualizado'}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
         
     page = request.args.get('page', 1, type=int)
     page_size = request.args.get('page_size', 50, type=int)
@@ -170,6 +300,34 @@ def manage_stock():
         
     pagination = query.paginate(page=page, per_page=page_size)
     return jsonify({'items': [s.to_dict() for s in pagination.items], 'total': pagination.total, 'pages': pagination.pages, 'page': page}), 200
+
+@store_admin_bp.route('/api/admin/stock/<int:id>', methods=['PUT', 'DELETE'])
+@jwt_required()
+def manage_single_stock(id):
+    stock = StockTalle.query.get_or_404(id)
+    if request.method == 'DELETE':
+        try:
+            db.session.delete(stock)
+            db.session.commit()
+            return jsonify({'message': 'Stock eliminado'}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+            
+    data = request.get_json()
+    try:
+        if 'cantidad' in data:
+            stock.cantidad = int(data['cantidad'])
+        if 'color_id' in data:
+            stock.color_id = data['color_id']
+        if 'talle_id' in data:
+            stock.talle_id = data['talle_id']
+            
+        db.session.commit()
+        return jsonify(stock.to_dict()), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 # ==================== IMAGES ====================
 
@@ -589,6 +747,136 @@ def eliminar_venta_externa(venta_id):
         
         return jsonify({'message': 'Venta externa eliminada y stock restaurado'}), 200
         
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# ==================== PROMOCIONES (ADMIN) ====================
+
+@store_admin_bp.route('/api/admin/tipos-promocion', methods=['GET'])
+@jwt_required()
+def get_tipos_promocion():
+    tipos = TipoPromocion.query.all()
+    return jsonify([t.to_dict() for t in tipos]), 200
+
+@store_admin_bp.route('/api/admin/promociones', methods=['POST'])
+@jwt_required()
+def create_promocion():
+    data = request.get_json()
+    try:
+        promocion = PromocionProducto(
+            alcance=data.get('alcance', 'producto'),
+            tipo_promocion_id=data['tipo_promocion_id'],
+            valor=float(data.get('valor', 0)),
+            activa=data.get('activa', True),
+            fecha_inicio=datetime.fromisoformat(data['fecha_inicio'].replace('Z', '+00:00')),
+            fecha_fin=datetime.fromisoformat(data['fecha_fin'].replace('Z', '+00:00')),
+            es_cupon=data.get('es_cupon', False),
+            codigo=data.get('codigo'),
+            envio_gratis=data.get('envio_gratis', False),
+            compra_minima=float(data.get('compra_minima', 0))
+        )
+        
+        # Vincular productos
+        if data.get('productos_ids'):
+            productos = Producto.query.filter(Producto.id.in_(data['productos_ids'])).all()
+            promocion.productos = productos
+            
+        # Vincular categorías
+        if data.get('categorias_ids'):
+            categorias = Categoria.query.filter(Categoria.id.in_(data['categorias_ids'])).all()
+            promocion.categorias = categorias
+            
+        db.session.add(promocion)
+        db.session.commit()
+        invalidate_cache(pattern='productos')
+        return jsonify(promocion.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@store_admin_bp.route('/api/admin/promociones/<int:id>', methods=['PUT', 'DELETE'])
+@jwt_required()
+def manage_promocion(id):
+    promocion = PromocionProducto.query.get_or_404(id)
+    
+    if request.method == 'DELETE':
+        try:
+            db.session.delete(promocion)
+            db.session.commit()
+            invalidate_cache(pattern='productos')
+            return jsonify({'message': 'Promoción eliminada'}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+            
+    data = request.get_json()
+    try:
+        if 'alcance' in data: promocion.alcance = data['alcance']
+        if 'tipo_promocion_id' in data: promocion.tipo_promocion_id = data['tipo_promocion_id']
+        if 'valor' in data: promocion.valor = float(data['valor'])
+        if 'activa' in data: promocion.activa = data['activa']
+        if 'fecha_inicio' in data: 
+            promocion.fecha_inicio = datetime.fromisoformat(data['fecha_inicio'].replace('Z', '+00:00'))
+        if 'fecha_fin' in data: 
+            promocion.fecha_fin = datetime.fromisoformat(data['fecha_fin'].replace('Z', '+00:00'))
+        if 'es_cupon' in data: promocion.es_cupon = data['es_cupon']
+        if 'codigo' in data: promocion.codigo = data['codigo']
+        if 'envio_gratis' in data: promocion.envio_gratis = data['envio_gratis']
+        if 'compra_minima' in data: promocion.compra_minima = float(data['compra_minima'])
+        
+        # Actualizar vínculos
+        if 'productos_ids' in data:
+            productos = Producto.query.filter(Producto.id.in_(data['productos_ids'])).all()
+            promocion.productos = productos
+            
+        if 'categorias_ids' in data:
+            categorias = Categoria.query.filter(Categoria.id.in_(data['categorias_ids'])).all()
+            promocion.categorias = categorias
+            
+        db.session.commit()
+        invalidate_cache(pattern='productos')
+        return jsonify(promocion.to_dict()), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# ==================== TALLES Y COLORES (ADMIN) ====================
+
+@store_admin_bp.route('/api/admin/talles', methods=['POST'])
+@jwt_required()
+def create_talle():
+    data = request.get_json()
+    try:
+        talle = Talle(nombre=data['nombre'], orden=data.get('orden', 0))
+        db.session.add(talle)
+        db.session.commit()
+        return jsonify(talle.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@store_admin_bp.route('/api/admin/talles/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_talle(id):
+    talle = Talle.query.get_or_404(id)
+    try:
+        db.session.delete(talle)
+        db.session.commit()
+        return jsonify({'message': 'Talle eliminado'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@store_admin_bp.route('/api/admin/colores', methods=['POST'])
+@jwt_required()
+def create_color():
+    data = request.get_json()
+    try:
+        color = Color(nombre=data['nombre'], codigo_hex=data.get('codigo_hex'))
+        db.session.add(color)
+        db.session.commit()
+        return jsonify(color.to_dict()), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
