@@ -32,19 +32,18 @@ export class LoginComponent {
     this.loading = true;
     this.error = '';
 
-    this.authService.login(this.username, this.password).subscribe({
-      next: () => {
-        this.router.navigate(['/admin']);
+    this.authService.loginUnified(this.username, this.password).subscribe({
+      next: (response) => {
+        if (response.user_type === 'admin') {
+          this.router.navigate(['/admin']);
+        } else {
+          this.router.navigate(['/']); // Redirigir a inicio si por alguna razón entra un cliente aquí
+        }
       },
       error: (err) => {
         this.zone.run(() => {
           console.error('Error en login:', err);
-          // Intentar obtener el mensaje de error del backend
-          if (err.error && err.error.error) {
-            this.error = err.error.error;
-          } else {
-            this.error = 'Error al conectar con el servidor. Intenta de nuevo.';
-          }
+          this.error = 'Credenciales incorrectas';
           this.loading = false;
           this.cdr.detectChanges();
         });

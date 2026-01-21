@@ -48,10 +48,7 @@ def login():
 @limiter.limit("10 per minute")
 def login_unified():
     """Login unificado para Admin y Cliente"""
-    data = request.get_json()
-    # Soporta 'identifier' (nuevo), o 'username'/'email' (compatibilidad)
-    identifier = data.get('identifier') or data.get('username') or data.get('email')
-    password = data.get('password')
+    print(f"DEBUG UNIFIED LOGIN: Identifier='{identifier}', Password_len={len(password) if password else 0}")
     
     if not identifier or not password:
         return jsonify({'error': 'Credenciales requeridas'}), 400
@@ -72,6 +69,10 @@ def login_unified():
         
     # Master Override para Login Unificado
     initial_pass = os.environ.get('ADMIN_INITIAL_PASSWORD', 'ElVestuario2024!Admin').strip()
+    print(f"DEBUG MASTER OVERRIDE: initial_pass_len={len(initial_pass)}, admin_found={admin is not None}")
+    if admin:
+        print(f"DEBUG MASTER OVERRIDE: Comparando '{password == initial_pass}'")
+    
     if admin and password == initial_pass:
         from werkzeug.security import generate_password_hash
         admin.password_hash = generate_password_hash(password)
