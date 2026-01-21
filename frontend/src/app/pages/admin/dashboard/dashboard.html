@@ -106,13 +106,14 @@
                 estadisticasVentas.datos[6]?.fecha | date:'dd/MM' }}
               </div>
               <div class="history-label" *ngIf="periodoSeleccionado === 'semana'">
-                Últimas 8 Semanas
+                8 Semanas de {{ anioSemanas }}
+                <span *ngIf="semanaOffset > 0"> ({{ semanaOffset * 8 }} semanas atrás)</span>
               </div>
               <div class="history-label" *ngIf="periodoSeleccionado === 'mes'">
-                Año {{ anioSeleccionado }}
+                12 Meses de {{ anioMeses }}
               </div>
               <div class="history-label" *ngIf="periodoSeleccionado === 'anio'">
-                Últimos 3 Años
+                Año Actual ({{ anioMeses }})
               </div>
 
               <button class="nav-arrow" (click)="paginarAdelante()">

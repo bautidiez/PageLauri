@@ -42,11 +42,15 @@ def get_estadisticas():
 @store_admin_bp.route('/api/admin/estadisticas/ventas', methods=['GET'])
 @jwt_required()
 def get_estadisticas_ventas():
-    """Obtener estadísticas de ventas por período - REFACTORIZADO"""
+    """Obtener estadísticas de ventas por período - REFACTORIZADO CON NUEVOS PARÁMETROS"""
     periodo = request.args.get('periodo', 'dia')
     fecha_ref = request.args.get('fecha_referencia')
+    semana_offset = int(request.args.get('semana_offset', 0))  # Para navegación de semanas
+    anio = request.args.get('anio')  # Para mes y semana
+    if anio:
+        anio = int(anio)
     
-    cache_key = f"estadisticas_ventas_ref:{periodo}:{fecha_ref}"
+    cache_key = f"estadisticas_ventas:{periodo}:{fecha_ref}:{semana_offset}:{anio}"
     cached_result = cache.get(cache_key)
     if cached_result: return jsonify(cached_result), 200
     
@@ -55,7 +59,7 @@ def get_estadisticas_ventas():
         if fecha_ref:
             dt_ref = datetime.strptime(fecha_ref, '%Y-%m-%d')
             
-        stats = AdminService.get_sales_stats(periodo, dt_ref)
+        stats = AdminService.get_sales_stats(periodo, dt_ref, semana_offset, anio)
         cache.set(cache_key, stats, ttl_seconds=300)
         return jsonify(stats), 200
     except Exception as e:

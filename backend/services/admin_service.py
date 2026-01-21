@@ -49,16 +49,19 @@ class AdminService:
         }
 
     @staticmethod
-    def get_sales_stats(periodo: str, ahora: datetime = None):
+    def get_sales_stats(periodo: str, ahora: datetime = None, semana_offset: int = 0, anio: int = None):
         """
-        Genera datos para los gráficos de ventas.
+        Genera datos para los gráficos de ventas con las nuevas reglas:
+        - Semana: 8 semanas desde el 1 de enero del año, navegable por bloques de 8
+        - Mes: 12 meses del año especificado, navegable por año
+        - Año: Solo el año actual
         """
         if not ahora: ahora = datetime.utcnow()
         datos = []
         intervalos = []
         
         if periodo == 'dia':
-            # Semana actual (Dom a Sáb)
+            # Día a día: Semana actual (Dom a Sáb) - mantener como estaba
             dia_semana_custom = (ahora.weekday() + 1) % 7
             fecha_domingo = ahora - timedelta(days=dia_semana_custom)
             dias_labels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
@@ -69,39 +72,66 @@ class AdminService:
                 intervalos.append((f"{dias_labels[i]} {fecha.strftime('%d/%m')}", inicio, fin))
         
         elif periodo == 'semana':
-            # Últimas 8 semanas
-            for i in range(7, -1, -1):
-                inicio_semana = ahora - timedelta(weeks=i)
-                inicio_semana = inicio_semana - timedelta(days=(inicio_semana.weekday() + 1) % 7)
+            # Semana a semana: 8 semanas desde el 1 de enero del año
+            # semana_offset indica cuántos bloques de 8 semanas retroceder
+            year = anio if anio else ahora.year
+            inicio_ano = datetime(year, 1, 1, 0, 0, 0)
+            
+            # Calcular la semana de inicio basándose en el offset
+            semana_inicio = semana_offset * 8
+            fecha_inicio_bloque = inicio_ano + timedelta(weeks=semana_inicio)
+            
+            # Generar 8 semanas consecutivas
+            for i in range(8):
+                inicio_semana = fecha_inicio_bloque + timedelta(weeks=i)
+                # Ajustar al lunes de esa semana
+                dias_hasta_lunes = (inicio_semana.weekday()) % 7
+                if dias_hasta_lunes > 0:
+                    inicio_semana = inicio_semana - timedelta(days=dias_hasta_lunes)
+                
                 inicio = datetime(inicio_semana.year, inicio_semana.month, inicio_semana.day, 0, 0, 0)
                 fin = inicio + timedelta(days=6, hours=23, minutes=59, seconds=59)
+                
+                # No mostrar semanas futuras
+                if inicio > ahora:
+                    break
+                    
                 label = f"S {inicio.strftime('%d/%m')}"
                 intervalos.append((label, inicio, fin))
                 
         elif periodo == 'mes':
-            # Últimos 6 meses
-            for i in range(5, -1, -1):
-                mes = (ahora.month - 1 - i) % 12 + 1
-                anio = ahora.year + (ahora.month - 1 - i) // 12
-                inicio = datetime(anio, mes, 1, 0, 0, 0)
-                # Siguiente mes - 1 día
-                if mes == 12:
-                    fin = datetime(anio + 1, 1, 1) - timedelta(seconds=1)
-                else:
-                    fin = datetime(anio, mes + 1, 1) - timedelta(seconds=1)
+            # Mes a mes: 12 meses del año especificado
+            year = anio if anio else ahora.year
+            meses_es = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+            
+            for mes_num in range(1, 13):
+                inicio = datetime(year, mes_num, 1, 0, 0, 0)
                 
-                meses_es = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-                intervalos.append((meses_es[mes], inicio, fin))
+                # Calcular último día del mes
+                if mes_num == 12:
+                    fin = datetime(year + 1, 1, 1) - timedelta(seconds=1)
+                else:
+                    fin = datetime(year, mes_num + 1, 1) - timedelta(seconds=1)
+                
+                # No mostrar meses futuros
+                if inicio > ahora:
+                    break
+                    
+                intervalos.append((meses_es[mes_num], inicio, fin))
                 
         elif periodo == 'anio':
-            # Últimos 3 años (o más si es necesario)
+            # Año a año: Solo el año actual
             anio_actual = ahora.year
-            for i in range(2, -1, -1):
-                anio = anio_actual - i
-                inicio = datetime(anio, 1, 1, 0, 0, 0)
-                fin = datetime(anio, 12, 31, 23, 59, 59)
-                intervalos.append((str(anio), inicio, fin))
+            inicio = datetime(anio_actual, 1, 1, 0, 0, 0)
+            fin = datetime(anio_actual, 12, 31, 23, 59, 59)
+            
+            # Si estamos a finales de año, también mostrar el año completo hasta hoy
+            if fin > ahora:
+                fin = ahora
+                
+            intervalos.append((str(anio_actual), inicio, fin))
         
+        # Calcular ventas para cada intervalo
         max_venta = 0
         total_periodo = 0
         for label, inicio, fin in intervalos:

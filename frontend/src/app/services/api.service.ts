@@ -379,10 +379,10 @@ export class ApiService {
     return this.http.get(`${this.apiUrl}/admin/estadisticas`, { headers: this.getHeaders() });
   }
 
-  getEstadisticasVentas(periodo: string, anio?: number, mes?: number, fechaReferencia?: string): Observable<any> {
+  getEstadisticasVentas(periodo: string, semanaOffset?: number, anio?: number, fechaReferencia?: string): Observable<any> {
     let url = `${this.apiUrl}/admin/estadisticas/ventas?periodo=${periodo}`;
+    if (semanaOffset !== undefined && semanaOffset !== null) url += `&semana_offset=${semanaOffset}`;
     if (anio) url += `&anio=${anio}`;
-    if (mes) url += `&mes=${mes}`;
     if (fechaReferencia) url += `&fecha_referencia=${fechaReferencia}`;
     return this.http.get(url, { headers: this.getHeaders() });
   }

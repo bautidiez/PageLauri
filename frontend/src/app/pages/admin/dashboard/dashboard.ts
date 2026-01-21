@@ -20,6 +20,13 @@ export class DashboardComponent implements OnInit {
   isAuthenticated = false;
   errorMessage = ''; // Para mostrar el error en pantalla
   periodoSeleccionado = 'dia'; // dia, semana, mes, anio
+
+  // Navegación para estadísticas
+  semanaOffset = 0; // Cuántos bloques de 8 semanas retroceder
+  anioSemanas = new Date().getFullYear(); // Año para vista de semanas
+  anioMeses = new Date().getFullYear(); // Año para vista de meses
+
+  // Variables antiguas (mantener por compatibilidad)
   anioSeleccionado = new Date().getFullYear();
   mesSeleccionado = new Date().getMonth() + 1;
   aniosDisponibles: number[] = [];
@@ -88,13 +95,20 @@ export class DashboardComponent implements OnInit {
 
   loadEstadisticasVentas() {
     this.loadingVentas = true;
-    const anio = (this.periodoSeleccionado === 'mes' || this.periodoSeleccionado === 'dia') ? this.anioSeleccionado : undefined;
-    const mes = (this.periodoSeleccionado === 'dia') ? this.mesSeleccionado : undefined;
+    let semanaOffset: number | undefined = undefined;
+    let anio: number | undefined = undefined;
 
-    // Convertir fecha a string YYYY-MM-DD
+    // Configurar parámetros según el periodo
+    if (this.periodoSeleccionado === 'semana') {
+      semanaOffset = this.semanaOffset;
+      anio = this.anioSemanas;
+    } else if (this.periodoSeleccionado === 'mes') {
+      anio = this.anioMeses;
+    }
+
     const fechaRefStr = this.currentDate.toISOString().split('T')[0];
 
-    this.apiService.getEstadisticasVentas(this.periodoSeleccionado, anio, mes, fechaRefStr).subscribe({
+    this.apiService.getEstadisticasVentas(this.periodoSeleccionado, semanaOffset, anio, fechaRefStr).subscribe({
       next: (data) => {
         this.estadisticasVentas = data;
         this.loadingVentas = false;
@@ -109,68 +123,63 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  // Como no puedo modificar api.service.ts en el mismo paso que este sin romper la compilación si typescript es estricto,
-  // hare la modificación del api call mas abajo para pasar fecha_referencia.
-
   cambiarPeriodo(periodo: string) {
     this.periodoSeleccionado = periodo;
-    this.currentDate = new Date(); // Resetear a hoy al cambiar periodo mayor
+
+    // Resetear offset y año al cambiar de periodo
+    this.semanaOffset = 0;
+    this.anioSemanas = new Date().getFullYear();
+    this.anioMeses = new Date().getFullYear();
+    this.currentDate = new Date();
+
     this.loadEstadisticasVentas();
   }
 
   paginarAtras() {
     if (this.periodoSeleccionado === 'dia') {
+      // Día a día: retroceder 1 semana
       this.currentDate.setDate(this.currentDate.getDate() - 7);
     } else if (this.periodoSeleccionado === 'semana') {
-      this.currentDate.setDate(this.currentDate.getDate() - 7); // Moverse 1 semana en el view de 8? O moverse el bloque entero?
-      // El usuario pide "volver atras para ver graficas pasadas".
-      // Si mostramos 8 semanas, volver atras podria ser mover la fecha de referencia 1 semana atras o 8.
-      // Moveremos 1 semana para desplazamiento suave.
-      this.currentDate.setDate(this.currentDate.getDate() - 7);
+      // Semana: retroceder 8 semanas (1 bloque)
+      this.semanaOffset++;
     } else if (this.periodoSeleccionado === 'mes') {
-      this.anioSeleccionado--; // En vista mensual, "atras" mueve el año
-    } else if (this.periodoSeleccionado === 'anio') {
-      // Nada, se muestran todos los años
+      // Mes: retroceder 1 año
+      this.anioMeses--;
     }
+    // Año: no hay navegación hacia atrás (solo muestra el año actual)
+
     this.loadEstadisticasVentas();
   }
 
   paginarAdelante() {
     const hoy = new Date();
+    const añoActual = hoy.getFullYear();
+
     if (this.periodoSeleccionado === 'dia') {
+      // Día a día: avanzar 1 semana
       this.currentDate.setDate(this.currentDate.getDate() + 7);
+      if (this.currentDate > hoy) {
+        this.currentDate = hoy;
+      }
     } else if (this.periodoSeleccionado === 'semana') {
-      this.currentDate.setDate(this.currentDate.getDate() + 7);
+      // Semana: avanzar 8 semanas (1 bloque) - solo si no estamos en el bloque actual
+      if (this.semanaOffset > 0) {
+        this.semanaOffset--;
+      }
     } else if (this.periodoSeleccionado === 'mes') {
-      this.anioSeleccionado++;
+      // Mes: avanzar 1 año - solo si no estamos en el año actual
+      if (this.anioMeses < añoActual) {
+        this.anioMeses++;
+      }
     }
+    // Año: no hay navegación hacia adelante
 
-    // No permitir ir al futuro más allá de esta semana/año razonablemente
-    if (this.currentDate > hoy) {
-      this.currentDate = hoy;
-    }
-    if (this.anioSeleccionado > hoy.getFullYear()) {
-      this.anioSeleccionado = hoy.getFullYear();
-    }
-
-    this.loadEstadisticasVentas();
-  }
-
-  cambiarAnio(anio: any) {
-    this.anioSeleccionado = parseInt(anio.target.value);
-    this.loadEstadisticasVentas();
-  }
-
-  cambiarMes(mes: any) {
-    this.mesSeleccionado = parseInt(mes.target.value);
     this.loadEstadisticasVentas();
   }
 
   generarAniosDisponibles() {
     const anioActual = new Date().getFullYear();
-    // Ahora dependemos del backend para esto en modo 'año', pero para los selects mantenemos logica local o usamos data del backend?
-    // El backend en modo 'año' devuelve los intervalos.
-    // Podemos seguir generando una lista estatica para los selects de historial meses.
+    // Generar años desde 2024 hasta el actual
     for (let a = 2024; a <= anioActual; a++) {
       if (!this.aniosDisponibles.includes(a)) {
         this.aniosDisponibles.push(a);
