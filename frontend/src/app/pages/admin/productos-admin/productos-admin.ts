@@ -568,6 +568,19 @@ export class ProductosAdminComponent implements OnInit {
     this.productosRelacionadosFiltrados = [];
   }
 
+  getCategoryPath(catId: number | null): string {
+    if (!catId) return '-';
+    const cat = this.categorias.find(c => c.id === catId);
+    if (!cat) return '-';
+
+    if (!cat.categoria_padre_id) {
+      return cat.nombre;
+    }
+
+    const padre = this.categorias.find(c => p.id === cat.categoria_padre_id);
+    return padre ? `${this.getCategoryPath(padre.id)} > ${cat.nombre}` : cat.nombre;
+  }
+
   formatPrecio(precio: number): string {
     if (!precio) return '0';
     // Formato manual para asegurar punto como separador de miles

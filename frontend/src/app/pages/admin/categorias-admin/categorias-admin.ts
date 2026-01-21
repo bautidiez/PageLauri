@@ -259,8 +259,9 @@ export class CategoriasAdminComponent implements OnInit {
     }
 
     getCategoriaPadreLabel(cat: Categoria): string {
+        // Usamos un prefijo de emoji para confirmar que la versión es la nueva
         if (!cat.categoria_padre_id) {
-            return cat.nombre;
+            return `🏠 ${cat.nombre}`;
         }
 
         const padre = this.categorias.find(c => c.id === cat.categoria_padre_id);
