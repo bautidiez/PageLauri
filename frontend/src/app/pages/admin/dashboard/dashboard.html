@@ -87,8 +87,8 @@
                 (click)="cambiarPeriodo('mes')">
                 Mes a Mes
               </button>
-              <button class="periodo-btn" [class.active]="periodoSeleccionado === 'año'"
-                (click)="cambiarPeriodo('año')">
+              <button class="periodo-btn" [class.active]="periodoSeleccionado === 'anio'"
+                (click)="cambiarPeriodo('anio')">
                 Año Tras Año
               </button>
             </div>
@@ -111,7 +111,7 @@
               <div class="history-label" *ngIf="periodoSeleccionado === 'mes'">
                 Año {{ anioSeleccionado }}
               </div>
-              <div class="history-label" *ngIf="periodoSeleccionado === 'año'">
+              <div class="history-label" *ngIf="periodoSeleccionado === 'anio'">
                 Últimos 3 Años
               </div>
 

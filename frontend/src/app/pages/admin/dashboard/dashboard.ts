@@ -19,7 +19,7 @@ export class DashboardComponent implements OnInit {
   loadingVentas = false;
   isAuthenticated = false;
   errorMessage = ''; // Para mostrar el error en pantalla
-  periodoSeleccionado = 'dia'; // dia, semana, mes, año
+  periodoSeleccionado = 'dia'; // dia, semana, mes, anio
   anioSeleccionado = new Date().getFullYear();
   mesSeleccionado = new Date().getMonth() + 1;
   aniosDisponibles: number[] = [];
@@ -129,7 +129,7 @@ export class DashboardComponent implements OnInit {
       this.currentDate.setDate(this.currentDate.getDate() - 7);
     } else if (this.periodoSeleccionado === 'mes') {
       this.anioSeleccionado--; // En vista mensual, "atras" mueve el año
-    } else if (this.periodoSeleccionado === 'año') {
+    } else if (this.periodoSeleccionado === 'anio') {
       // Nada, se muestran todos los años
     }
     this.loadEstadisticasVentas();
