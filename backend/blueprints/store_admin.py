@@ -75,9 +75,8 @@ def search_products():
     try:
         # Search by name (case-insensitive)
         productos = Producto.query.filter(
-            Producto.nombre.ilike(f'%{query}%'),
-            Producto.activo == True
-        ).limit(10).all()
+            Producto.nombre.ilike(f'%{query}%')
+        ).limit(20).all()
         
         return jsonify([{
             'id': p.id,
@@ -546,8 +545,8 @@ def manage_notas_pedido(pedido_id):
     
     # POST - Agregar nueva nota
     data = request.get_json()
-    admin_identity = get_jwt_identity()
-    admin = Admin.query.filter_by(username=admin_identity).first()
+    admin_id = get_jwt_identity()
+    admin = Admin.query.get(int(admin_id))
     
     if not admin:
         return jsonify({'error': 'Admin no encontrado'}), 404
@@ -625,11 +624,11 @@ def crear_venta_externa():
             }), 400
         
         # Obtener admin que registra la venta
-        admin_identity = get_jwt_identity()
-        admin = Admin.query.filter_by(username=admin_identity).first()
+        admin_id = get_jwt_identity()
+        admin = Admin.query.get(int(admin_id))
         
         if not admin:
-            return jsonify({'error': 'Admin no encontrado'}), 404
+            return jsonify({'error': 'Admin no encontrado (sesión inválida)'}), 404
         
         # Calcular ganancia total
         ganancia_total = cantidad * precio_unitario

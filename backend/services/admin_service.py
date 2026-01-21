@@ -20,17 +20,17 @@ class AdminService:
         pedidos_pendientes_aprobacion = Pedido.query.filter_by(aprobado=False, estado='pendiente_aprobacion').count()
         pedidos_pendientes = Pedido.query.filter(Pedido.estado.in_(['pendiente', 'pendiente_aprobacion', 'confirmado'])).count()
         
-        # Ventas totales (solo pedidos APROBADOS y entregados)
+        # Ventas totales (Pedidos APROBADOS que no estén cancelados/fallidos)
         total_ventas_web = db.session.query(func.sum(Pedido.total)).filter(
             Pedido.aprobado == True,
-            Pedido.estado == 'entregado'
+            Pedido.estado.in_(['confirmado', 'enviado', 'entregado'])
         ).scalar() or 0
         
-        # Ventas externas (todas cuentan ya que son confirmadas al momento de registro)
+        # Ventas externas (todas cuentan)
         total_ventas_externas = db.session.query(func.sum(VentaExterna.ganancia_total)).scalar() or 0
         
         # Total combinado
-        total_ventas = total_ventas_web + total_ventas_externas
+        total_ventas = float(total_ventas_web) + float(total_ventas_externas)
         
         return {
             'productos': {
@@ -68,15 +68,47 @@ class AdminService:
                 fin = datetime(fecha.year, fecha.month, fecha.day, 23, 59, 59)
                 intervalos.append((f"{dias_labels[i]} {fecha.strftime('%d/%m')}", inicio, fin))
         
-        # ... (Agregar lógica de semana/mes/año si es necesario moverla toda)
+        elif periodo == 'semana':
+            # Últimas 8 semanas
+            for i in range(7, -1, -1):
+                inicio_semana = ahora - timedelta(weeks=i)
+                inicio_semana = inicio_semana - timedelta(days=(inicio_semana.weekday() + 1) % 7)
+                inicio = datetime(inicio_semana.year, inicio_semana.month, inicio_semana.day, 0, 0, 0)
+                fin = inicio + timedelta(days=6, hours=23, minutes=59, seconds=59)
+                label = f"S {inicio.strftime('%d/%m')}"
+                intervalos.append((label, inicio, fin))
+                
+        elif periodo == 'mes':
+            # Últimos 6 meses
+            for i in range(5, -1, -1):
+                mes = (ahora.month - 1 - i) % 12 + 1
+                anio = ahora.year + (ahora.month - 1 - i) // 12
+                inicio = datetime(anio, mes, 1, 0, 0, 0)
+                # Siguiente mes - 1 día
+                if mes == 12:
+                    fin = datetime(anio + 1, 1, 1) - timedelta(seconds=1)
+                else:
+                    fin = datetime(anio, mes + 1, 1) - timedelta(seconds=1)
+                
+                meses_es = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+                intervalos.append((meses_es[mes], inicio, fin))
+                
+        elif periodo == 'anio':
+            # Últimos 3 años (o más si es necesario)
+            anio_actual = ahora.year
+            for i in range(2, -1, -1):
+                anio = anio_actual - i
+                inicio = datetime(anio, 1, 1, 0, 0, 0)
+                fin = datetime(anio, 12, 31, 23, 59, 59)
+                intervalos.append((str(anio), inicio, fin))
         
         max_venta = 0
         total_periodo = 0
         for label, inicio, fin in intervalos:
-            # Ventas del sitio web
+            # Ventas del sitio web (Aprobados o Entregados)
             ventas_web = db.session.query(func.sum(Pedido.total)).filter(
                 Pedido.aprobado == True,
-                Pedido.estado == 'entregado',
+                Pedido.estado.in_(['confirmado', 'enviado', 'entregado']),
                 Pedido.created_at.between(inicio, fin)
             ).scalar() or 0
             
@@ -86,8 +118,8 @@ class AdminService:
             ).scalar() or 0
             
             # Total combinado
-            ventas = ventas_web + ventas_externas
-            datos.append({'label': label, 'ventas': float(ventas), 'fecha': inicio.isoformat()})
+            ventas = float(ventas_web) + float(ventas_externas)
+            datos.append({'label': label, 'ventas': ventas, 'fecha': inicio.isoformat()})
             max_venta = max(max_venta, ventas)
             total_periodo += ventas
             
