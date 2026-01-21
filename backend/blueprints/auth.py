@@ -48,6 +48,11 @@ def login():
 @limiter.limit("10 per minute")
 def login_unified():
     """Login unificado para Admin y Cliente"""
+    data = request.get_json()
+    # Soporta 'identifier' (nuevo), o 'username'/'email' (compatibilidad)
+    identifier = data.get('identifier') or data.get('username') or data.get('email')
+    password = data.get('password')
+    
     print(f"DEBUG UNIFIED LOGIN: Identifier='{identifier}', Password_len={len(password) if password else 0}")
     
     if not identifier or not password:
