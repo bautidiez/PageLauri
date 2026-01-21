@@ -120,16 +120,21 @@ class AdminService:
                 intervalos.append((meses_es[mes_num], inicio, fin))
                 
         elif periodo == 'anio':
-            # Año a año: Solo el año actual
+            # Año a año: Mostrar todos los años desde 2024 hasta el actual
+            # En 2026 muestra: 2024, 2025, 2026
+            # En 2027 muestra: 2024, 2025, 2026, 2027
             anio_actual = ahora.year
-            inicio = datetime(anio_actual, 1, 1, 0, 0, 0)
-            fin = datetime(anio_actual, 12, 31, 23, 59, 59)
+            anio_inicio = 2024  # Primer año del sistema
             
-            # Si estamos a finales de año, también mostrar el año completo hasta hoy
-            if fin > ahora:
-                fin = ahora
+            for year in range(anio_inicio, anio_actual + 1):
+                inicio = datetime(year, 1, 1, 0, 0, 0)
+                fin = datetime(year, 12, 31, 23, 59, 59)
                 
-            intervalos.append((str(anio_actual), inicio, fin))
+                # Si es el año actual y aún no terminó, cortar hasta hoy
+                if year == anio_actual and fin > ahora:
+                    fin = ahora
+                    
+                intervalos.append((str(year), inicio, fin))
         
         # Calcular ventas para cada intervalo
         max_venta = 0
