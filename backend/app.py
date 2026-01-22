@@ -322,5 +322,13 @@ def register_hooks(app):
 # Registrar hooks de logging
 register_hooks(app)
 
+# Reparar Base de Datos (Agregar columna si falta)
+with app.app_context():
+    try:
+        from repair_db_metodo import repair_db
+        repair_db()
+    except Exception as e:
+        print(f"Error en repair_db automático: {e}")
+
 # Para correr la aplicación, ejecutar: python run.py
 

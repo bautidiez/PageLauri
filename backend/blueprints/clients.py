@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 clients_bp = Blueprint('clients', __name__)
 
 @clients_bp.route('/api/clientes', methods=['POST'])
-@limiter.limit("5 per hour")
+@limiter.limit("50 per hour")
 def registrar_cliente():
     data = request.json
     if not data.get('nombre') or not data.get('email') or not data.get('password'):
