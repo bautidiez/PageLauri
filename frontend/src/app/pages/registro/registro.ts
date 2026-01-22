@@ -17,7 +17,7 @@ export class RegistroComponent implements OnInit {
         email: '',
         password: '',
         telefono: '',
-        metodo_verificacion: '', // Se inicializa vacío para obligar al usuario a elegir
+        metodo_verificacion: 'email',
         acepta_newsletter: true
     };
 
@@ -143,11 +143,6 @@ export class RegistroComponent implements OnInit {
             return;
         }
 
-        if (!this.cliente.metodo_verificacion) {
-            this.mensajeError = 'Por favor elige cómo quieres recibir tu código de validación';
-            return;
-        }
-
         this.registrando = true;
         this.mensajeError = '';
 
@@ -218,8 +213,7 @@ export class RegistroComponent implements OnInit {
     reenviarCodigo() {
         this.apiService.reenviarCodigo(this.cliente.email).subscribe({
             next: () => {
-                const destino = this.cliente.metodo_verificacion === 'email' ? 'email' : 'WhatsApp/SMS';
-                alert(`Código reenviado. Revisa tu ${destino}.`);
+                alert(`Código reenviado. Revisa tu email.`);
             }
         });
     }

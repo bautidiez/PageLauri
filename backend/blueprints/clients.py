@@ -36,7 +36,7 @@ def registrar_cliente():
                 print(f"DEBUG CLIENTES: Re-registro para cuenta no verificada: {data['email']}", flush=True)
                 cliente.nombre = data['nombre']
                 cliente.telefono = data.get('telefono')
-                cliente.metodo_verificacion = data.get('metodo_verificacion', 'telefono')
+                cliente.metodo_verificacion = 'email'
                 cliente.acepta_newsletter = data.get('acepta_newsletter', True)
         else:
             # Crear nuevo cliente
@@ -44,7 +44,7 @@ def registrar_cliente():
                 nombre=data['nombre'],
                 email=data['email'],
                 telefono=data.get('telefono'),
-                metodo_verificacion=data.get('metodo_verificacion', 'telefono'),
+                metodo_verificacion='email',
                 acepta_newsletter=data.get('acepta_newsletter', True)
             )
             db.session.add(cliente)

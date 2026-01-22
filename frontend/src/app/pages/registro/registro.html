@@ -50,21 +50,6 @@
                     </div>
                 </div>
 
-                <div class="form-group verification-method-selector">
-                    <label>¿Cómo quieres recibir tu código de validación?</label>
-                    <div class="radio-group">
-                        <label class="radio-option">
-                            <input type="radio" [(ngModel)]="cliente.metodo_verificacion" name="metodo_verificacion"
-                                value="email">
-                            <span class="radio-label">📩 Email</span>
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" [(ngModel)]="cliente.metodo_verificacion" name="metodo_verificacion"
-                                value="telefono">
-                            <span class="radio-label">📱 WhatsApp / SMS</span>
-                        </label>
-                    </div>
-                </div>
 
                 <div class="form-checkbox">
                     <label>
@@ -90,11 +75,9 @@
             <!-- Formulario de Verificación -->
             <div class="verification-step" *ngIf="esperandoVerificacion && !mensajeExito">
                 <div class="verification-header">
-                    <span class="sms-icon">{{ cliente.metodo_verificacion === 'email' ? '📩' : '📱' }}</span>
-                    <h2>{{ cliente.metodo_verificacion === 'email' ? 'Verifica tu Email' : 'Verifica tu Teléfono' }}
-                    </h2>
-                    <p>{{ cliente.metodo_verificacion === 'email' ? 'Hemos enviado un código de 6 dígitos a tu casilla
-                        de correo.' : 'Hemos enviado un código de 6 dígitos vía WhatsApp o SMS a tu número.' }}</p>
+                    <span class="sms-icon">📩</span>
+                    <h2>Verifica tu Email</h2>
+                    <p>Hemos enviado un código de 6 dígitos a tu casilla de correo.</p>
                 </div>
 
                 <form (ngSubmit)="verificarCodigo()" class="verification-form">
