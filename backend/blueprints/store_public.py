@@ -160,18 +160,25 @@ def calcular_envio_route():
 @limiter.limit("2 per minute")
 def enviar_contacto():
     data = request.json
-    nombre, email, mensaje = data.get('nombre'), data.get('email'), data.get('mensaje')
-    if not all([nombre, email, mensaje]): return jsonify({'error': 'Campos obligatorios'}), 400
+    nombre, email, mensaje, telefono = data.get('nombre'), data.get('email'), data.get('mensaje'), data.get('telefono')
+    print(f"DEBUG CONTACTO: Iniciando envío para {nombre} ({email}) - Tel: {telefono}")
+    
+    if not all([nombre, email, mensaje]): 
+        print("DEBUG CONTACTO: Error - Faltan campos obligatorios")
+        return jsonify({'error': 'Campos obligatorios'}), 400
     
     msg = Message(
         subject=f"Contacto Web: {nombre}",
         sender=current_app.config.get('MAIL_USERNAME'),
         recipients=[os.environ.get('CONTACT_EMAIL', 'elvestuario.r4@gmail.com')],
-        body=f"Nombre: {nombre}\nEmail: {email}\nMensaje: {mensaje}",
+        body=f"Nombre: {nombre}\nEmail: {email}\nTeléfono: {telefono}\n\nMensaje:\n{mensaje}",
         reply_to=email
     )
+    
     try:
+        print(f"DEBUG CONTACTO: Intentando mail.send() usando {current_app.config.get('MAIL_USERNAME')}...")
         mail.send(msg)
+        print("DEBUG CONTACTO: mail.send() completado exitosamente.")
         return jsonify({'message': 'Ok'}), 200
     except Exception as e:
         logger.error(f"Error enviando email de contacto: {str(e)}")
