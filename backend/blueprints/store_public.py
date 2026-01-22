@@ -157,32 +157,42 @@ def calcular_envio_route():
 # ==================== CONTACTO ====================
 
 @store_public_bp.route('/api/contacto', methods=['POST'])
-@limiter.limit("2 per minute")
 def enviar_contacto():
-    data = request.json
-    nombre, email, mensaje, telefono = data.get('nombre'), data.get('email'), data.get('mensaje'), data.get('telefono')
-    print(f"DEBUG CONTACTO: Iniciando envío para {nombre} ({email}) - Tel: {telefono}")
-    
-    if not all([nombre, email, mensaje]): 
-        print("DEBUG CONTACTO: Error - Faltan campos obligatorios")
-        return jsonify({'error': 'Campos obligatorios'}), 400
-    
-    msg = Message(
-        subject=f"Contacto Web: {nombre}",
-        sender=current_app.config.get('MAIL_USERNAME'),
-        recipients=[os.environ.get('CONTACT_EMAIL', 'elvestuario.r4@gmail.com')],
-        body=f"Nombre: {nombre}\nEmail: {email}\nTeléfono: {telefono}\n\nMensaje:\n{mensaje}",
-        reply_to=email
-    )
-    
     try:
-        print(f"DEBUG CONTACTO: Intentando mail.send() usando {current_app.config.get('MAIL_USERNAME')}...")
-        mail.send(msg)
-        print("DEBUG CONTACTO: mail.send() completado exitosamente.")
-        return jsonify({'message': 'Ok'}), 200
-    except Exception as e:
-        logger.error(f"Error enviando email de contacto: {str(e)}")
-        return jsonify({'error': 'Error enviando el mensaje. Por favor intenta más tarde.'}), 500
+        data = request.json
+        nombre = data.get('nombre')
+        email = data.get('email')
+        mensaje = data.get('mensaje')
+        telefono = data.get('telefono')
+        
+        print(f"DEBUG CONTACTO: Iniciando envío para {nombre} ({email}) - Tel: {telefono}", flush=True)
+        
+        if not all([nombre, email, mensaje]): 
+            print("DEBUG CONTACTO: Error - Faltan campos obligatorios", flush=True)
+            return jsonify({'error': 'Campos obligatorios'}), 400
+    
+        msg = Message(
+            subject=f"Contacto Web: {nombre}",
+            sender=current_app.config.get('MAIL_USERNAME'),
+            recipients=[os.environ.get('CONTACT_EMAIL', 'elvestuario.r4@gmail.com')],
+            body=f"Nombre: {nombre}\nEmail: {email}\nTeléfono: {telefono}\n\nMensaje:\n{mensaje}",
+            reply_to=email
+        )
+        
+        try:
+            print(f"DEBUG CONTACTO: Intentando mail.send() usando {current_app.config.get('MAIL_USERNAME')}...")
+            mail.send(msg)
+            print("DEBUG CONTACTO: mail.send() completado exitosamente.")
+            return jsonify({'message': 'Ok'}), 200
+        except Exception as mail_e:
+            print(f"DEBUG CONTACTO: Error en mail.send(): {str(mail_e)}", flush=True)
+            logger.error(f"Error enviando email: {str(mail_e)}")
+            return jsonify({'error': 'Error al enviar el email'}), 500
+
+    except Exception as outer_e:
+        print(f"DEBUG CONTACTO: Error CRÍTICO en la ruta: {str(outer_e)}", flush=True)
+        logger.error(f"Error CRÍTICO en enviar_contacto: {str(outer_e)}")
+        return jsonify({'error': 'Error interno en el servidor'}), 500
 
 # ==================== ESTÁTICOS ====================
 
