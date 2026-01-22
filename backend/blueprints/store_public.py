@@ -184,6 +184,14 @@ def enviar_contacto():
         def send_async_email(app, msg):
             with app.app_context():
                 try:
+                    conf = {
+                        'server': app.config.get('MAIL_SERVER'),
+                        'port': app.config.get('MAIL_PORT'),
+                        'user': app.config.get('MAIL_USERNAME'),
+                        'tls': app.config.get('MAIL_USE_TLS'),
+                        'ssl': app.config.get('MAIL_USE_SSL', False)
+                    }
+                    print(f"DEBUG CONTACTO [Async]: Configuración SMTP: {conf}", flush=True)
                     print(f"DEBUG CONTACTO [Async]: Iniciando mail.send() para {msg.recipients}...", flush=True)
                     mail.send(msg)
                     print("DEBUG CONTACTO [Async]: mail.send() completado exitosamente.", flush=True)
