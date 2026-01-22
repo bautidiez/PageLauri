@@ -77,11 +77,20 @@
             <div class="form-group">
               <label>Teléfono *</label>
               <div class="phone-input-container">
-                <select [(ngModel)]="prefijoTelefono" name="prefijo">
-                  <option *ngFor="let p of prefijos" [value]="p.codigo">
-                    {{ p.flag }} {{ p.codigo }}
-                  </option>
-                </select>
+                <div class="custom-prefix-selector" (click)="toggleDropdown()">
+                  <div class="selected-prefix">
+                    <img [src]="'https://flagcdn.com/w20/' + getPrefijoActual().iso + '.png'"
+                      [alt]="getPrefijoActual().nombre" class="flag-img">
+                    <span>{{ prefijoTelefono }}</span>
+                    <i class="chevron-icon">▼</i>
+                  </div>
+                  <ul class="prefix-dropdown" *ngIf="dropdownAbierto">
+                    <li *ngFor="let p of prefijos" (click)="seleccionarPrefijo(p.codigo)">
+                      <img [src]="'https://flagcdn.com/w20/' + p.iso + '.png'" [alt]="p.nombre" class="flag-img">
+                      <span>{{ p.nombre }} ({{ p.codigo }})</span>
+                    </li>
+                  </ul>
+                </div>
                 <input type="tel" [(ngModel)]="encargo.telefono_cliente" name="telefono_cliente" required
                   placeholder="358 123456">
               </div>

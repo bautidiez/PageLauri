@@ -192,9 +192,73 @@
   gap: 8px;
 }
 
-.phone-input-container select {
-  width: 110px !important;
+.custom-prefix-selector {
+  position: relative;
+  width: 120px;
   flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.selected-prefix {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  height: 100%;
+}
+
+.selected-prefix span {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.flag-img {
+  width: 20px;
+  height: auto;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.chevron-icon {
+  font-size: 10px;
+  color: #999;
+}
+
+.prefix-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 200px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  list-style: none;
+  padding: 5px 0;
+  margin: 0;
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.prefix-dropdown li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  transition: all 0.2s;
+}
+
+.prefix-dropdown li:hover {
+  background: #f5f7fa;
+  color: #667eea;
+}
+
+.prefix-dropdown li span {
+  font-size: 14px;
 }
 
 .phone-input-container input {
