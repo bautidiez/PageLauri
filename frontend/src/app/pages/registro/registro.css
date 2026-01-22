@@ -216,3 +216,129 @@
     font-weight: bold;
     text-decoration: underline;
 }
+
+/* Phone Prefix Selector */
+.phone-input-container {
+    display: flex;
+    gap: 8px;
+}
+
+.custom-prefix-selector {
+    position: relative;
+    width: 110px;
+    flex-shrink: 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.selected-prefix {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fff;
+    height: 100%;
+}
+
+.selected-prefix span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.flag-img {
+    width: 18px;
+    height: auto;
+    border-radius: 2px;
+}
+
+.chevron-icon {
+    font-size: 10px;
+    color: #999;
+}
+
+.prefix-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    width: 200px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    list-style: none;
+    padding: 5px 0;
+    margin: 0;
+    z-index: 1000;
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+}
+
+.prefix-dropdown li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    transition: all 0.2s;
+    color: #333;
+}
+
+.prefix-dropdown li:hover {
+    background: #f8f9fa;
+    color: #000;
+}
+
+.phone-input-container input {
+    flex: 1;
+}
+
+/* Verification Method Selector */
+.verification-method-selector {
+    margin-top: 25px;
+    padding: 15px;
+    background: #f8f9ff;
+    border-radius: 12px;
+    border: 1px dashed #667eea;
+}
+
+.verification-method-selector label {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.radio-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    background: #fff;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.radio-option:has(input:checked) {
+    border-color: #667eea;
+    background: #eef2ff;
+}
+
+.radio-option input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+.radio-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}

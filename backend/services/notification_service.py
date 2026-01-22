@@ -106,3 +106,39 @@ class NotificationService:
         except Exception as e:
             print(f"Error enviando email de reset: {e}")
             return False
+
+    @staticmethod
+    def send_verification_code(cliente, codigo, metodo):
+        """Envía el código de verificación por email o WhatsApp/SMS"""
+        if metodo == 'email':
+            api_key = os.environ.get('BREVO_API_KEY')
+            if not api_key:
+                print("DEBUG NOTIFICACION: BREVO_API_KEY no configurada. No se puede enviar email de verificación.")
+                return False
+                
+            url = "https://api.brevo.com/v3/smtp/email"
+            headers = {
+                "accept": "application/json",
+                "content-type": "application/json",
+                "api-key": api_key
+            }
+            
+            payload = {
+                "sender": {"name": "El Vestuario", "email": os.environ.get('MAIL_DEFAULT_SENDER', 'elvestuario.r4@gmail.com')},
+                "to": [{"email": cliente.email}],
+                "subject": "Código de Verificación - El Vestuario",
+                "textContent": f"Hola {cliente.nombre}, tu código de verificación es: {codigo}\n\nEste código es necesario para activar tu cuenta."
+            }
+            
+            try:
+                print(f"DEBUG NOTIFICACION: Enviando código de verificación a {cliente.email} vía Brevo...", flush=True)
+                response = requests.post(url, headers=headers, json=payload, timeout=15)
+                return response.status_code in [201, 202, 200]
+            except Exception as e:
+                print(f"DEBUG NOTIFICACION: Error enviando mail de verificación: {e}")
+                return False
+        else:
+            # Para WhatsApp/SMS, por ahora simulamos o logeamos ya que requiere Meta Cloud API approve
+            print(f"DEBUG NOTIFICACION [WhatsApp]: Enviando código {codigo} al teléfono {cliente.telefono}...", flush=True)
+            # Aquí iría la integración con Meta o un servicio de SMS si estuviera configurado
+            return True

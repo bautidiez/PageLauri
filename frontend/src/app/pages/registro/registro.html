@@ -29,8 +29,41 @@
 
                 <div class="form-group">
                     <label>Teléfono *</label>
-                    <input type="tel" [(ngModel)]="cliente.telefono" name="telefono" placeholder="+54 9 358 123456"
-                        required>
+                    <div class="phone-input-container">
+                        <div class="custom-prefix-selector" (click)="toggleDropdown()">
+                            <div class="selected-prefix">
+                                <img [src]="'https://flagcdn.com/w20/' + getPrefijoActual().iso + '.png'"
+                                    [alt]="getPrefijoActual().nombre" class="flag-img">
+                                <span>{{ prefijoTelefono }}</span>
+                                <i class="chevron-icon">▼</i>
+                            </div>
+                            <ul class="prefix-dropdown" *ngIf="dropdownAbierto">
+                                <li *ngFor="let p of prefijos" (click)="seleccionarPrefijo(p.codigo)">
+                                    <img [src]="'https://flagcdn.com/w20/' + p.iso + '.png'" [alt]="p.nombre"
+                                        class="flag-img">
+                                    <span>{{ p.nombre }} ({{ p.codigo }})</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <input type="tel" [(ngModel)]="cliente.telefono" name="telefono" placeholder="358 123456"
+                            required>
+                    </div>
+                </div>
+
+                <div class="form-group verification-method-selector">
+                    <label>¿Cómo quieres recibir tu código de validación?</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" [(ngModel)]="cliente.metodo_verificacion" name="metodo_verificacion"
+                                value="email">
+                            <span class="radio-label">📩 Email</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" [(ngModel)]="cliente.metodo_verificacion" name="metodo_verificacion"
+                                value="telefono">
+                            <span class="radio-label">📱 WhatsApp / SMS</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="form-checkbox">

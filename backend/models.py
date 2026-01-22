@@ -581,6 +581,7 @@ class Cliente(db.Model):
     password_hash = db.Column(db.String(255), nullable=True) # Puede ser NULL para clientes registrados solo por newsletter
     telefono = db.Column(db.String(50))
     telefono_verificado = db.Column(db.Boolean, default=False)
+    metodo_verificacion = db.Column(db.String(20), default='telefono') # 'email' o 'telefono'
     codigo_verificacion = db.Column(db.String(6), nullable=True)
     acepta_newsletter = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -604,6 +605,7 @@ class Cliente(db.Model):
             'nombre': self.nombre,
             'email': self.email,
             'telefono': self.telefono,
+            'metodo_verificacion': self.metodo_verificacion,
             'acepta_newsletter': self.acepta_newsletter,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }

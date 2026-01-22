@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
@@ -17,8 +17,28 @@ export class RegistroComponent {
         email: '',
         password: '',
         telefono: '',
+        metodo_verificacion: 'telefono', // 'email' o 'telefono'
         acepta_newsletter: true
     };
+
+    prefijos = [
+        { nombre: 'Argentina', codigo: '+54 9', flag: '🇦🇷', iso: 'ar' },
+        { nombre: 'Uruguay', codigo: '+598', flag: '🇺🇾', iso: 'uy' },
+        { nombre: 'Chile', codigo: '+56', flag: '🇨🇱', iso: 'cl' },
+        { nombre: 'Paraguay', codigo: '+595', flag: '🇵🇾', iso: 'py' },
+        { nombre: 'Bolivia', codigo: '+591', flag: '🇧🇴', iso: 'bo' },
+        { nombre: 'Brasil', codigo: '+55', flag: '🇧🇷', iso: 'br' },
+        { nombre: 'Perú', codigo: '+51', flag: '🇵🇪', iso: 'pe' },
+        { nombre: 'Ecuador', codigo: '+593', flag: '🇪🇨', iso: 'ec' },
+        { nombre: 'Colombia', codigo: '+57', flag: '🇨🇴', iso: 'co' },
+        { nombre: 'Venezuela', codigo: '+58', flag: '🇻🇪', iso: 've' },
+        { nombre: 'México', codigo: '+52', flag: '🇲🇽', iso: 'mx' },
+        { nombre: 'España', codigo: '+34', flag: '🇪🇸', iso: 'es' },
+        { nombre: 'USA', codigo: '+1', flag: '🇺🇸', iso: 'us' }
+    ];
+
+    prefijoTelefono = '+54 9';
+    dropdownAbierto = false;
 
     registrando = false;
     mensajeExito = false;
@@ -30,7 +50,9 @@ export class RegistroComponent {
     constructor(
         private apiService: ApiService,
         private router: Router,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private cdr: ChangeDetectorRef,
+        private zone: NgZone
     ) {
         this.route.queryParams.subscribe(params => {
             if (params['email'] && params['verify']) {
@@ -38,6 +60,27 @@ export class RegistroComponent {
                 this.esperandoVerificacion = true;
             }
         });
+    }
+
+    @HostListener('document:click', ['$event'])
+    onClickDocument(event: MouseEvent) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.custom-prefix-selector')) {
+            this.dropdownAbierto = false;
+        }
+    }
+
+    toggleDropdown() {
+        this.dropdownAbierto = !this.dropdownAbierto;
+    }
+
+    seleccionarPrefijo(codigo: string) {
+        this.prefijoTelefono = codigo;
+        this.dropdownAbierto = false;
+    }
+
+    getPrefijoActual() {
+        return this.prefijos.find(p => p.codigo === this.prefijoTelefono) || this.prefijos[0];
     }
 
     // Validar email
@@ -85,14 +128,26 @@ export class RegistroComponent {
         this.registrando = true;
         this.mensajeError = '';
 
-        this.apiService.registrarCliente(this.cliente).subscribe({
+        // Combinar prefijo con teléfono para el envío
+        const clienteParaEnviar = {
+            ...this.cliente,
+            telefono: `${this.prefijoTelefono} ${this.cliente.telefono}`
+        };
+
+        this.apiService.registrarCliente(clienteParaEnviar).subscribe({
             next: () => {
-                this.esperandoVerificacion = true;
-                this.registrando = false;
+                this.zone.run(() => {
+                    this.esperandoVerificacion = true;
+                    this.registrando = false;
+                    this.cdr.detectChanges();
+                });
             },
             error: (error: any) => {
-                this.mensajeError = error.error?.error || 'Error al registrar. Intenta nuevamente.';
-                this.registrando = false;
+                this.zone.run(() => {
+                    this.mensajeError = error.error?.error || 'Error al registrar. Intenta nuevamente.';
+                    this.registrando = false;
+                    this.cdr.detectChanges();
+                });
             }
         });
     }
@@ -108,15 +163,21 @@ export class RegistroComponent {
 
         this.apiService.verificarCodigo(this.cliente.email, this.codigoVerificacion).subscribe({
             next: () => {
-                this.mensajeExito = true;
-                this.verificando = false;
-                setTimeout(() => {
-                    this.router.navigate(['/login']);
-                }, 3000);
+                this.zone.run(() => {
+                    this.mensajeExito = true;
+                    this.verificando = false;
+                    this.cdr.detectChanges();
+                    setTimeout(() => {
+                        this.router.navigate(['/login']);
+                    }, 3000);
+                });
             },
             error: (error) => {
-                this.mensajeError = error.error?.error || 'Código incorrecto';
-                this.verificando = false;
+                this.zone.run(() => {
+                    this.mensajeError = error.error?.error || 'Código incorrecto';
+                    this.verificando = false;
+                    this.cdr.detectChanges();
+                });
             }
         });
     }

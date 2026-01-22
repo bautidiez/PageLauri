@@ -30,6 +30,7 @@ def registrar_cliente():
         nombre=data['nombre'],
         email=data['email'],
         telefono=data.get('telefono'),
+        metodo_verificacion=data.get('metodo_verificacion', 'telefono'),
         acepta_newsletter=data.get('acepta_newsletter', True)
     )
     cliente.set_password(password)
@@ -38,7 +39,19 @@ def registrar_cliente():
     db.session.add(cliente)
     db.session.commit()
     
-    logger.info(f"🆕 REGISTRO OK: {cliente.email}")
+    # Enviar código de forma asíncrona para no demorar la respuesta
+    from threading import Thread
+    from flask import current_app
+    def send_async_code(app, cliente_id, codigo, metodo):
+        with app.app_context():
+            from models import Cliente
+            c = Cliente.query.get(cliente_id)
+            if c:
+                NotificationService.send_verification_code(c, codigo, metodo)
+
+    Thread(target=send_async_code, args=(current_app._get_current_object(), cliente.id, cliente.codigo_verificacion, cliente.metodo_verificacion)).start()
+
+    logger.info(f"🆕 REGISTRO OK: {cliente.email} - Verif: {cliente.metodo_verificacion}")
     return jsonify(cliente.to_dict()), 201
 
 @clients_bp.route('/api/clientes/login', methods=['POST'])
@@ -72,6 +85,34 @@ def verificar_codigo():
         db.session.commit()
         return jsonify({'message': 'Verificado'}), 200
     return jsonify({'error': 'Código inválido'}), 400
+
+@clients_bp.route('/api/clientes/resend-code', methods=['POST'])
+@limiter.limit("3 per minute")
+def reenviar_codigo():
+    data = request.json
+    email = data.get('email')
+    cliente = Cliente.query.filter_by(email=email).first()
+    
+    if not cliente:
+        return jsonify({'error': 'Email no encontrado'}), 404
+    
+    # Generar nuevo código
+    cliente.codigo_verificacion = str(random.randint(100000, 999999))
+    db.session.commit()
+    
+    # Enviar de forma asíncrona
+    from threading import Thread
+    from flask import current_app
+    def send_async_code(app, cliente_id, codigo, metodo):
+        with app.app_context():
+            from models import Cliente
+            c = Cliente.query.get(cliente_id)
+            if c:
+                NotificationService.send_verification_code(c, codigo, metodo)
+
+    Thread(target=send_async_code, args=(current_app._get_current_object(), cliente.id, cliente.codigo_verificacion, cliente.metodo_verificacion)).start()
+    
+    return jsonify({'message': 'Código reenviado'}), 200
 
 @clients_bp.route('/api/auth/forgot-password', methods=['POST'])
 @limiter.limit("3 per hour")
