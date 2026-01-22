@@ -11,46 +11,18 @@
           <h2>Información del Producto</h2>
 
           <div class="form-group">
-            <label>Tipo de Producto *</label>
-            <select [(ngModel)]="encargo.tipo_producto" name="tipo_producto" (change)="onTipoProductoChange()" required>
-              <option [value]="null">Seleccionar producto...</option>
-              <option value="remera">Remera</option>
-              <option value="short">Short</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Categoría Principal *</label>
-            <select [(ngModel)]="categoriaPrincipalId" (change)="onCategoriaPadreChange(categoriaPrincipalId!)"
-              name="categoria_padre" required>
-              <option [value]="null">Seleccionar categoría...</option>
-              <option *ngFor="let cat of categoriasPadre" [value]="cat.id">{{ cat.nombre }}</option>
-            </select>
-          </div>
-
-          <div class="form-group" *ngIf="subcategoriasNivel1.length > 0">
-            <label>Tipo/Temporada *</label>
-            <select [(ngModel)]="subcategoriaNivel1Id" (change)="onSubcategoriaNivel1Change(subcategoriaNivel1Id!)"
-              name="subcategoria_nivel1">
-              <option [value]="null">Seleccionar...</option>
-              <option *ngFor="let sub of subcategoriasNivel1" [value]="sub.id">{{ sub.nombre }}</option>
-            </select>
-          </div>
-
-          <div class="form-group" *ngIf="subcategoriasNivel2.length > 0">
-            <label>Liga *</label>
-            <select [(ngModel)]="encargo.categoria_id" (change)="onSubcategoriaNivel2Change(encargo.categoria_id!)"
-              name="subcategoria_nivel2">
-              <option [value]="null">Seleccionar liga...</option>
-              <option *ngFor="let subsub of subcategoriasNivel2" [value]="subsub.id">{{ subsub.nombre }}</option>
+            <label>Categoría / Liga *</label>
+            <select [(ngModel)]="encargo.categoria_id" name="categoria_id" required>
+              <option [value]="null">Seleccionar categoría o liga...</option>
+              <option *ngFor="let cat of categorias" [value]="cat.id">{{ cat.nombre }}</option>
             </select>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label>{{ esCategoriaPais ? 'País' : 'Club' }}</label>
-              <input type="text" [(ngModel)]="encargo.club" name="club"
-                [placeholder]="esCategoriaPais ? 'Ej: Argentina' : 'Ej: Boca Juniors'">
+              <label>Club / País *</label>
+              <input type="text" [(ngModel)]="encargo.club" name="club" required
+                placeholder="Ej: Argentina, Boca Juniors, Real Madrid...">
             </div>
 
             <div class="form-group">
