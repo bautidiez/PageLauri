@@ -30,14 +30,26 @@
 
           <div class="form-group">
             <label>Teléfono *</label>
-            <input type="tel" [(ngModel)]="contacto.telefono" name="telefono" #telefono="ngModel" required minlength="9"
-              maxlength="11" pattern="^[0-9]+$" [class.invalid]="telefono.invalid && telefono.touched">
+            <div class="phone-input-container">
+              <div class="custom-prefix-selector" (click)="toggleDropdown()">
+                <div class="selected-prefix">
+                  <img [src]="'https://flagcdn.com/w20/' + getPrefijoActual().iso + '.png'"
+                    [alt]="getPrefijoActual().nombre" class="flag-img">
+                  <span>{{ prefijoTelefono }}</span>
+                  <i class="chevron-icon">▼</i>
+                </div>
+                <ul class="prefix-dropdown" *ngIf="dropdownAbierto">
+                  <li *ngFor="let p of prefijos" (click)="seleccionarPrefijo(p.codigo)">
+                    <img [src]="'https://flagcdn.com/w20/' + p.iso + '.png'" [alt]="p.nombre" class="flag-img">
+                    <span>{{ p.nombre }} ({{ p.codigo }})</span>
+                  </li>
+                </ul>
+              </div>
+              <input type="tel" [(ngModel)]="contacto.telefono" name="telefono" #telefono="ngModel" required
+                placeholder="358 123456" [class.invalid]="telefono.invalid && telefono.touched">
+            </div>
             <div class="error-text" *ngIf="telefono.invalid && telefono.touched">
-              <span *ngIf="telefono.errors?.['required']">El teléfono es obligatorio.</span>
-              <span *ngIf="telefono.errors?.['pattern']">Solo se permiten números.</span>
-              <span *ngIf="telefono.errors?.['minlength'] || telefono.errors?.['maxlength']">
-                El teléfono debe tener entre 9 y 11 dígitos.
-              </span>
+              El teléfono es obligatorio.
             </div>
           </div>
 

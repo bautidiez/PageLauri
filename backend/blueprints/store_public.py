@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, send_from_directory, current_app
-from extensions import limiter
+from extensions import limiter, mail
+from flask_mail import Message
 from cache_utils import cache, invalidate_cache, cached
 from models import *
 from sqlalchemy import or_, and_, desc
@@ -173,7 +174,8 @@ def enviar_contacto():
         mail.send(msg)
         return jsonify({'message': 'Ok'}), 200
     except Exception as e:
-        return jsonify({'error': 'Error enviando'}), 500
+        logger.error(f"Error enviando email de contacto: {str(e)}")
+        return jsonify({'error': 'Error enviando el mensaje. Por favor intenta más tarde.'}), 500
 
 # ==================== ESTÁTICOS ====================
 
