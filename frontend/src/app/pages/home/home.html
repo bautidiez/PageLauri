@@ -52,7 +52,7 @@
             <img [src]="getImagenPrincipal(producto)" [alt]="producto.nombre" class="product-image" loading="lazy">
             <div class="product-badge" *ngIf="producto.destacado">Destacado</div>
             <div class="product-badge-promo" *ngIf="producto.promociones && producto.promociones.length > 0">
-              {{ producto.promociones[0].tipo_promocion_nombre }}
+              {{ getBadgeText(producto) }}
             </div>
             <div class="product-badge agotado" *ngIf="!producto.tiene_stock">Agotado</div>
           </div>
@@ -104,7 +104,7 @@
           <div class="product-image-container">
             <img [src]="getImagenPrincipal(producto)" [alt]="producto.nombre" class="product-image" loading="lazy">
             <div class="product-badge-promo" *ngIf="producto.promociones && producto.promociones.length > 0">
-              {{ producto.promociones[0].tipo_promocion_nombre }}
+              {{ getBadgeText(producto) }}
             </div>
             <div class="product-badge oferta"
               *ngIf="tieneOferta(producto) && (!producto.promociones || producto.promociones.length === 0)">Oferta</div>

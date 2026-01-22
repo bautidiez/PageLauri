@@ -20,7 +20,7 @@
 
             <!-- Badge overlay -->
             <div class="product-promo-badge-detail" *ngIf="producto.promociones && producto.promociones.length > 0">
-              {{ producto.promociones[0].tipo_promocion_nombre }}
+              {{ getBadgeText() }}
             </div>
           </div>
           <div class="thumbnail-images" *ngIf="producto.imagenes && producto.imagenes.length > 1">

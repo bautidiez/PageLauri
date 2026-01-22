@@ -509,22 +509,56 @@ export class ProductosComponent implements OnInit, OnDestroy {
   }
 
   getPrecioTransferencia(producto: any): number {
-    // 15% de descuento con transferencia
-    // Calculado sobre el precio actual (descuento o base)
-    const precioBase = producto.precio_descuento || producto.precio_base;
-    return precioBase * 0.85;
+    // 15% de descuento con transferencia sobre el mejor precio
+    return this.getPrecioFinal(producto) * 0.85;
+  }
+
+  // Obtener el mejor precio disponible (base, descuento directo o promoción)
+  getPrecioFinal(producto: any): number {
+    let mejorPrecio = producto.precio_descuento || producto.precio_base;
+
+    if (producto.promociones && producto.promociones.length > 0) {
+      const promo = producto.promociones[0];
+      const tipo = (promo.tipo_promocion_nombre || '').toLowerCase();
+      const valor = promo.valor || 0;
+
+      if (tipo.includes('porcentaje')) {
+        const precioPromo = producto.precio_base * (1 - (valor / 100));
+        if (precioPromo < mejorPrecio) mejorPrecio = precioPromo;
+      } else if (tipo.includes('fijo')) {
+        const precioPromo = Math.max(0, producto.precio_base - valor);
+        if (precioPromo < mejorPrecio) mejorPrecio = precioPromo;
+      }
+    }
+
+    return mejorPrecio;
   }
 
   getDescuentoPorcentaje(producto: any): number {
-    if (!producto.precio_descuento || !producto.precio_base) return 0;
-    const descuento = ((producto.precio_base - producto.precio_descuento) / producto.precio_base) * 100;
-    return Math.round(descuento);
+    const precioBase = producto.precio_base;
+    const precioFinal = this.getPrecioFinal(producto);
+
+    if (!precioBase || precioFinal >= precioBase) return 0;
+    return Math.round((1 - (precioFinal / precioBase)) * 100);
+  }
+
+  // Obtener texto para el badge de promoción
+  getBadgeText(producto: any): string {
+    if (!producto.promociones || producto.promociones.length === 0) return '';
+    const promo = producto.promociones[0];
+    const tipo = (promo.tipo_promocion_nombre || '').toLowerCase();
+
+    if (tipo.includes('porcentaje')) return `${promo.valor}% OFF`;
+    if (tipo.includes('fijo')) return `$${promo.valor} OFF`;
+    if (tipo.includes('2x1')) return '2x1';
+    if (tipo.includes('3x2')) return '3x2';
+
+    return promo.tipo_promocion_nombre;
   }
 
   getCuotaSinInteres(producto: any): number {
-    // Dividir precio base en 3 cuotas sin interés
-    const precioBase = producto.precio_descuento || producto.precio_base;
-    return precioBase / 3;
+    // Dividir precio final en 3 cuotas sin interés
+    return this.getPrecioFinal(producto) / 3;
   }
 
   getOrdenamientoTexto(): string {

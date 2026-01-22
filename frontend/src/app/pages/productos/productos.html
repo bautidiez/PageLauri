@@ -229,57 +229,50 @@
               <img [src]="getImagenPrincipal(producto)" [alt]="producto.nombre" class="product-image" loading="lazy">
               <div class="product-badge-destacado" *ngIf="producto.destacado">Destacado</div>
               <div class="product-badge-promo" *ngIf="producto.promociones && producto.promociones.length > 0">
-                {{ producto.promociones[0].tipo_promocion_nombre }}
+                {{ getBadgeText(producto) }}
               </div>
             </div>
             <div class="product-info">
               <h3 class="product-title">{{ producto.nombre }}</h3>
 
               <div class="product-pricing">
-                <!-- 1. Precio Base tachado (Solo si hay descuento) -->
-                <div class="precio-tachado"
-                  *ngIf="producto.precio_descuento && producto.precio_descuento < producto.precio_base">
-                  ${{ producto.precio_base | number:'1.0-0' }}
+                <!-- Precio Principal y Descuento -->
+                <div class="product-price-row">
+                  <span class="product-price-old"
+                    *ngIf="producto.precio_descuento || (producto.promociones && producto.promociones.length > 0)">
+                    ${{ producto.precio_base | number:'1.0-0' }}
+                  </span>
+                  <span class="product-price"
+                    [class.discount-price]="producto.precio_descuento || (producto.promociones && producto.promociones.length > 0)">
+                    ${{ getPrecioFinal(producto) | number:'1.0-0' }}
+                  </span>
+                  <span class="discount-percent" *ngIf="getDescuentoPorcentaje(producto) > 0">
+                    -{{ getDescuentoPorcentaje(producto) }}%
+                  </span>
                 </div>
 
-                <!-- 2. Precio Actual (Destaque principal) -->
-                <!-- Si hay descuento, mostramos precio_descuento. Si no, precio_base -->
-                <div class="precio-principal-container">
-                  <div class="precio-principal">
-                    ${{ (producto.precio_descuento || producto.precio_base) | number:'1.2-2' }}
-                  </div>
-                  <!-- Badge de descuento si corresponde -->
-                  <div class="discount-badge-text"
-                    *ngIf="producto.precio_descuento && producto.precio_descuento < producto.precio_base">
-                    {{ getDescuentoPorcentaje(producto) }}% OFF
-                  </div>
-                </div>
-
-                <!-- 3. Precio con Transferencia (Calculado sobre el precio actual) -->
+                <!-- Precio con Transferencia -->
                 <div class="precio-transferencia-container">
-                  <div class="precio-transferencia">
-                    ${{ getPrecioTransferencia(producto) | number:'1.2-2' }}
-                  </div>
-                  <div class="texto-transferencia">CON TRANSFERENCIA</div>
+                  <span class="precio-transferencia">${{ getPrecioTransferencia(producto) | number:'1.0-0' }}</span>
+                  <span class="texto-transferencia">CON TRANSFERENCIA</span>
                 </div>
 
-                <!-- 4. Cuotas sin interés -->
+                <!-- Cuotas -->
                 <div class="cuotas-info">
                   3 CUOTAS SIN INTERÉS DE ${{ getCuotaSinInteres(producto) | number:'1.0-0' }}
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Botón Cargar Más -->
-        <div class="load-more-container" *ngIf="!loading && productos.length > 0 && hasMoreProducts">
-          <button class="btn-load-more" (click)="loadMoreProductos()" [disabled]="loadingMore">
-            {{ loadingMore ? 'Cargando...' : 'Cargar más productos' }}
-          </button>
-          <p class="load-more-info">Mostrando {{ productos.length }} de {{ totalProducts }} productos</p>
-        </div>
-      </div> <!-- end main-content -->
-    </div> <!-- end sidebar-content-layout -->
+          <!-- Botón Cargar Más -->
+          <div class="load-more-container" *ngIf="!loading && productos.length > 0 && hasMoreProducts">
+            <button class="btn-load-more" (click)="loadMoreProductos()" [disabled]="loadingMore">
+              {{ loadingMore ? 'Cargando...' : 'Cargar más productos' }}
+            </button>
+            <p class="load-more-info">Mostrando {{ productos.length }} de {{ totalProducts }} productos</p>
+          </div>
+        </div> <!-- end main-content -->
+      </div> <!-- end sidebar-content-layout -->
+    </div>
   </div>
-</div>

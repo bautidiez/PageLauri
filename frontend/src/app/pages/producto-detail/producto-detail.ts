@@ -230,6 +230,29 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
     return mejorPrecio;
   }
 
+  getPorcentajeDescuento(): number {
+    if (!this.producto) return 0;
+    const precioBase = this.producto.precio_base;
+    const precioFinal = this.getPrecioFinal();
+
+    if (!precioBase || precioFinal >= precioBase) return 0;
+    return Math.round((1 - (precioFinal / precioBase)) * 100);
+  }
+
+  // Obtener texto para el badge de promoción
+  getBadgeText(): string {
+    if (!this.producto || !this.producto.promociones || this.producto.promociones.length === 0) return '';
+    const promo = this.producto.promociones[0];
+    const tipo = (promo.tipo_promocion_nombre || '').toLowerCase();
+
+    if (tipo.includes('porcentaje')) return `${promo.valor}% OFF`;
+    if (tipo.includes('fijo')) return `$${promo.valor} OFF`;
+    if (tipo.includes('2x1')) return '2x1';
+    if (tipo.includes('3x2')) return '3x2';
+
+    return promo.tipo_promocion_nombre;
+  }
+
   loadColores() {
     this.apiService.getColores().subscribe({
       next: (data) => {

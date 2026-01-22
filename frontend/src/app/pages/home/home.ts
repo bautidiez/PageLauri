@@ -131,13 +131,30 @@ export class HomeComponent implements OnInit {
 
   // Calcular porcentaje de descuento
   getPorcentajeDescuento(producto: any): number {
-    if (!producto.precio_descuento || !producto.precio_base) return 0;
-    return Math.round((1 - (producto.precio_descuento / producto.precio_base)) * 100);
+    const precioBase = producto.precio_base;
+    const precioFinal = this.getPrecioFinal(producto);
+
+    if (!precioBase || precioFinal >= precioBase) return 0;
+    return Math.round((1 - (precioFinal / precioBase)) * 100);
   }
 
   // Getter para controlar la visibilidad de la sección de ofertas
   get mostrarSeccionOfertas(): boolean {
     return this.productosOfertas.length > 0;
+  }
+
+  // Obtener texto para el badge de promoción
+  getBadgeText(producto: any): string {
+    if (!producto.promociones || producto.promociones.length === 0) return '';
+    const promo = producto.promociones[0];
+    const tipo = (promo.tipo_promocion_nombre || '').toLowerCase();
+
+    if (tipo.includes('porcentaje')) return `${promo.valor}% OFF`;
+    if (tipo.includes('fijo')) return `$${promo.valor} OFF`;
+    if (tipo.includes('2x1')) return '2x1';
+    if (tipo.includes('3x2')) return '3x2';
+
+    return promo.tipo_promocion_nombre;
   }
 
   suscribirNewsletter() {
