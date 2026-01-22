@@ -161,7 +161,9 @@ export class RegistroComponent {
         this.verificando = true;
         this.mensajeError = '';
 
-        this.apiService.verificarCodigo(this.cliente.email, this.codigoVerificacion).subscribe({
+        const codigoLimpio = this.codigoVerificacion.trim();
+
+        this.apiService.verificarCodigo(this.cliente.email, codigoLimpio).subscribe({
             next: () => {
                 this.zone.run(() => {
                     this.mensajeExito = true;
