@@ -138,7 +138,37 @@ class NotificationService:
                 print(f"DEBUG NOTIFICACION: Error enviando mail de verificación: {e}")
                 return False
         else:
-            # Para WhatsApp/SMS, por ahora simulamos o logeamos ya que requiere Meta Cloud API approve
-            print(f"DEBUG NOTIFICACION [WhatsApp]: Enviando código {codigo} al teléfono {cliente.telefono}...", flush=True)
-            # Aquí iría la integración con Meta o un servicio de SMS si estuviera configurado
-            return True
+            # Intentar enviar SMS vía Brevo usando la misma API Key
+            api_key = os.environ.get('BREVO_API_KEY')
+            if not api_key:
+                print("DEBUG NOTIFICACION: BREVO_API_KEY no configurada. No se puede enviar SMS.")
+                return False
+
+            # Limpiar el teléfono para que tenga solo dígitos (Brevo espera formato internacional sin + ni espacios)
+            # Aunque a veces aceptan +, lo más seguro es dejar números.
+            telefono_limpio = "".join(filter(str.isdigit, cliente.telefono))
+            
+            url = "https://api.brevo.com/v3/transactionalSMS/sms"
+            headers = {
+                "accept": "application/json",
+                "content-type": "application/json",
+                "api-key": api_key
+            }
+            
+            payload = {
+                "type": "transactional",
+                "sender": "ElVestuario",
+                "recipient": telefono_limpio,
+                "content": f"Tu codigo de verificacion es: {codigo}. No lo compartas con nadie."
+            }
+            
+            try:
+                print(f"DEBUG NOTIFICACION: Enviando SMS a {telefono_limpio} vía Brevo...", flush=True)
+                response = requests.post(url, headers=headers, json=payload, timeout=15)
+                if response.status_code not in [201, 202, 200]:
+                    print(f"DEBUG NOTIFICACION: Falló el envío de SMS. Status: {response.status_code}, Msg: {response.text}")
+                    return False
+                return True
+            except Exception as e:
+                print(f"DEBUG NOTIFICACION: Error enviando SMS: {e}")
+                return False
