@@ -227,28 +227,26 @@ export class ApiService {
   }
 
   // Categorías
-  getCategorias(incluirSubcategorias?: boolean, categoriaPadreId?: number, flat: boolean = false): Observable<any> {
-    const params: any = {
-      incluir_subcategorias: incluirSubcategorias !== false
-    };
+  getCategorias(incluirSubcategorias: boolean = true, categoriaPadreId?: number, flat: boolean = false): Observable<any> {
+    const params = new URLSearchParams();
+
+    params.set('incluir_subcategorias', incluirSubcategorias ? 'true' : 'false');
 
     if (categoriaPadreId !== undefined && categoriaPadreId !== null) {
-      params.categoria_padre_id = categoriaPadreId;
+      params.set('categoria_padre_id', categoriaPadreId.toString());
     }
 
     if (flat) {
-      params.flat = 'true';
+      params.set('flat', 'true');
     }
 
     // Agregar ver_todo para admin
     const token = localStorage.getItem('token');
     if (token) {
-      params.ver_todo = 'true';
+      params.set('ver_todo', 'true');
     }
 
-    const queryString = Object.keys(params).map(key => `${key}=${params[key]}`).join('&');
-    const url = `${this.apiUrl}/categorias?${queryString}`;
-
+    const url = `${this.apiUrl}/categorias?${params.toString()}`;
     return this.http.get(url, { headers: this.getHeaders() });
   }
 
@@ -438,5 +436,9 @@ export class ApiService {
 
   getStockByProducto(productoId: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/admin/stock?producto_id=${productoId}`, { headers: this.getHeaders() });
+  }
+
+  fixSequences(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/admin/db/fix-sequences`, {}, { headers: this.getHeaders() });
   }
 }

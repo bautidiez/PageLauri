@@ -101,29 +101,42 @@ def create_producto():
     if not data.get('nombre') or not data.get('categoria_id') or not data.get('precio_base'):
         return jsonify({'error': 'Faltan campos requeridos (nombre, categoria_id, precio_base)'}), 400
         
-    try:
-        producto = Producto(
-            nombre=data['nombre'],
-            descripcion=data.get('descripcion', ''),
-            categoria_id=int(data['categoria_id']),
-            precio_base=float(data['precio_base']),
-            precio_descuento=float(data['precio_descuento']) if data.get('precio_descuento') else None,
-            destacado=data.get('destacado', False),
-            activo=data.get('activo', True),
-            color=data.get('color'),
-            color_hex=data.get('color_hex'),
-            dorsal=data.get('dorsal'),
-            numero=int(data['numero']) if data.get('numero') is not None and data.get('numero') != '' else None,
-            version=data.get('version'),
-            producto_relacionado_id=int(data['producto_relacionado_id']) if data.get('producto_relacionado_id') else None
-        )
-        db.session.add(producto)
-        db.session.commit()
-        invalidate_cache(pattern='productos')
-        return jsonify(producto.to_dict()), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+    max_retries = 2
+    for attempt in range(max_retries):
+        try:
+            # Re-crear el objeto en cada intento porque el rollback lo invalida
+            producto = Producto(
+                nombre=data['nombre'],
+                descripcion=data.get('descripcion', ''),
+                categoria_id=int(data['categoria_id']),
+                precio_base=float(data['precio_base']),
+                precio_descuento=float(data['precio_descuento']) if data.get('precio_descuento') else None,
+                destacado=data.get('destacado', False),
+                activo=data.get('activo', True),
+                color=data.get('color'),
+                color_hex=data.get('color_hex'),
+                dorsal=data.get('dorsal'),
+                numero=int(data['numero']) if data.get('numero') is not None and data.get('numero') != '' else None,
+                version=data.get('version'),
+                producto_relacionado_id=int(data['producto_relacionado_id']) if data.get('producto_relacionado_id') else None
+            )
+            db.session.add(producto)
+            db.session.commit()
+            invalidate_cache(pattern='productos')
+            return jsonify(producto.to_dict()), 201
+        except Exception as e:
+            db.session.rollback()
+            err_str = str(e)
+            if attempt < max_retries - 1 and ('UniqueViolation' in err_str or 'duplicate key' in err_str or 'pkey' in err_str):
+                try:
+                    from sqlalchemy import text
+                    db.session.execute(text("SELECT setval('productos_id_seq', COALESCE((SELECT MAX(id) FROM productos), 1))"))
+                    db.session.commit()
+                    logger.warning(f"Reintentando creación de producto tras corregir secuencia. Intento {attempt + 1}")
+                    continue
+                except:
+                    pass
+            return jsonify({'error': err_str}), 500
 
 @store_admin_bp.route('/api/admin/productos/<int:id>', methods=['PUT', 'DELETE'])
 @jwt_required()
@@ -174,46 +187,58 @@ def create_categoria():
     if not data.get('nombre'):
         return jsonify({'error': 'Nombre es requerido'}), 400
         
-    try:
-        # Sanatizar categoria_padre_id (puede venir como string vacío o null)
-        padre_id = data.get('categoria_padre_id')
-        if padre_id == '' or padre_id == 'null' or padre_id == 0:
+    # Sanatizar categoria_padre_id (puede venir como string vacío o null)
+    padre_id = data.get('categoria_padre_id')
+    if padre_id == '' or padre_id == 'null' or padre_id == 0:
+        padre_id = None
+    else:
+        try:
+            padre_id = int(padre_id)
+        except (ValueError, TypeError):
             padre_id = None
-        else:
-            try:
-                padre_id = int(padre_id)
-            except (ValueError, TypeError):
-                padre_id = None
 
-        categoria = Categoria(
-            nombre=data['nombre'],
-            descripcion=data.get('descripcion', ''),
-            imagen=data.get('imagen'),
-            categoria_padre_id=padre_id,
-            orden=int(data.get('orden', 0)),
-            activa=data.get('activa', True),
-            slug=data.get('slug')
-        )
-        db.session.add(categoria)
-        
-        # Opcional: Procesar subcategorías nuevas si vienen en el payload
-        if 'subcategorias_nuevas' in data:
-            for sub_data in data['subcategorias_nuevas']:
-                sub_cat = Categoria(
-                    nombre=sub_data['nombre'],
-                    descripcion=sub_data.get('descripcion', ''),
-                    categoria_padre=categoria, # Relación directa
-                    orden=int(sub_data.get('orden', 0)),
-                    activa=sub_data.get('activa', True)
-                )
-                db.session.add(sub_cat)
+    max_retries = 2
+    for attempt in range(max_retries):
+        try:
+            categoria = Categoria(
+                nombre=data['nombre'],
+                descripcion=data.get('descripcion', ''),
+                imagen=data.get('imagen'),
+                categoria_padre_id=padre_id,
+                orden=int(data.get('orden', 0)),
+                activa=data.get('activa', True),
+                slug=data.get('slug')
+            )
+            db.session.add(categoria)
+            
+            # Opcional: Procesar subcategorías nuevas si vienen en el payload
+            if 'subcategorias_nuevas' in data:
+                for sub_data in data['subcategorias_nuevas']:
+                    sub_cat = Categoria(
+                        nombre=sub_data['nombre'],
+                        descripcion=sub_data.get('descripcion', ''),
+                        categoria_padre=categoria, # Relación directa
+                        orden=int(sub_data.get('orden', 0)),
+                        activa=sub_data.get('activa', True)
+                    )
+                    db.session.add(sub_cat)
 
-        db.session.commit()
-        invalidate_cache(pattern='categorias')
-        return jsonify(categoria.to_dict()), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+            db.session.commit()
+            invalidate_cache(pattern='categorias')
+            return jsonify(categoria.to_dict()), 201
+        except Exception as e:
+            db.session.rollback()
+            err_str = str(e)
+            if attempt < max_retries - 1 and ('UniqueViolation' in err_str or 'duplicate key' in err_str or 'pkey' in err_str):
+                try:
+                    from sqlalchemy import text
+                    db.session.execute(text("SELECT setval('categorias_id_seq', COALESCE((SELECT MAX(id) FROM categorias), 1))"))
+                    db.session.commit()
+                    logger.warning(f"Reintentando creación de categoría tras corregir secuencia. Intento {attempt + 1}")
+                    continue
+                except:
+                    pass
+            return jsonify({'error': err_str}), 500
 
 @store_admin_bp.route('/api/admin/categorias/<int:id>', methods=['PUT', 'DELETE'])
 @jwt_required()
@@ -949,6 +974,48 @@ def create_color():
         db.session.add(color)
         db.session.commit()
         return jsonify(color.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@store_admin_bp.route('/api/admin/db/fix-sequences', methods=['POST'])
+@jwt_required()
+def fix_db_sequences_route():
+    """Sincroniza las secuencias de las tablas con su ID máximo (PostgreSQL)"""
+    try:
+        from sqlalchemy import text
+        # Lista de tablas a sincronizar
+        tablas = [
+            'categorias', 'productos', 'pedidos', 'clientes', 
+            'admins', 'talles', 'colores', 'stock_talles', 
+            'detalles_pedidos', 'metodos_pago', 'promociones'
+        ]
+        
+        detalles = []
+        is_postgres = 'postgresql' in current_app.config.get('SQLALCHEMY_DATABASE_URI', '').lower()
+        
+        if not is_postgres:
+            return jsonify({
+                'message': 'No es una base de datos PostgreSQL, no se requiere fix de secuencias', 
+                'db': current_app.config.get('SQLALCHEMY_DATABASE_URI', '')[:30]
+            }), 200
+
+        for tabla in tablas:
+            try:
+                # Sincronizar secuencia: setval('tabla_id_seq', (SELECT MAX(id) FROM tabla))
+                # Usamos COALESCE para manejar tablas vacías (empieza en 1)
+                query = text(f"SELECT setval('{tabla}_id_seq', COALESCE((SELECT MAX(id) FROM {tabla}), 1))")
+                db.session.execute(query)
+                detalles.append(f"✓ {tabla}")
+            except Exception as table_err:
+                detalles.append(f"✗ {tabla}: {str(table_err)}")
+            
+        db.session.commit()
+        return jsonify({
+            'message': 'Sincronización de secuencias completada',
+            'detalles': detalles
+        }), 200
+        
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500

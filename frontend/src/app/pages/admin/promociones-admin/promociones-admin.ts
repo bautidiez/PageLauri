@@ -163,8 +163,13 @@ export class PromocionesAdminComponent implements OnInit {
 
   loadCategorias() {
     this.apiService.getCategorias(true, undefined, true).subscribe({
-      next: (data: any) => {
-        this.categorias = data;
+      next: (data: any[]) => {
+        // Asegurar que los IDs sean números
+        this.categorias = data.map(c => ({
+          ...c,
+          id: Number(c.id),
+          categoria_padre_id: c.categoria_padre_id ? Number(c.categoria_padre_id) : null
+        }));
       },
       error: (error: any) => {
         console.error('Error cargando categorías:', error);
@@ -449,17 +454,27 @@ export class PromocionesAdminComponent implements OnInit {
     return this.categoriasSeleccionadas.includes(catId);
   }
 
-  getCleanCategoryPath(catId: number | null): string {
+  getCleanCategoryPath(catId: number | null, pathNodes: number[] = []): string {
     if (!catId) return '';
-    const cat = this.categorias.find(c => c.id === catId);
+
+    // Evitar recursión infinita
+    if (pathNodes.includes(catId)) {
+      return '';
+    }
+
+    const cat = this.categorias.find(c => Number(c.id) === Number(catId));
     if (!cat) return '';
 
     if (!cat.categoria_padre_id) {
       return cat.nombre;
     }
 
-    const padre = this.categorias.find(p => p.id === cat.categoria_padre_id);
-    return padre ? `${this.getCleanCategoryPath(padre.id)} > ${cat.nombre}` : cat.nombre;
+    const padre = this.categorias.find(p => Number(p.id) === Number(cat.categoria_padre_id));
+    if (padre && padre.id !== catId) {
+      return `${this.getCleanCategoryPath(padre.id, [...pathNodes, catId])} > ${cat.nombre}`;
+    }
+
+    return cat.nombre;
   }
 
   getCategoryLabel(catId: number): string {

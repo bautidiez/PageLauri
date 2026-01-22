@@ -57,7 +57,7 @@ cache = SimpleCache()
 
 def make_cache_key(func_name: str, *args, **kwargs) -> str:
     """Generar una clave de caché basada en nombre de función, argumentos y parámetros de búsqueda de Flask"""
-    from flask import request
+    from flask import request, has_request_context
     
     # Capturar argumentos de la función
     data = {
@@ -67,10 +67,10 @@ def make_cache_key(func_name: str, *args, **kwargs) -> str:
     
     # Si hay un contexto de petición de Flask, incluir los parámetros de búsqueda (query params)
     try:
-        if request:
+        if has_request_context():
             data['query_params'] = dict(request.args)
-    except RuntimeError:
-        # Fuera de un contexto de petición (ej: scripts, tests)
+    except Exception:
+        # En caso de cualquier error accediendo al request
         pass
         
     args_str = json.dumps(data, sort_keys=True, default=str)

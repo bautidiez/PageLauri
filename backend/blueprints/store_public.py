@@ -69,8 +69,12 @@ def get_categorias():
 @store_public_bp.route('/api/categorias/tree', methods=['GET'])
 @cached(ttl_seconds=3600)
 def get_categorias_tree():
-    categorias_raiz = Categoria.query.filter_by(categoria_padre_id=None).order_by(Categoria.orden).all()
-    return jsonify([c.to_dict(include_subcategorias=True) for c in categorias_raiz]), 200
+    try:
+        categorias_raiz = Categoria.query.filter_by(categoria_padre_id=None).order_by(Categoria.orden).all()
+        return jsonify([c.get_arbol_completo() for c in categorias_raiz]), 200
+    except Exception as e:
+        logger.error(f"Error en Categorias Tree: {str(e)}")
+        return jsonify({'error': 'Error generando el árbol de categorías'}), 500
 
 # ==================== TALLES Y COLORES ====================
 

@@ -74,9 +74,16 @@ export class CategoriasAdminComponent implements OnInit {
         this.cargandoCategorias = true;
         this.apiService.getCategorias(true, undefined, true).subscribe({
             next: (data: Categoria[]) => {
-                this.categorias = data;
+                // Asegurar que los IDs sean números
+                this.categorias = data.map(c => ({
+                    ...c,
+                    id: Number(c.id),
+                    categoria_padre_id: c.categoria_padre_id ? Number(c.categoria_padre_id) : null
+                }));
+
                 // Todas las categorías pueden ser candidatas a padre si nivel < 3
-                this.categoriasDisponibles = data.filter(c => (c.nivel || 1) < 3);
+                this.categoriasDisponibles = this.categorias.filter(c => (c.nivel || 1) < 3);
+
                 // Luego ordenamos según la ruta completa
                 this.categoriasDisponibles.sort((a, b) => {
                     const labelA = this.getCategoriaPadreLabel(a);
@@ -257,10 +264,22 @@ export class CategoriasAdminComponent implements OnInit {
         return padre ? padre.nombre : '-';
     }
 
-    getCleanCategoryPath(cat: Categoria): string {
+    getCleanCategoryPath(cat: Categoria, pathNodes: number[] = []): string {
+        if (!cat.id) return cat.nombre;
+
+        // Evitar recursión infinita
+        if (pathNodes.includes(cat.id)) {
+            return cat.nombre;
+        }
+
         if (!cat.categoria_padre_id) return cat.nombre;
-        const padre = this.categorias.find(c => c.id === cat.categoria_padre_id);
-        return padre ? `${this.getCleanCategoryPath(padre)} > ${cat.nombre}` : cat.nombre;
+
+        const padre = this.categorias.find(c => Number(c.id) === Number(cat.categoria_padre_id));
+        if (padre && padre.id !== cat.id) {
+            return `${this.getCleanCategoryPath(padre, [...pathNodes, cat.id])} > ${cat.nombre}`;
+        }
+
+        return cat.nombre;
     }
 
     getCategoriaPadreLabel(cat: Categoria): string {
@@ -281,5 +300,20 @@ export class CategoriasAdminComponent implements OnInit {
 
     volverAlPanel() {
         this.router.navigate(['/admin/gestion']);
+    }
+
+    fixSequences() {
+        if (confirm('¿Deseas sincronizar los IDs de la base de datos? Esto debería solucionar el error de "ID duplicado" al crear categorías.')) {
+            this.apiService.fixSequences().subscribe({
+                next: (res) => {
+                    alert('Sincronización completada con éxito. Ya puedes intentar crear la categoría de nuevo.');
+                    this.loadCategorias();
+                },
+                error: (err) => {
+                    console.error('Error al sincronizar:', err);
+                    alert('Hubo un error al intentar sincronizar: ' + (err.error?.error || err.message));
+                }
+            });
+        }
     }
 }
