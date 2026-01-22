@@ -19,8 +19,8 @@ def registrar_cliente():
         data = request.json
         print(f"DEBUG CLIENTES: Recibida solicitud de registro para {data.get('email')}", flush=True)
         
-        if not data.get('nombre') or not data.get('email') or not data.get('password'):
-            return jsonify({'error': 'Faltan campos requeridos'}), 400
+        if not data.get('nombre') or not data.get('email') or not data.get('password') or not data.get('metodo_verificacion'):
+            return jsonify({'error': 'Faltan campos requeridos (incluyendo método de verificación)'}), 400
         
         password = data['password']
         if len(password) < 8 or not re.search(r'[A-Z]', password) or not re.search(r'[a-z]', password) or not re.search(r'\d', password):

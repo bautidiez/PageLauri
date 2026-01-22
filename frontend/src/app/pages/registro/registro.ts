@@ -17,7 +17,7 @@ export class RegistroComponent implements OnInit {
         email: '',
         password: '',
         telefono: '',
-        metodo_verificacion: 'telefono', // 'email' o 'telefono'
+        metodo_verificacion: '', // Se inicializa vacío para obligar al usuario a elegir
         acepta_newsletter: true
     };
 
@@ -140,6 +140,11 @@ export class RegistroComponent implements OnInit {
 
         if (!this.validarPassword(this.cliente.password)) {
             this.mensajeError = 'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula y un número';
+            return;
+        }
+
+        if (!this.cliente.metodo_verificacion) {
+            this.mensajeError = 'Por favor elige cómo quieres recibir tu código de validación';
             return;
         }
 
