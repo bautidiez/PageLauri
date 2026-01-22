@@ -166,6 +166,8 @@ export class ApiService {
       if (params.search) queryParams.search = params.search;
       if (params.busqueda) queryParams.busqueda = params.busqueda; // Backward compatibility
       if (params.ordenar_por) queryParams.ordenar_por = params.ordenar_por;
+      if (params.categoria_id) queryParams.categoria_id = params.categoria_id;
+      if (params.talle_nombre) queryParams.talle_nombre = params.talle_nombre;
 
       // NUEVO: Filtro de stock bajo
       if (params.solo_bajo !== undefined) queryParams.solo_bajo = params.solo_bajo;

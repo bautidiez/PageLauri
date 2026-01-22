@@ -335,6 +335,7 @@ export class StockAdminComponent implements OnInit, OnDestroy {
   limpiarFiltros() {
     this.busqueda = '';
     this.categoriaFiltro = null;
+    this.ordenarPor = 'alfabetico'; // Resetear a A-Z (limpia filtro por talle)
     this.mostrarSoloStockBajo = false;
     this.currentPage = 1;  // Reset to first page
     this.loadStock();
