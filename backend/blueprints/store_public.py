@@ -180,64 +180,46 @@ def enviar_contacto():
             reply_to=email
         )
         
-        # Enviar email de forma asíncrona para que no bloquee la respuesta del servidor
-        def send_async_email(app, msg):
+        # Enviar email de forma asíncrona vía Brevo API
+        def send_async_email(app, payload):
             with app.app_context():
                 try:
-                    import smtplib
-                    from email.mime.text import MIMEText
-                    from email.mime.multipart import MIMEMultipart
-
-                    print(f"DEBUG CONTACTO [Async]: Iniciando envío directo vía smtplib...", flush=True)
+                    import requests
+                    api_key = os.environ.get('BREVO_API_KEY')
+                    url = "https://api.brevo.com/v3/smtp/email"
                     
-                    server_host = app.config.get('MAIL_SERVER', 'smtp.gmail.com')
-                    server_port = app.config.get('MAIL_PORT', 587)
-                    username = app.config.get('MAIL_USERNAME')
-                    password = app.config.get('MAIL_PASSWORD')
+                    headers = {
+                        "accept": "application/json",
+                        "content-type": "application/json",
+                        "api-key": api_key
+                    }
                     
-                    # Limpiar password de espacios por si acaso
-                    if password: password = password.replace(' ', '')
-
-                    print(f"DEBUG CONTACTO [Async]: Conectando a {server_host}:{server_port}...", flush=True)
+                    print(f"DEBUG CONTACTO [Brevo]: Enviando vía API a {payload['to'][0]['email']}...", flush=True)
+                    response = requests.post(url, headers=headers, json=payload, timeout=15)
                     
-                    # Construir el mensaje manualmente para evitar dependencias de Flask-Mail en el thread
-                    mime_msg = MIMEMultipart()
-                    mime_msg['Subject'] = msg.subject
-                    mime_msg['From'] = app.config.get('MAIL_DEFAULT_SENDER')
-                    mime_msg['To'] = ", ".join(msg.recipients)
-                    mime_msg.attach(MIMEText(msg.body, 'plain'))
-
-                    server = None
-                    try:
-                        # Usar el puerto y protocolo configurado
-                        if app.config.get('MAIL_USE_SSL'):
-                            server = smtplib.SMTP_SSL(server_host, server_port, timeout=20)
-                        else:
-                            server = smtplib.SMTP(server_host, server_port, timeout=20)
-                            if app.config.get('MAIL_USE_TLS'):
-                                print("DEBUG CONTACTO [Async]: Iniciando STARTTLS...", flush=True)
-                                server.starttls()
-                        
-                        print(f"DEBUG CONTACTO [Async]: Login como {username}...", flush=True)
-                        server.login(username, password)
-                        
-                        print("DEBUG CONTACTO [Async]: Enviando mensaje...", flush=True)
-                        server.send_message(mime_msg)
-                        server.quit()
-                        print("DEBUG CONTACTO [Async]: ENVÍO EXITOSO.", flush=True)
-                    except Exception as e:
-                        print(f"DEBUG CONTACTO [Async]: FALLÓ en paso SMTP: {str(e)}", flush=True)
-                        if server:
-                            try: server.close()
-                            except: pass
-                        raise e
-
+                    if response.status_code in [201, 202, 200]:
+                        print(f"DEBUG CONTACTO [Brevo]: ENVÍO EXITOSO. ID: {response.json().get('messageId')}", flush=True)
+                    else:
+                        print(f"DEBUG CONTACTO [Brevo]: FALLÓ. Código: {response.status_code}, Error: {response.text}", flush=True)
+                        logging.error(f"Error Brevo API: {response.text}")
                 except Exception as e:
-                    print(f"DEBUG CONTACTO [Async]: Error general en envío: {str(e)}", flush=True)
-                    logging.error(f"Error en envío asíncrono de email: {str(e)}")
+                    print(f"DEBUG CONTACTO [Brevo]: Error general: {str(e)}", flush=True)
+                    logging.error(f"Error en envío asíncrono Brevo: {str(e)}")
 
-        print("DEBUG CONTACTO: Lanzando thread de envío asíncrono...", flush=True)
-        Thread(target=send_async_email, args=(current_app._get_current_object(), msg)).start()
+        # Preparar el payload para Brevo
+        sender_email = current_app.config.get('MAIL_DEFAULT_SENDER', 'elvestuario.r4@gmail.com')
+        recipient_email = os.environ.get('CONTACT_EMAIL', 'elvestuario.r4@gmail.com')
+        
+        brevo_payload = {
+            "sender": {"name": "Web El Vestuario", "email": sender_email},
+            "to": [{"email": recipient_email}],
+            "subject": f"Contacto Web: {nombre}",
+            "textContent": f"Nombre: {nombre}\nEmail: {email}\nTeléfono: {telefono}\n\nMensaje:\n{mensaje}",
+            "replyTo": {"email": email}
+        }
+
+        print("DEBUG CONTACTO: Lanzando thread de envío asíncrono vía Brevo...", flush=True)
+        Thread(target=send_async_email, args=(current_app._get_current_object(), brevo_payload)).start()
         
         return jsonify({'message': 'Ok, tu mensaje está siendo procesado.'}), 200
 
