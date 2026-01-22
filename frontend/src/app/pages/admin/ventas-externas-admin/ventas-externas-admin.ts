@@ -5,7 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { Subject } from 'rxjs';
-import { takeUntil, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged, switchMap, finalize } from 'rxjs/operators';
 
 interface VentaExterna {
     id: number;
@@ -207,20 +207,22 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
         }
 
         this.apiService.getVentasExternas(params)
-            .pipe(takeUntil(this.destroy$))
+            .pipe(
+                takeUntil(this.destroy$),
+                finalize(() => {
+                    this.loadingVentas = false;
+                    this.cdr.detectChanges();
+                })
+            )
             .subscribe({
                 next: (response: any) => {
                     this.ventas = response.items || [];
                     this.totalVentas = response.total || 0;
                     this.totalPages = response.pages || 1;
-                    this.loadingVentas = false;
-                    this.cdr.detectChanges(); // Forzar actualización para detener el loading
                 },
                 error: (error) => {
                     console.error('Error loading ventas:', error);
                     this.error = 'Error al cargar ventas externas';
-                    this.loadingVentas = false;
-                    this.cdr.detectChanges();
                 }
             });
     }

@@ -116,10 +116,18 @@ export class StockAdminComponent implements OnInit, OnDestroy {
       page: this.currentPage,
       page_size: this.pageSize,
       search: this.busqueda,
-      ordenar_por: this.ordenarPor,
-      solo_bajo: this.mostrarSoloStockBajo,  // NUEVO: Filtrar en backend
+      solo_bajo: this.mostrarSoloStockBajo,
       umbral: this.umbralStockBajo
     };
+
+    // Nueva lógica combinada: Ordenamiento O Filtro por Talle
+    const tallesDisponibles = ['S', 'M', 'L', 'XL', 'XXL'];
+    if (tallesDisponibles.includes(this.ordenarPor)) {
+      params.talle_nombre = this.ordenarPor;
+      params.ordenar_por = 'alfabetico'; // Por defecto A-Z si filtramos por talle
+    } else {
+      params.ordenar_por = this.ordenarPor;
+    }
 
     if (this.categoriaFiltro) {
       params.categoria_id = this.categoriaFiltro;

@@ -324,6 +324,11 @@ def manage_stock():
     if categoria_id:
         query = query.filter(Producto.categoria_id == categoria_id)
     
+    # Filtro por nombre de talle (NUEVO)
+    talle_nombre = request.args.get('talle_nombre')
+    if talle_nombre:
+        query = query.filter(Talle.nombre == talle_nombre)
+    
     # Búsqueda por nombre
     search = request.args.get('search')
     if search:
