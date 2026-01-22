@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, NgZone, HostListener } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
@@ -11,7 +11,7 @@ import { Router, ActivatedRoute, RouterLink } from '@angular/router';
     templateUrl: './registro.html',
     styleUrl: './registro.css'
 })
-export class RegistroComponent {
+export class RegistroComponent implements OnInit {
     cliente = {
         nombre: '',
         email: '',
@@ -60,6 +60,24 @@ export class RegistroComponent {
                 this.esperandoVerificacion = true;
             }
         });
+    }
+
+    ngOnInit() {
+        // Restaurar estado si existe en localStorage (para recargas accidentales en móvil)
+        const savedState = localStorage.getItem('pending_registration');
+        if (savedState) {
+            try {
+                const data = JSON.parse(savedState);
+                if (data.email && data.esperando) {
+                    this.cliente.email = data.email;
+                    this.cliente.metodo_verificacion = data.metodo || 'telefono';
+                    this.esperandoVerificacion = true;
+                    console.log('DEBUG REGISTRO: Estado restaurado para', data.email);
+                }
+            } catch (e) {
+                localStorage.removeItem('pending_registration');
+            }
+        }
     }
 
     @HostListener('document:click', ['$event'])
@@ -137,6 +155,13 @@ export class RegistroComponent {
         this.apiService.registrarCliente(clienteParaEnviar).subscribe({
             next: () => {
                 this.zone.run(() => {
+                    // Guardar estado en localStorage
+                    localStorage.setItem('pending_registration', JSON.stringify({
+                        email: this.cliente.email,
+                        metodo: this.cliente.metodo_verificacion,
+                        esperando: true
+                    }));
+
                     this.esperandoVerificacion = true;
                     this.registrando = false;
                     this.cdr.detectChanges();
@@ -166,6 +191,7 @@ export class RegistroComponent {
         this.apiService.verificarCodigo(this.cliente.email, codigoLimpio).subscribe({
             next: () => {
                 this.zone.run(() => {
+                    localStorage.removeItem('pending_registration');
                     this.mensajeExito = true;
                     this.verificando = false;
                     this.cdr.detectChanges();

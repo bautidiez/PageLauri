@@ -101,12 +101,25 @@ def login_cliente():
 @limiter.limit("5 per minute")
 def verificar_codigo():
     data = request.json
-    cliente = Cliente.query.filter_by(email=data.get('email')).first()
-    if cliente and cliente.codigo_verificacion == str(data.get('codigo')):
+    email = data.get('email')
+    codigo_recibido = str(data.get('codigo'))
+    
+    cliente = Cliente.query.filter_by(email=email).first()
+    
+    if not cliente:
+        print(f"DEBUG VERIFICACION: Email {email} no encontrado", flush=True)
+        return jsonify({'error': 'Email no encontrado'}), 404
+        
+    print(f"DEBUG VERIFICACION: Evaluando {email}. Recibido: [{codigo_recibido}], Esperado: [{cliente.codigo_verificacion}]", flush=True)
+    
+    if cliente.codigo_verificacion == codigo_recibido:
         cliente.telefono_verificado = True
         cliente.codigo_verificacion = None
         db.session.commit()
+        print(f"DEBUG VERIFICACION: {email} verificado con éxito", flush=True)
         return jsonify({'message': 'Verificado'}), 200
+        
+    print(f"DEBUG VERIFICACION: {email} falló. Código incorrecto.", flush=True)
     return jsonify({'error': 'Código inválido'}), 400
 
 @clients_bp.route('/api/clientes/resend-code', methods=['POST'])
