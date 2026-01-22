@@ -124,7 +124,7 @@
     <div *ngIf="!loadingStock && stockFiltrado.length === 0" class="empty-state">
       <p>📭 No hay stock que mostrar</p>
       <button class="btn btn-primary" (click)="limpiarFiltros()"
-        *ngIf="busqueda || productoFiltro || mostrarSoloStockBajo">
+        *ngIf="busqueda || categoriaFiltro || mostrarSoloStockBajo">
         Ver Todo el Stock
       </button>
     </div>
