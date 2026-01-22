@@ -1,4 +1,4 @@
-import { Component, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, HostListener, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
@@ -42,7 +42,8 @@ export class ContactoComponent {
 
   constructor(
     private apiService: ApiService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
   ) { }
 
   @HostListener('document:click', ['$event'])
@@ -80,28 +81,36 @@ export class ContactoComponent {
 
     this.apiService.enviarContacto(contactoParaEnviar).subscribe({
       next: (response) => {
-        console.log('Mensaje enviado exitosamente:', response);
-        this.enviado = true;
-        this.enviando = false;
-        this.cdr.detectChanges(); // Reflejar cambio inmediato
+        this.zone.run(() => {
+          console.log('Mensaje enviado exitosamente:', response);
+          this.enviado = true;
+          this.enviando = false;
+          this.cdr.detectChanges();
+        });
 
         // Limpiar el formulario después de 5 segundos
         setTimeout(() => {
-          this.enviado = false;
-          this.contacto = { nombre: '', email: '', telefono: '', mensaje: '' };
-          this.cdr.detectChanges();
+          this.zone.run(() => {
+            this.enviado = false;
+            this.contacto = { nombre: '', email: '', telefono: '', mensaje: '' };
+            this.cdr.detectChanges();
+          });
         }, 5000);
       },
       error: (err) => {
-        console.error('Error al enviar mensaje:', err);
-        this.enviando = false;
-        this.error = err.error?.error || 'Error al enviar el mensaje. Por favor, intenta nuevamente.';
-        this.cdr.detectChanges(); // Reflejar error inmediato
+        this.zone.run(() => {
+          console.error('Error al enviar mensaje:', err);
+          this.enviando = false;
+          this.error = err.error?.error || 'Error al enviar el mensaje. Por favor, intenta nuevamente.';
+          this.cdr.detectChanges();
+        });
 
         // Limpiar el error después de 5 segundos
         setTimeout(() => {
-          this.error = '';
-          this.cdr.detectChanges();
+          this.zone.run(() => {
+            this.error = '';
+            this.cdr.detectChanges();
+          });
         }, 5000);
       }
     });
