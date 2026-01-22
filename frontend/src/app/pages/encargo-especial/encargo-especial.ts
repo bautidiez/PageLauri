@@ -27,6 +27,22 @@ export class EncargoEspecialComponent implements OnInit {
     telefono_cliente: ''
   };
 
+  prefijos = [
+    { nombre: 'Argentina', codigo: '+54 9', flag: '🇦🇷' },
+    { nombre: 'Uruguay', codigo: '+598', flag: '🇺🇾' },
+    { nombre: 'Chile', codigo: '+56', flag: '🇨🇱' },
+    { nombre: 'Paraguay', codigo: '+595', flag: '🇵🇾' },
+    { nombre: 'Bolivia', codigo: '+591', flag: '🇧🇴' },
+    { nombre: 'Brasil', codigo: '+55', flag: '🇧🇷' },
+    { nombre: 'Perú', codigo: '+51', flag: '🇵🇪' },
+    { nombre: 'Ecuador', codigo: '+593', flag: '🇪🇨' },
+    { nombre: 'Colombia', codigo: '+57', flag: '🇨🇴' },
+    { nombre: 'Venezuela', codigo: '+58', flag: '🇻🇪' },
+    { nombre: 'México', codigo: '+52', flag: '🇲🇽' },
+    { nombre: 'España', codigo: '+34', flag: '🇪🇸' },
+    { nombre: 'USA', codigo: '+1', flag: '🇺🇸' }
+  ];
+
   prefijoTelefono = '+54 9';
   enviando = false;
   mensajeExito = false;

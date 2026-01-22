@@ -78,11 +78,9 @@
               <label>Teléfono *</label>
               <div class="phone-input-container">
                 <select [(ngModel)]="prefijoTelefono" name="prefijo">
-                  <option value="+54 9">+54 9</option>
-                  <option value="+34">+34</option>
-                  <option value="+1">+1</option>
-                  <option value="+598">+598</option>
-                  <option value="+56">+56</option>
+                  <option *ngFor="let p of prefijos" [value]="p.codigo">
+                    {{ p.flag }} {{ p.codigo }}
+                  </option>
                 </select>
                 <input type="tel" [(ngModel)]="encargo.telefono_cliente" name="telefono_cliente" required
                   placeholder="358 123456">
