@@ -891,11 +891,26 @@ def get_tipos_promocion():
     tipos = TipoPromocion.query.all()
     return jsonify([t.to_dict() for t in tipos]), 200
 
+@store_admin_bp.route('/api/admin/promociones', methods=['GET'])
+@jwt_required()
+def get_promociones():
+    """Obtiene todas las promociones"""
+    promociones = PromocionProducto.query.order_by(PromocionProducto.fecha_inicio.desc()).all()
+    return jsonify([p.to_dict() for p in promociones]), 200
+
 @store_admin_bp.route('/api/admin/promociones', methods=['POST'])
 @jwt_required()
 def create_promocion():
     data = request.get_json()
     try:
+        # Limpiar codigo: si es vacío o solo espacios, guardarlo como None
+        # para evitar violaciones de unicidad en la BD (UniqueViolation)
+        codigo = data.get('codigo')
+        if not codigo or not str(codigo).strip():
+            codigo = None
+        else:
+            codigo = str(codigo).strip().upper()
+
         promocion = PromocionProducto(
             alcance=data.get('alcance', 'producto'),
             tipo_promocion_id=data['tipo_promocion_id'],
@@ -904,7 +919,7 @@ def create_promocion():
             fecha_inicio=datetime.fromisoformat(data['fecha_inicio'].replace('Z', '+00:00')),
             fecha_fin=datetime.fromisoformat(data['fecha_fin'].replace('Z', '+00:00')),
             es_cupon=data.get('es_cupon', False),
-            codigo=data.get('codigo'),
+            codigo=codigo,
             envio_gratis=data.get('envio_gratis', False),
             compra_minima=float(data.get('compra_minima', 0))
         )
@@ -953,7 +968,15 @@ def manage_promocion(id):
         if 'fecha_fin' in data: 
             promocion.fecha_fin = datetime.fromisoformat(data['fecha_fin'].replace('Z', '+00:00'))
         if 'es_cupon' in data: promocion.es_cupon = data['es_cupon']
-        if 'codigo' in data: promocion.codigo = data['codigo']
+        
+        # Manejo de código en actualización
+        if 'codigo' in data:
+            codigo = data['codigo']
+            if not codigo or not str(codigo).strip():
+                promocion.codigo = None
+            else:
+                promocion.codigo = str(codigo).strip().upper()
+                
         if 'envio_gratis' in data: promocion.envio_gratis = data['envio_gratis']
         if 'compra_minima' in data: promocion.compra_minima = float(data['compra_minima'])
         

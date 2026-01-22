@@ -294,7 +294,8 @@ export class PromocionesAdminComponent implements OnInit {
         this.cancelar();
       },
       error: (error: any) => {
-        alert('Error al guardar promoción');
+        const errorMsg = error.error?.error || 'Error desconocido';
+        alert('Error al guardar promoción: ' + errorMsg);
         console.error(error);
       }
     });
