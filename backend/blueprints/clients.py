@@ -26,20 +26,31 @@ def registrar_cliente():
         if len(password) < 8 or not re.search(r'[A-Z]', password) or not re.search(r'[a-z]', password) or not re.search(r'\d', password):
             return jsonify({'error': 'La contraseña no cumple los requisitos de seguridad'}), 400
         
-        if Cliente.query.filter_by(email=data['email']).first():
-            return jsonify({'error': 'Email ya registrado'}), 400
+        cliente = Cliente.query.filter_by(email=data['email']).first()
         
-        cliente = Cliente(
-            nombre=data['nombre'],
-            email=data['email'],
-            telefono=data.get('telefono'),
-            metodo_verificacion=data.get('metodo_verificacion', 'telefono'),
-            acepta_newsletter=data.get('acepta_newsletter', True)
-        )
+        if cliente:
+            if cliente.telefono_verificado:
+                return jsonify({'error': 'Email ya registrado'}), 400
+            else:
+                # Si existe pero no está verificado, actualizamos sus datos y mandamos código nuevo
+                print(f"DEBUG CLIENTES: Re-registro para cuenta no verificada: {data['email']}", flush=True)
+                cliente.nombre = data['nombre']
+                cliente.telefono = data.get('telefono')
+                cliente.metodo_verificacion = data.get('metodo_verificacion', 'telefono')
+                cliente.acepta_newsletter = data.get('acepta_newsletter', True)
+        else:
+            # Crear nuevo cliente
+            cliente = Cliente(
+                nombre=data['nombre'],
+                email=data['email'],
+                telefono=data.get('telefono'),
+                metodo_verificacion=data.get('metodo_verificacion', 'telefono'),
+                acepta_newsletter=data.get('acepta_newsletter', True)
+            )
+            db.session.add(cliente)
+            
         cliente.set_password(password)
         cliente.codigo_verificacion = str(random.randint(100000, 999999))
-        
-        db.session.add(cliente)
         db.session.commit()
         
         # Enviar código de forma asíncrona para no demorar la respuesta

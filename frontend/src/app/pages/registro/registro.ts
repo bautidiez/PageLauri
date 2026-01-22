@@ -185,7 +185,8 @@ export class RegistroComponent {
     reenviarCodigo() {
         this.apiService.reenviarCodigo(this.cliente.email).subscribe({
             next: () => {
-                alert('Código reenviado. Revisa tu WhatsApp o SMS.');
+                const destino = this.cliente.metodo_verificacion === 'email' ? 'email' : 'WhatsApp/SMS';
+                alert(`Código reenviado. Revisa tu ${destino}.`);
             }
         });
     }
