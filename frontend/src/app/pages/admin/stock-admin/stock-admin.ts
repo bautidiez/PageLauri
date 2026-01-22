@@ -47,7 +47,6 @@ export class StockAdminComponent implements OnInit, OnDestroy {
   totalPages = 0;
 
   // Filtros y búsqueda
-  productoFiltro: number | null = null;
   categoriaFiltro: number | null = null;
   categorias: any[] = [];
   busqueda = '';
@@ -95,20 +94,12 @@ export class StockAdminComponent implements OnInit, OnDestroy {
     this.loadTalles();
     this.loadColores();
 
-    // ✅ FIX: Leer parámetros iniciales y cargar stock inmediatamente
-    const initialParams = this.route.snapshot.queryParams;
-    if (initialParams['producto_id']) {
-      this.productoFiltro = +initialParams['producto_id'];
-    }
     this.loadStock();  // Cargar datos inmediatamente al entrar
 
-    // Subscribe to route changes with proper cleanup
+    // Subscribe to route changes with proper cleanup (Simplified if no product filter needed)
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
-        if (params['producto_id']) {
-          this.productoFiltro = +params['producto_id'];
-        }
         this.loadStock();
       });
   }
@@ -129,10 +120,6 @@ export class StockAdminComponent implements OnInit, OnDestroy {
       solo_bajo: this.mostrarSoloStockBajo,  // NUEVO: Filtrar en backend
       umbral: this.umbralStockBajo
     };
-
-    if (this.productoFiltro) {
-      params.producto_id = this.productoFiltro;
-    }
 
     if (this.categoriaFiltro) {
       params.categoria_id = this.categoriaFiltro;
@@ -267,7 +254,7 @@ export class StockAdminComponent implements OnInit, OnDestroy {
   // CRUD tradicional
   nuevo() {
     this.nuevoStock = {
-      producto_id: this.productoFiltro,
+      producto_id: null,
       color_id: null,
       talle_id: null,
       cantidad: 0
@@ -339,7 +326,6 @@ export class StockAdminComponent implements OnInit, OnDestroy {
 
   limpiarFiltros() {
     this.busqueda = '';
-    this.productoFiltro = null;
     this.categoriaFiltro = null;
     this.mostrarSoloStockBajo = false;
     this.currentPage = 1;  // Reset to first page

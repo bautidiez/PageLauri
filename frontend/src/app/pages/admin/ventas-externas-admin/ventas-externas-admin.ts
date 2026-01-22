@@ -75,6 +75,8 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
 
     // Filtros
     filtroProductoId: number | null = null;
+    filtroCategoriaId: number | null = null; // NUEVO
+    categorias: any[] = []; // NUEVO
     filtroFechaDesde: string = '';
     filtroFechaHasta: string = '';
 
@@ -158,6 +160,17 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
                     this.loading = false;
                 }
             });
+
+        // Cargar categorías para el filtro
+        this.apiService.getCategorias(false, undefined, true).subscribe({
+            next: (data: any) => {
+                // Solo categorías principales (sin padre)
+                this.categorias = data.filter((cat: any) => !cat.categoria_padre_id);
+            },
+            error: (error: any) => {
+                console.error('Error cargando categorías:', error);
+            }
+        });
     }
 
     loadTalles() {
@@ -183,6 +196,9 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
         if (this.filtroProductoId) {
             params.producto_id = this.filtroProductoId;
         }
+        if (this.filtroCategoriaId) { // NUEVO
+            params.categoria_id = this.filtroCategoriaId;
+        }
         if (this.filtroFechaDesde) {
             params.fecha_desde = this.filtroFechaDesde;
         }
@@ -198,11 +214,13 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
                     this.totalVentas = response.total || 0;
                     this.totalPages = response.pages || 1;
                     this.loadingVentas = false;
+                    this.cdr.detectChanges(); // Forzar actualización para detener el loading
                 },
                 error: (error) => {
                     console.error('Error loading ventas:', error);
                     this.error = 'Error al cargar ventas externas';
                     this.loadingVentas = false;
+                    this.cdr.detectChanges();
                 }
             });
     }
@@ -394,6 +412,7 @@ export class VentasExternasAdminComponent implements OnInit, OnDestroy {
 
     limpiarFiltros() {
         this.filtroProductoId = null;
+        this.filtroCategoriaId = null;
         this.filtroFechaDesde = '';
         this.filtroFechaHasta = '';
         this.currentPage = 1;

@@ -48,13 +48,9 @@
         <option *ngFor="let cat of categorias" [ngValue]="cat.id">{{ getCategoriaLabel(cat) }}</option>
       </select>
 
-      <select [(ngModel)]="productoFiltro" (change)="filtrarPorProducto()" class="filter-select">
-        <option [ngValue]="null">Todos los productos</option>
-        <option *ngFor="let producto of productos" [ngValue]="producto.id">{{ producto.nombre }}</option>
-      </select>
-
       <select [(ngModel)]="ordenarPor" (change)="cambiarOrdenamiento()" class="filter-select">
         <option value="alfabetico">A-Z</option>
+        <option value="alfabetico_desc">Z-A</option>
         <option value="talle">Por Talle</option>
         <option value="stock_asc">Stock ↑</option>
         <option value="stock_desc">Stock ↓</option>

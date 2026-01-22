@@ -338,6 +338,8 @@ def manage_stock():
     ordenar_por = request.args.get('ordenar_por', 'alfabetico')
     if ordenar_por == 'alfabetico':
         query = query.order_by(Producto.nombre.asc())
+    elif ordenar_por == 'alfabetico_desc': # NUEVO: Z-A
+        query = query.order_by(Producto.nombre.desc())
     elif ordenar_por == 'talle':
         query = query.order_by(Talle.orden.asc(), Producto.nombre.asc())
     elif ordenar_por == 'stock_asc':
@@ -798,10 +800,15 @@ def listar_ventas_externas():
         page = request.args.get('page', 1, type=int)
         page_size = request.args.get('page_size', 50, type=int)
         producto_id = request.args.get('producto_id', type=int)
+        categoria_id = request.args.get('categoria_id', type=int) # NUEVO
         fecha_desde = request.args.get('fecha_desde')
         fecha_hasta = request.args.get('fecha_hasta')
         
         query = VentaExterna.query
+        
+        # Filtro por categoría (NUEVO)
+        if categoria_id:
+            query = query.join(Producto).filter(Producto.categoria_id == categoria_id)
         
         # Filtrar por producto
         if producto_id:

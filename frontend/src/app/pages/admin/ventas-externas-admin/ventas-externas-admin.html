@@ -118,11 +118,11 @@
 
         <div class="filtros-form">
             <div class="form-group">
-                <label for="filtroProducto">Producto</label>
-                <select id="filtroProducto" [(ngModel)]="filtroProductoId">
-                    <option [ngValue]="null">Todos los productos</option>
-                    <option *ngFor="let producto of productos" [ngValue]="producto.id">
-                        {{ producto.nombre }}
+                <label for="filtroCategoria">Categoría</label>
+                <select id="filtroCategoria" [(ngModel)]="filtroCategoriaId">
+                    <option [ngValue]="null">Todas las categorías</option>
+                    <option *ngFor="let cat of categorias" [ngValue]="cat.id">
+                        🏠 {{ cat.nombre }}
                     </option>
                 </select>
             </div>
