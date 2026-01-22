@@ -165,7 +165,7 @@ def enviar_contacto():
     msg = Message(
         subject=f"Contacto Web: {nombre}",
         sender=current_app.config.get('MAIL_USERNAME'),
-        recipients=[os.environ.get('CONTACT_EMAIL', 'tomasgomezz411@gmail.com')],
+        recipients=[os.environ.get('CONTACT_EMAIL', 'elvestuario.r4@gmail.com')],
         body=f"Nombre: {nombre}\nEmail: {email}\nMensaje: {mensaje}",
         reply_to=email
     )
