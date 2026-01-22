@@ -105,7 +105,7 @@ export class EncargoEspecialComponent implements OnInit {
 
     // Enviar por WhatsApp
     const mensaje = `🎯 ENCARGO ESPECIAL\n\n` +
-      `Categoría/Liga: ${categoriaNombre}\n` +
+      `Categoría: ${categoriaNombre}\n` +
       `Club/País: ${this.encargo.club}\n` +
       `Número: ${this.encargo.numero || 'No especificado'}\n` +
       `Dorsal: ${this.encargo.dorsal || 'No especificado'}\n` +

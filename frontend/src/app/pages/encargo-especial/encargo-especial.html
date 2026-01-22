@@ -11,9 +11,9 @@
           <h2>Información del Producto</h2>
 
           <div class="form-group">
-            <label>Categoría / Liga *</label>
+            <label>Categoría *</label>
             <select [(ngModel)]="encargo.categoria_id" name="categoria_id" required>
-              <option [value]="null">Seleccionar categoría o liga...</option>
+              <option [value]="null">Seleccionar categoría...</option>
               <option *ngFor="let cat of categorias" [value]="cat.id">{{ cat.nombre }}</option>
             </select>
           </div>
