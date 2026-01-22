@@ -27,6 +27,7 @@ export class EncargoEspecialComponent implements OnInit {
     telefono_cliente: ''
   };
 
+  prefijoTelefono = '+54 9';
   enviando = false;
   mensajeExito = false;
   mensajeError = '';
@@ -41,11 +42,11 @@ export class EncargoEspecialComponent implements OnInit {
   loadCategorias() {
     // Pedir lista plana para facilitar la selección directa
     this.apiService.getCategorias(true).subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.categorias = data.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
         console.log('Categorías cargadas:', this.categorias);
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error cargando categorías:', error);
       }
     });
@@ -53,10 +54,10 @@ export class EncargoEspecialComponent implements OnInit {
 
   loadTalles() {
     this.apiService.getTalles().subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.talles = data;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error cargando talles:', error);
       }
     });
@@ -64,15 +65,18 @@ export class EncargoEspecialComponent implements OnInit {
 
   // Validar email
   validarEmail(email: string): boolean {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return regex.test(email);
   }
 
-  // Validar teléfono argentino
-  validarTelefonoArgentino(telefono: string): boolean {
-    const telefonoLimpio = telefono.replace(/[\s-]/g, '');
-    const regex = /^\+?549?\d{8,12}$/;
-    return regex.test(telefonoLimpio);
+  // Validar teléfono
+  validarTelefono(telefono: string): boolean {
+    // Si es argentina (+54 9), debe tener 10 dígitos después del prefijo
+    if (this.prefijoTelefono === '+54 9') {
+      const limpio = telefono.replace(/\D/g, '');
+      return limpio.length >= 8 && limpio.length <= 11;
+    }
+    return telefono.length >= 6;
   }
 
   enviarEncargo() {
@@ -83,12 +87,12 @@ export class EncargoEspecialComponent implements OnInit {
     }
 
     if (!this.validarEmail(this.encargo.email_cliente)) {
-      this.mensajeError = 'Por favor ingresa un email válido (ejemplo@dominio.com)';
+      this.mensajeError = 'El formato del email no es válido';
       return;
     }
 
-    if (!this.validarTelefonoArgentino(this.encargo.telefono_cliente)) {
-      this.mensajeError = 'Por favor ingresa un teléfono argentino válido (+54 9 ...)';
+    if (!this.validarTelefono(this.encargo.telefono_cliente)) {
+      this.mensajeError = 'El número de teléfono parece incorrecto';
       return;
     }
 
@@ -100,8 +104,14 @@ export class EncargoEspecialComponent implements OnInit {
     this.enviando = true;
     this.mensajeError = '';
 
-    const categoria = this.categorias.find(c => c.id === this.encargo.categoria_id);
+    // Usar == para evitar problemas si uno es string y el otro number
+    const categoria = this.categorias.find(c => c.id == this.encargo.categoria_id);
     const categoriaNombre = categoria?.nombre || 'No especificada';
+
+    const talleObj = this.talles.find(t => t.id == this.encargo.talle);
+    const talleNombre = talleObj?.nombre || 'No especificado';
+
+    const telefonoCompleto = `${this.prefijoTelefono}${this.encargo.telefono_cliente}`;
 
     // Enviar por WhatsApp
     const mensaje = `🎯 ENCARGO ESPECIAL\n\n` +
@@ -109,13 +119,13 @@ export class EncargoEspecialComponent implements OnInit {
       `Club/País: ${this.encargo.club}\n` +
       `Número: ${this.encargo.numero || 'No especificado'}\n` +
       `Dorsal: ${this.encargo.dorsal || 'No especificado'}\n` +
-      `Talle: ${this.talles.find(t => t.id === this.encargo.talle)?.nombre || 'No especificado'}\n` +
+      `Talle: ${talleNombre}\n` +
       `Color: ${this.encargo.color || 'No especificado'}\n` +
       `Observaciones: ${this.encargo.observaciones || 'Ninguna'}\n\n` +
       `👤 DATOS DEL CLIENTE\n` +
       `Nombre: ${this.encargo.nombre_cliente}\n` +
       `Email: ${this.encargo.email_cliente}\n` +
-      `Teléfono: ${this.encargo.telefono_cliente}`;
+      `Teléfono: ${telefonoCompleto}`;
 
     const whatsappUrl = `https://wa.me/5493585164402?text=${encodeURIComponent(mensaje)}`;
     window.open(whatsappUrl, '_blank');
@@ -143,5 +153,6 @@ export class EncargoEspecialComponent implements OnInit {
       email_cliente: '',
       telefono_cliente: ''
     };
+    this.prefijoTelefono = '+54 9';
   }
 }

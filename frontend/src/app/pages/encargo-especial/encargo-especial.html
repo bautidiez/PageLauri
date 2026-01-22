@@ -76,8 +76,17 @@
 
             <div class="form-group">
               <label>Teléfono *</label>
-              <input type="tel" [(ngModel)]="encargo.telefono_cliente" name="telefono_cliente" required
-                placeholder="+54 9 11 1234-5678">
+              <div class="phone-input-container">
+                <select [(ngModel)]="prefijoTelefono" name="prefijo">
+                  <option value="+54 9">+54 9</option>
+                  <option value="+34">+34</option>
+                  <option value="+1">+1</option>
+                  <option value="+598">+598</option>
+                  <option value="+56">+56</option>
+                </select>
+                <input type="tel" [(ngModel)]="encargo.telefono_cliente" name="telefono_cliente" required
+                  placeholder="358 123456">
+              </div>
             </div>
           </div>
         </div>

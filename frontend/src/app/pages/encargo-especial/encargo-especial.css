@@ -186,3 +186,17 @@
     width: 100%;
   }
 }
+
+.phone-input-container {
+  display: flex;
+  gap: 8px;
+}
+
+.phone-input-container select {
+  width: 110px !important;
+  flex-shrink: 0;
+}
+
+.phone-input-container input {
+  flex: 1;
+}
