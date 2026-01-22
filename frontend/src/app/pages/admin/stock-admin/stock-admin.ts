@@ -48,6 +48,8 @@ export class StockAdminComponent implements OnInit, OnDestroy {
 
   // Filtros y búsqueda
   productoFiltro: number | null = null;
+  categoriaFiltro: number | null = null;
+  categorias: any[] = [];
   busqueda = '';
   ordenarPor = 'alfabetico';
   mostrarSoloStockBajo = false;
@@ -132,6 +134,10 @@ export class StockAdminComponent implements OnInit, OnDestroy {
       params.producto_id = this.productoFiltro;
     }
 
+    if (this.categoriaFiltro) {
+      params.categoria_id = this.categoriaFiltro;
+    }
+
     this.apiService.getStock(params).subscribe({
       next: (response: any) => {
         // Backend now returns paginated response
@@ -183,12 +189,27 @@ export class StockAdminComponent implements OnInit, OnDestroy {
     // OPTIMIZADO: Usar endpoint ligero solo con id y nombre
     this.apiService.getProductosMini().subscribe({
       next: (response: any) => {
-        this.productos = response.items;  // Solo {id, nombre} en lugar de datos completos
+        this.productos = response.items;
       },
       error: (error: any) => {
         console.error('Error cargando productos:', error);
       }
     });
+
+    // Cargar categorías para el filtro
+    this.apiService.getCategorias(false, undefined, true).subscribe({
+      next: (data: any) => {
+        // Solo categorías principales (sin padre)
+        this.categorias = data.filter((cat: any) => !cat.categoria_padre_id);
+      },
+      error: (error: any) => {
+        console.error('Error cargando categorías:', error);
+      }
+    });
+  }
+
+  getCategoriaLabel(cat: any): string {
+    return `🏠 ${cat.nombre}`;
   }
 
   loadTalles() {
@@ -319,6 +340,7 @@ export class StockAdminComponent implements OnInit, OnDestroy {
   limpiarFiltros() {
     this.busqueda = '';
     this.productoFiltro = null;
+    this.categoriaFiltro = null;
     this.mostrarSoloStockBajo = false;
     this.currentPage = 1;  // Reset to first page
     this.loadStock();

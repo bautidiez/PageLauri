@@ -314,21 +314,44 @@ def manage_stock():
     page_size = request.args.get('page_size', 50, type=int)
     query = StockTalle.query.join(Producto).join(Talle)
     
-    # Filter by producto_id if provided
+    # Filtro por producto
     producto_id = request.args.get('producto_id', type=int)
     if producto_id:
         query = query.filter(StockTalle.producto_id == producto_id)
     
+    # Filtro por categoría (NUEVO)
+    categoria_id = request.args.get('categoria_id', type=int)
+    if categoria_id:
+        query = query.filter(Producto.categoria_id == categoria_id)
+    
+    # Búsqueda por nombre
     search = request.args.get('search')
     if search:
         query = query.filter(Producto.nombre.ilike(f"%{search}%"))
         
+    # Filtro stock bajo
     solo_bajo = request.args.get('solo_bajo')
     if solo_bajo == 'true':
         query = query.filter(StockTalle.cantidad <= 5)
         
+    # Ordenamiento (NUEVO)
+    ordenar_por = request.args.get('ordenar_por', 'alfabetico')
+    if ordenar_por == 'alfabetico':
+        query = query.order_by(Producto.nombre.asc())
+    elif ordenar_por == 'talle':
+        query = query.order_by(Talle.orden.asc(), Producto.nombre.asc())
+    elif ordenar_por == 'stock_asc':
+        query = query.order_by(StockTalle.cantidad.asc())
+    elif ordenar_por == 'stock_desc':
+        query = query.order_by(StockTalle.cantidad.desc())
+        
     pagination = query.paginate(page=page, per_page=page_size)
-    return jsonify({'items': [s.to_dict() for s in pagination.items], 'total': pagination.total, 'pages': pagination.pages, 'page': page}), 200
+    return jsonify({
+        'items': [s.to_dict() for s in pagination.items], 
+        'total': pagination.total, 
+        'pages': pagination.pages, 
+        'page': page
+    }), 200
 
 @store_admin_bp.route('/api/admin/stock/<int:id>', methods=['PUT', 'DELETE'])
 @jwt_required()

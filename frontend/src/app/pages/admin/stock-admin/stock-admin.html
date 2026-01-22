@@ -43,6 +43,11 @@
       <input type="text" [(ngModel)]="busqueda" (keyup.enter)="buscar()" placeholder="🔍 Buscar producto..."
         class="search-input">
 
+      <select [(ngModel)]="categoriaFiltro" (change)="filtrarPorProducto()" class="filter-select">
+        <option [ngValue]="null">Todas las categorías</option>
+        <option *ngFor="let cat of categorias" [ngValue]="cat.id">{{ getCategoriaLabel(cat) }}</option>
+      </select>
+
       <select [(ngModel)]="productoFiltro" (change)="filtrarPorProducto()" class="filter-select">
         <option [ngValue]="null">Todos los productos</option>
         <option *ngFor="let producto of productos" [ngValue]="producto.id">{{ producto.nombre }}</option>
@@ -50,6 +55,7 @@
 
       <select [(ngModel)]="ordenarPor" (change)="cambiarOrdenamiento()" class="filter-select">
         <option value="alfabetico">A-Z</option>
+        <option value="talle">Por Talle</option>
         <option value="stock_asc">Stock ↑</option>
         <option value="stock_desc">Stock ↓</option>
       </select>
