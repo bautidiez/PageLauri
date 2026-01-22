@@ -15,44 +15,56 @@ clients_bp = Blueprint('clients', __name__)
 @clients_bp.route('/api/clientes', methods=['POST'])
 @limiter.limit("50 per hour")
 def registrar_cliente():
-    data = request.json
-    if not data.get('nombre') or not data.get('email') or not data.get('password'):
-        return jsonify({'error': 'Faltan campos requeridos'}), 400
-    
-    password = data['password']
-    if len(password) < 8 or not re.search(r'[A-Z]', password) or not re.search(r'[a-z]', password) or not re.search(r'\d', password):
-        return jsonify({'error': 'La contraseña no cumple los requisitos de seguridad'}), 400
-    
-    if Cliente.query.filter_by(email=data['email']).first():
-        return jsonify({'error': 'Email ya registrado'}), 400
-    
-    cliente = Cliente(
-        nombre=data['nombre'],
-        email=data['email'],
-        telefono=data.get('telefono'),
-        metodo_verificacion=data.get('metodo_verificacion', 'telefono'),
-        acepta_newsletter=data.get('acepta_newsletter', True)
-    )
-    cliente.set_password(password)
-    cliente.codigo_verificacion = str(random.randint(100000, 999999))
-    
-    db.session.add(cliente)
-    db.session.commit()
-    
-    # Enviar código de forma asíncrona para no demorar la respuesta
-    from threading import Thread
-    from flask import current_app
-    def send_async_code(app, cliente_id, codigo, metodo):
-        with app.app_context():
-            from models import Cliente
-            c = Cliente.query.get(cliente_id)
-            if c:
-                NotificationService.send_verification_code(c, codigo, metodo)
+    try:
+        data = request.json
+        print(f"DEBUG CLIENTES: Recibida solicitud de registro para {data.get('email')}", flush=True)
+        
+        if not data.get('nombre') or not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'Faltan campos requeridos'}), 400
+        
+        password = data['password']
+        if len(password) < 8 or not re.search(r'[A-Z]', password) or not re.search(r'[a-z]', password) or not re.search(r'\d', password):
+            return jsonify({'error': 'La contraseña no cumple los requisitos de seguridad'}), 400
+        
+        if Cliente.query.filter_by(email=data['email']).first():
+            return jsonify({'error': 'Email ya registrado'}), 400
+        
+        cliente = Cliente(
+            nombre=data['nombre'],
+            email=data['email'],
+            telefono=data.get('telefono'),
+            metodo_verificacion=data.get('metodo_verificacion', 'telefono'),
+            acepta_newsletter=data.get('acepta_newsletter', True)
+        )
+        cliente.set_password(password)
+        cliente.codigo_verificacion = str(random.randint(100000, 999999))
+        
+        db.session.add(cliente)
+        db.session.commit()
+        
+        # Enviar código de forma asíncrona para no demorar la respuesta
+        try:
+            from threading import Thread
+            from flask import current_app
+            def send_async_code(app, cliente_id, codigo, metodo):
+                with app.app_context():
+                    from models import Cliente
+                    c = Cliente.query.get(cliente_id)
+                    if c:
+                        NotificationService.send_verification_code(c, codigo, metodo)
 
-    Thread(target=send_async_code, args=(current_app._get_current_object(), cliente.id, cliente.codigo_verificacion, cliente.metodo_verificacion)).start()
+            Thread(target=send_async_code, args=(current_app._get_current_object(), cliente.id, cliente.codigo_verificacion, cliente.metodo_verificacion)).start()
+        except Exception as thread_err:
+            print(f"DEBUG CLIENTES: Error al lanzar thread de notificación: {thread_err}", flush=True)
 
-    logger.info(f"🆕 REGISTRO OK: {cliente.email} - Verif: {cliente.metodo_verificacion}")
-    return jsonify(cliente.to_dict()), 201
+        logger.info(f"🆕 REGISTRO OK: {cliente.email} - Verif: {cliente.metodo_verificacion}")
+        return jsonify(cliente.to_dict()), 201
+        
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"DEBUG CLIENTES: ERROR CRÍTICO en registrar_cliente: {str(e)}\n{error_trace}", flush=True)
+        return jsonify({'error': f'Ocurrió un error en el servidor. Por favor intenta más tarde.'}), 500
 
 @clients_bp.route('/api/clientes/login', methods=['POST'])
 @limiter.limit("10 per minute")
