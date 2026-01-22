@@ -138,37 +138,70 @@ class NotificationService:
                 print(f"DEBUG NOTIFICACION: Error enviando mail de verificación: {e}")
                 return False
         else:
-            # Intentar enviar SMS vía Brevo usando la misma API Key
+            # 1. Intentar WhatsApp (Meta Cloud API) si están las credenciales
+            wa_token = os.environ.get('WA_TOKEN')
+            wa_phone_id = os.environ.get('WA_PHONE_ID')
+            
+            if wa_token and wa_phone_id:
+                url = f"https://graph.facebook.com/v17.0/{wa_phone_id}/messages"
+                headers = {
+                    "Authorization": f"Bearer {wa_token}",
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "messaging_product": "whatsapp",
+                    "to": cliente.telefono,
+                    "type": "template",
+                    "template": {
+                        "name": "verificacion_cuenta", # Nombre del template que debe estar aprobado en Meta
+                        "language": { "code": "es" },
+                        "components": [
+                            {
+                                "type": "body",
+                                "parameters": [
+                                    { "type": "text", "text": cliente.nombre },
+                                    { "type": "text", "text": codigo }
+                                ]
+                            }
+                        ]
+                    }
+                }
+                try:
+                    print(f"DEBUG NOTIFICACION: Intentando enviar WhatsApp a {cliente.telefono}...", flush=True)
+                    response = requests.post(url, json=payload, headers=headers, timeout=10)
+                    if response.status_code in [200, 201]:
+                        print("DEBUG NOTIFICACION: WhatsApp enviado con éxito vía Meta.", flush=True)
+                        return True
+                    else:
+                        print(f"DEBUG NOTIFICACION: WhatsApp falló (Status: {response.status_code}). Intentando fallback a SMS...", flush=True)
+                except Exception as e:
+                    print(f"DEBUG NOTIFICACION: Error en WhatsApp Meta: {e}. Intentando fallback a SMS...", flush=True)
+
+            # 2. Fallback a SMS (Brevo) si no hay WhatsApp o falló
             api_key = os.environ.get('BREVO_API_KEY')
             if not api_key:
-                print("DEBUG NOTIFICACION: BREVO_API_KEY no configurada. No se puede enviar SMS.")
+                print("DEBUG NOTIFICACION: BREVO_API_KEY no configurada. No se puede enviar SMS de fallback.")
                 return False
 
-            # Limpiar el teléfono para que tenga solo dígitos (Brevo espera formato internacional sin + ni espacios)
-            # Aunque a veces aceptan +, lo más seguro es dejar números.
             telefono_limpio = "".join(filter(str.isdigit, cliente.telefono))
-            
-            url = "https://api.brevo.com/v3/transactionalSMS/sms"
-            headers = {
+            url_sms = "https://api.brevo.com/v3/transactionalSMS/sms"
+            headers_sms = {
                 "accept": "application/json",
                 "content-type": "application/json",
                 "api-key": api_key
             }
             
-            payload = {
+            payload_sms = {
                 "type": "transactional",
                 "sender": "ElVestuario",
                 "recipient": telefono_limpio,
-                "content": f"Tu codigo de verificacion es: {codigo}. No lo compartas con nadie."
+                "content": f"Hola {cliente.nombre}, tu codigo de verificacion El Vestuario es: {codigo}"
             }
             
             try:
-                print(f"DEBUG NOTIFICACION: Enviando SMS a {telefono_limpio} vía Brevo...", flush=True)
-                response = requests.post(url, headers=headers, json=payload, timeout=15)
-                if response.status_code not in [201, 202, 200]:
-                    print(f"DEBUG NOTIFICACION: Falló el envío de SMS. Status: {response.status_code}, Msg: {response.text}")
-                    return False
+                print(f"DEBUG NOTIFICACION: Enviando SMS de fallback a {telefono_limpio} vía Brevo...", flush=True)
+                requests.post(url_sms, headers=headers_sms, json=payload_sms, timeout=15)
                 return True
             except Exception as e:
-                print(f"DEBUG NOTIFICACION: Error enviando SMS: {e}")
+                print(f"DEBUG NOTIFICACION: Error en SMS de fallback: {e}")
                 return False
