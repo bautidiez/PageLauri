@@ -303,7 +303,7 @@ def register_hooks(app):
         from flask import g, request
         # No logear health check para no ensuciar
         if request.path != '/api/health':
-            print(f"DEBUG IN: {request.method} {request.path}")
+            print(f"DEBUG IN: {request.method} {request.path}", flush=True)
         g.start_time = time.time()
 
     @app.after_request
@@ -311,7 +311,7 @@ def register_hooks(app):
         from flask import g, request
         if hasattr(g, 'start_time') and request.path != '/api/health':
             duration = (time.time() - g.start_time) * 1000
-            print(f"DEBUG OUT: {request.method} {request.path} - {duration:.1f}ms")
+            print(f"DEBUG OUT: {request.method} {request.path} - {duration:.1f}ms", flush=True)
             if duration > 100: # Solo avisar si es realmente lento > 100ms
                 logger.warning(f"⚠️ SLOW: {request.method} {request.path} {duration:.1f}ms")
         return response

@@ -9,6 +9,7 @@ import uuid
 import os
 import json
 import logging
+from threading import Thread
 from services.product_service import ProductService
 from services.order_service import OrderService
 
@@ -179,15 +180,21 @@ def enviar_contacto():
             reply_to=email
         )
         
-        try:
-            print(f"DEBUG CONTACTO: Intentando mail.send() usando {current_app.config.get('MAIL_USERNAME')}...")
-            mail.send(msg)
-            print("DEBUG CONTACTO: mail.send() completado exitosamente.")
-            return jsonify({'message': 'Ok'}), 200
-        except Exception as mail_e:
-            print(f"DEBUG CONTACTO: Error en mail.send(): {str(mail_e)}", flush=True)
-            logger.error(f"Error enviando email: {str(mail_e)}")
-            return jsonify({'error': 'Error al enviar el email'}), 500
+        # Enviar email de forma asíncrona para que no bloquee la respuesta del servidor
+        def send_async_email(app, msg):
+            with app.app_context():
+                try:
+                    print(f"DEBUG CONTACTO [Async]: Iniciando mail.send() para {msg.recipients}...", flush=True)
+                    mail.send(msg)
+                    print("DEBUG CONTACTO [Async]: mail.send() completado exitosamente.", flush=True)
+                except Exception as e:
+                    print(f"DEBUG CONTACTO [Async]: Error enviando email: {str(e)}", flush=True)
+                    logging.error(f"Error en envío asíncrono de email: {str(e)}")
+
+        print("DEBUG CONTACTO: Lanzando thread de envío asíncrono...", flush=True)
+        Thread(target=send_async_email, args=(current_app._get_current_object(), msg)).start()
+        
+        return jsonify({'message': 'Ok, tu mensaje está siendo procesado.'}), 200
 
     except Exception as outer_e:
         print(f"DEBUG CONTACTO: Error CRÍTICO en la ruta: {str(outer_e)}", flush=True)
