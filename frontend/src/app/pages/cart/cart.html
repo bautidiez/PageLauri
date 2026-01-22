@@ -48,7 +48,16 @@
           <span>Total:</span>
           <span>${{ total | number:'1.0-0' }}</span>
         </div>
-        <a routerLink="/checkout" class="btn btn-primary btn-large">Continuar con la Compra</a>
+        <div id="login-required-msg" *ngIf="showLoginError" class="login-error-msg">
+          <p>⚠️ Para finalizar tu compra, por favor <strong>inicia sesión</strong> o <strong>crea una cuenta</strong>.
+          </p>
+          <div class="auth-buttons">
+            <a routerLink="/login" class="btn btn-secondary">Iniciar Sesión</a>
+            <a routerLink="/registro" class="btn btn-outline">Crear Cuenta</a>
+          </div>
+        </div>
+
+        <button (click)="continuarCompra()" class="btn btn-primary btn-large">Continuar con la Compra</button>
         <a routerLink="/productos" class="btn btn-secondary">Seguir Comprando</a>
       </div>
     </div>

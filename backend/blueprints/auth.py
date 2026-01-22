@@ -93,13 +93,6 @@ def login_unified():
     from models import Cliente
     cliente = Cliente.query.filter(db.func.lower(Cliente.email) == db.func.lower(identifier)).first()
     if cliente and cliente.check_password(password):
-        if not cliente.telefono_verificado:
-            return jsonify({
-                'error': 'Requiere verificación', 
-                'requires_verification': True, 
-                'email': cliente.email
-            }), 403
-            
         access_token = create_access_token(identity=str(cliente.id))
         return jsonify({
             'access_token': access_token,

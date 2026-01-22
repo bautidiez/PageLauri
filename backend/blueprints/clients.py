@@ -89,9 +89,6 @@ def login_cliente():
     
     cliente = Cliente.query.filter_by(email=email).first()
     if cliente and cliente.check_password(password):
-        if not cliente.telefono_verificado:
-            return jsonify({'error': 'Requiere verificación', 'requires_verification': True, 'email': email}), 403
-            
         access_token = create_access_token(identity=str(cliente.id))
         return jsonify({'access_token': access_token, 'cliente': cliente.to_dict()}), 200
     
@@ -117,7 +114,14 @@ def verificar_codigo():
         cliente.codigo_verificacion = None
         db.session.commit()
         print(f"DEBUG VERIFICACION: {email} verificado con éxito", flush=True)
-        return jsonify({'message': 'Verificado'}), 200
+        
+        # Generar token para auto-login
+        access_token = create_access_token(identity=str(cliente.id))
+        return jsonify({
+            'message': 'Verificado',
+            'access_token': access_token,
+            'cliente': cliente.to_dict()
+        }), 200
         
     print(f"DEBUG VERIFICACION: {email} falló. Código incorrecto.", flush=True)
     return jsonify({'error': 'Código inválido'}), 400

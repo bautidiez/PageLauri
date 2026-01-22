@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CartService, CartItem } from '../../services/cart.service';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 import { ShippingCalculatorComponent } from '../../components/shipping-calculator/shipping-calculator';
 
 @Component({
@@ -15,10 +17,13 @@ import { ShippingCalculatorComponent } from '../../components/shipping-calculato
 export class CartComponent implements OnInit {
   items: CartItem[] = [];
   total = 0;
+  showLoginError = false;
 
   constructor(
     private cartService: CartService,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private authService: AuthService,
+    private router: Router
   ) { }
 
   ngOnInit() {
@@ -42,6 +47,21 @@ export class CartComponent implements OnInit {
     return this.items.reduce((sum, item) => {
       return sum + (item.precio_unitario * item.cantidad);
     }, 0);
+  }
+
+  continuarCompra() {
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/checkout']);
+    } else {
+      this.showLoginError = true;
+      // Scrollear al mensaje
+      setTimeout(() => {
+        const element = document.getElementById('login-required-msg');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
   }
 
   getDescuentoTotal(): number {

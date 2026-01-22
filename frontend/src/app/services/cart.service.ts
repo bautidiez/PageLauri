@@ -24,16 +24,18 @@ export class CartService {
   public cart$ = this.cartSubject.asObservable();
 
   // Constantes de tiempo
-  private readonly GUEST_EXPIRATION = 24 * 60 * 60 * 1000; // 24 horas
-  private readonly USER_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 días
+  private readonly CART_EXPIRATION = 24 * 60 * 60 * 1000; // 24 horas para todos por pedido del usuario
 
   constructor(private authService: AuthService) {
     this.initCart();
   }
 
   private initCart(): void {
-    // Suscribirse a cambios de autenticación para recargar el carrito correspondiente
-    this.authService.isAuthenticated$.subscribe(() => {
+    // Suscribirse a cambios de autenticación para recargar y FUSIONAR si es necesario
+    this.authService.isAuthenticated$.subscribe((isAuth) => {
+      if (isAuth) {
+        this.mergeGuestCart();
+      }
       this.loadCart();
     });
   }
@@ -58,42 +60,25 @@ export class CartService {
     if (saved) {
       try {
         const parsed: CartStorage | CartItem[] = JSON.parse(saved);
-
-        // Verificar si es el formato nuevo con timestamp o el viejo (array directo)
-        // Si es array directo (formato viejo), lo migramos o lo tratamos como "recién actualizado" si es invitado
         let items: CartItem[] = [];
         let lastUpdated = 0;
 
         if (Array.isArray(parsed)) {
-          // Formato antiguo: migración básica
           items = parsed;
-          lastUpdated = Date.now(); // Asumimos 'ahora' para no borrarlo inmediatamente, o 0 para borrarlo
-          // Para evitar problemas de compatibilidad, si es formato viejo asumimos que es válido por ahora y se guardará con formato nuevo al modificar
+          lastUpdated = Date.now();
         } else {
           items = parsed.items || [];
           lastUpdated = parsed.lastUpdated || 0;
         }
 
-        // Verificar expiración
+        // Verificar expiración (24 horas)
         const now = Date.now();
-        const expirationTime = key.startsWith('cart_client_') ? this.USER_EXPIRATION : this.GUEST_EXPIRATION;
-
-        // Si es formato antiguo (Array), forzamos la validación pensando que podría ser viejo.
-        // Pero para no destruir carros existentes de golpe, podemos ser permisivos la primera vez
-        // O mejor: si es formato antiguo, no tiene timestamp, así que aplicamos lógica de invitado por defecto si no sabemos.
-
-        if (Array.isArray(parsed)) {
-          // Mantenemos items viejos por compatibilidad, se actualizará formato en el próximo save
-          this.cartItems = items;
+        if (now - lastUpdated > this.CART_EXPIRATION) {
+          console.log(`Carrito expirado (${key}). Limpiando.`);
+          this.clearCart();
+          return;
         } else {
-          if (now - lastUpdated > expirationTime) {
-            // Expiró
-            console.log(`Carrito expirado (${key}). Limpiando.`);
-            this.clearCart();
-            return; // clearCart ya guarda y notifica vacío
-          } else {
-            this.cartItems = items;
-          }
+          this.cartItems = items;
         }
       } catch (e) {
         console.error('Error al cargar carrito', e);
@@ -102,6 +87,52 @@ export class CartService {
     }
 
     this.cartSubject.next(this.cartItems);
+  }
+
+  private mergeGuestCart(): void {
+    const guestData = localStorage.getItem('cart_guest');
+    if (!guestData) return;
+
+    try {
+      const parsed: CartStorage | CartItem[] = JSON.parse(guestData);
+      const guestItems = Array.isArray(parsed) ? parsed : (parsed.items || []);
+
+      if (guestItems.length === 0) return;
+
+      // Cargar carrito del usuario actual para fusionar
+      const userKey = this.getCartKey();
+      const userData = localStorage.getItem(userKey);
+      let userItems: CartItem[] = [];
+
+      if (userData) {
+        const parsedUser: CartStorage | CartItem[] = JSON.parse(userData);
+        userItems = Array.isArray(parsedUser) ? parsedUser : (parsedUser.items || []);
+      }
+
+      // Fusionar items
+      guestItems.forEach((gItem: CartItem) => {
+        const existingIndex = userItems.findIndex(
+          uItem => uItem.producto.id === gItem.producto.id && uItem.talle.id === gItem.talle.id
+        );
+
+        if (existingIndex >= 0) {
+          userItems[existingIndex].cantidad += gItem.cantidad;
+        } else {
+          userItems.push(gItem);
+        }
+      });
+
+      // Guardar carrito fusionado
+      this.cartItems = userItems;
+      this.saveCart();
+
+      // Limpiar carrito de invitado
+      localStorage.removeItem('cart_guest');
+      console.log('DEBUG CART: Carrito de invitado fusionado con el de usuario.');
+
+    } catch (e) {
+      console.error('Error al fusionar carrito de invitado', e);
+    }
   }
 
   private saveCart(): void {

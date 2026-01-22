@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-registro',
@@ -49,6 +50,7 @@ export class RegistroComponent implements OnInit {
 
     constructor(
         private apiService: ApiService,
+        private authService: AuthService,
         private router: Router,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
@@ -189,15 +191,22 @@ export class RegistroComponent implements OnInit {
         const codigoLimpio = this.codigoVerificacion.trim();
 
         this.apiService.verificarCodigo(this.cliente.email, codigoLimpio).subscribe({
-            next: () => {
+            next: (response: any) => {
                 this.zone.run(() => {
                     localStorage.removeItem('pending_registration');
                     this.mensajeExito = true;
                     this.verificando = false;
+
+                    // Auto-login
+                    if (response.access_token) {
+                        this.authService.setSession(response, 'cliente');
+                    }
+
                     this.cdr.detectChanges();
+
                     setTimeout(() => {
-                        this.router.navigate(['/login']);
-                    }, 3000);
+                        this.router.navigate(['/']); // Redirigir al inicio o a donde el usuario estaba
+                    }, 1500);
                 });
             },
             error: (error) => {

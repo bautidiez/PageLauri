@@ -23,11 +23,7 @@ export class AuthService {
   login(username: string, password: string): Observable<any> {
     return this.apiService.login(username, password).pipe(
       tap((response) => {
-        localStorage.setItem('token', response.access_token);
-        localStorage.setItem('admin', JSON.stringify(response.admin));
-        localStorage.removeItem('cliente'); // Asegurar única sesión
-        localStorage.setItem('lastActivity', Date.now().toString());
-        this.isAuthenticatedSubject.next(true);
+        this.setSession(response, 'admin');
         this.resetInactivityTimer();
       })
     );
@@ -36,18 +32,7 @@ export class AuthService {
   loginUnified(identifier: string, password: string): Observable<any> {
     return this.apiService.loginUnified({ identifier, password }).pipe(
       tap((response) => {
-        localStorage.setItem('token', response.access_token);
-        localStorage.setItem('lastActivity', Date.now().toString());
-
-        if (response.user_type === 'admin') {
-          localStorage.setItem('admin', JSON.stringify(response.admin));
-          localStorage.removeItem('cliente');
-        } else {
-          localStorage.setItem('cliente', JSON.stringify(response.cliente));
-          localStorage.removeItem('admin');
-        }
-
-        this.isAuthenticatedSubject.next(true);
+        this.setSession(response, response.user_type);
         this.resetInactivityTimer();
       })
     );
@@ -57,11 +42,7 @@ export class AuthService {
     return new Observable(observer => {
       this.apiService.loginCliente({ email, password }).subscribe({
         next: (response) => {
-          localStorage.setItem('token', response.access_token);
-          localStorage.setItem('cliente', JSON.stringify(response.cliente));
-          localStorage.removeItem('admin'); // Asegurar única sesión
-          localStorage.setItem('lastActivity', Date.now().toString());
-          this.isAuthenticatedSubject.next(true);
+          this.setSession(response, 'cliente');
           this.resetInactivityTimer();
           observer.next(response);
           observer.complete();
@@ -75,6 +56,21 @@ export class AuthService {
 
   requestPasswordReset(email: string): Observable<any> {
     return this.apiService.post('/auth/forgot-password', { email });
+  }
+
+  setSession(response: any, type: 'admin' | 'cliente'): void {
+    localStorage.setItem('token', response.access_token);
+    localStorage.setItem('lastActivity', Date.now().toString());
+
+    if (type === 'admin') {
+      localStorage.setItem('admin', JSON.stringify(response.admin || response.cliente)); // fallback if needed
+      localStorage.removeItem('cliente');
+    } else {
+      localStorage.setItem('cliente', JSON.stringify(response.cliente));
+      localStorage.removeItem('admin');
+    }
+
+    this.isAuthenticatedSubject.next(true);
   }
 
   resetPassword(token: string, password: string): Observable<any> {
