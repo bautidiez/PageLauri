@@ -37,13 +37,12 @@
 
           <div class="product-price-section">
             <div class="price-main">
-              <span class="product-price" *ngIf="producto.precio_descuento">
-                ${{ producto.precio_descuento | number:'1.0-0' }}
+              <span class="product-price"
+                [class.discount-price]="producto.precio_descuento || (producto.promociones && producto.promociones.length > 0)">
+                ${{ getPrecioFinal() | number:'1.0-0' }}
               </span>
-              <span class="product-price-old" *ngIf="producto.precio_descuento">
-                ${{ producto.precio_base | number:'1.0-0' }}
-              </span>
-              <span class="product-price" *ngIf="!producto.precio_descuento">
+              <span class="product-price-old"
+                *ngIf="producto.precio_descuento || (producto.promociones && producto.promociones.length > 0)">
                 ${{ producto.precio_base | number:'1.0-0' }}
               </span>
             </div>

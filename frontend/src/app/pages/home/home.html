@@ -60,12 +60,12 @@
             <h3 class="product-title">{{ producto.nombre }}</h3>
             <div class="product-price-container">
               <!-- Precio original -->
-              <div class="price-original" *ngIf="producto.precio_descuento">
+              <div class="price-original"
+                *ngIf="producto.precio_descuento || (producto.promociones && producto.promociones.length > 0)">
                 <span class="product-price-old">${{ producto.precio_base | number:'1.2-2' }}</span>
               </div>
               <div class="price-normal">
-                <span class="product-price">${{ (producto.precio_descuento || producto.precio_base) | number:'1.2-2'
-                  }}</span>
+                <span class="product-price">${{ getPrecioFinal(producto) | number:'1.2-2' }}</span>
               </div>
               <!-- Precio con transferencia (15% descuento) -->
               <div class="price-transferencia">
@@ -114,15 +114,18 @@
             <h3 class="product-title">{{ producto.nombre }}</h3>
             <div class="product-price-container">
               <!-- Precio original tachado -->
-              <div class="price-original" *ngIf="producto.precio_descuento">
+              <div class="price-original"
+                *ngIf="producto.precio_descuento || (producto.promociones && producto.promociones.length > 0)">
                 <span class="product-price-old">${{ producto.precio_base | number:'1.2-2' }}</span>
               </div>
               <!-- Precio actual -->
               <div class="price-normal">
-                <span class="product-price" [class.discount-price]="producto.precio_descuento">
-                  ${{ (producto.precio_descuento || producto.precio_base) | number:'1.2-2' }}
+                <span class="product-price"
+                  [class.discount-price]="producto.precio_descuento || (producto.promociones && producto.promociones.length > 0)">
+                  ${{ getPrecioFinal(producto) | number:'1.2-2' }}
                 </span>
-                <span class="discount-badge" *ngIf="producto.precio_descuento">
+                <span class="discount-badge"
+                  *ngIf="producto.precio_descuento || (producto.promociones && producto.promociones.length > 0)">
                   -{{ getPorcentajeDescuento(producto) }}%
                 </span>
               </div>

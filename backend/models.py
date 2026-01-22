@@ -188,8 +188,7 @@ class Producto(db.Model):
             'tiene_stock': self.tiene_stock(),
             'tiene_stock_bajo': self.tiene_stock_bajo(),
             'imagenes': [img.to_dict() for img in self.imagenes],
-            # TEMPORARY: Comentado mientras se soluciona el error de SQL con compra_minima
-            'promociones': [],  # [p.to_dict() for p in self.get_promociones_activas()],
+            'promociones': [p.to_dict() for p in self.get_promociones_activas()],
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

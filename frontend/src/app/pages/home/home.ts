@@ -94,14 +94,33 @@ export class HomeComponent implements OnInit {
 
   // Calcular precio con 15% descuento por transferencia
   getPrecioTransferencia(producto: any): number {
-    const precioBase = producto.precio_descuento || producto.precio_base;
-    return precioBase * 0.85; // 15% descuento
+    return this.getPrecioFinal(producto) * 0.85; // 15% descuento sobre el mejor precio
   }
 
   // Calcular cuota (dividir en 3 cuotas sin interés)
   getCuota(producto: any): number {
-    const precioBase = producto.precio_descuento || producto.precio_base;
-    return precioBase / 3;
+    return this.getPrecioFinal(producto) / 3;
+  }
+
+  // Obtener el mejor precio disponible (base, descuento directo o promoción)
+  getPrecioFinal(producto: any): number {
+    let mejorPrecio = producto.precio_descuento || producto.precio_base;
+
+    if (producto.promociones && producto.promociones.length > 0) {
+      const promo = producto.promociones[0];
+      const tipo = (promo.tipo_promocion_nombre || '').toLowerCase();
+      const valor = promo.valor || 0;
+
+      if (tipo.includes('porcentaje')) {
+        const precioPromo = producto.precio_base * (1 - (valor / 100));
+        if (precioPromo < mejorPrecio) mejorPrecio = precioPromo;
+      } else if (tipo.includes('fijo')) {
+        const precioPromo = Math.max(0, producto.precio_base - valor);
+        if (precioPromo < mejorPrecio) mejorPrecio = precioPromo;
+      }
+    }
+
+    return mejorPrecio;
   }
 
   // Verificar si un producto tiene oferta válida

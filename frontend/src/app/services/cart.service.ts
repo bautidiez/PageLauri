@@ -206,6 +206,7 @@ export class CartService {
       // Determinar el tipo de promoción del grupo (asumimos que todos en el grupo tienen la misma)
       const promo = group[0].producto.promociones[0];
       const tipo = promo.tipo_promocion_nombre.toLowerCase();
+      const valor = promo.valor || 0;
 
       if (tipo.includes('2x1')) {
         // Pagar 1 de cada 2 (el más caro)
@@ -213,7 +214,6 @@ export class CartService {
           if (i % 2 === 0) { // Indices 0, 2, 4... se pagan
             total += prices[i];
           }
-          // Indices 1, 3, 5... son gratis (no se suman)
         }
       } else if (tipo.includes('3x2')) {
         // Pagar 2 de cada 3
@@ -222,15 +222,19 @@ export class CartService {
             total += prices[i];
           }
         }
+      } else if (tipo.includes('porcentaje')) {
+        // Aplicar descuento porcentual a cada item del grupo
+        prices.forEach(p => {
+          total += p * (1 - (valor / 100));
+        });
+      } else if (tipo.includes('fijo')) {
+        // Aplicar descuento fijo a cada item
+        prices.forEach(p => {
+          total += Math.max(0, p - valor);
+        });
       } else {
-        // Fallback: sumar todo si no reconocemos el tipo o es descuento porcentual simple
-        if (tipo.includes('descuento')) {
-          // Ya deberíamos tener el precio con descuento aplicado en el producto si fuera simple
-          // Pero por seguridad recalculamos el total de este grupo
-          prices.forEach(p => total += p);
-        } else {
-          prices.forEach(p => total += p);
-        }
+        // Fallback: sumar todo
+        prices.forEach(p => total += p);
       }
     });
 

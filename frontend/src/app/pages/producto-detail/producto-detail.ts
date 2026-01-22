@@ -201,15 +201,33 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   }
 
   getPrecioConDescuento(): number {
-    if (!this.producto) return 0;
-    const precio = this.producto.precio_descuento || this.producto.precio_base;
-    return precio * 0.85; // 15% de descuento
+    return this.getPrecioFinal() * 0.85; // 15% de descuento sobre el mejor precio
   }
 
   getPrecioCuotas(): number {
+    return this.getPrecioFinal() / 3; // 3 cuotas sin interés
+  }
+
+  // Obtener el mejor precio disponible (base, descuento directo o promoción)
+  getPrecioFinal(): number {
     if (!this.producto) return 0;
-    const precio = this.producto.precio_descuento || this.producto.precio_base;
-    return precio / 3; // 3 cuotas sin interés
+    let mejorPrecio = this.producto.precio_descuento || this.producto.precio_base;
+
+    if (this.producto.promociones && this.producto.promociones.length > 0) {
+      const promo = this.producto.promociones[0];
+      const tipo = (promo.tipo_promocion_nombre || '').toLowerCase();
+      const valor = promo.valor || 0;
+
+      if (tipo.includes('porcentaje')) {
+        const precioPromo = this.producto.precio_base * (1 - (valor / 100));
+        if (precioPromo < mejorPrecio) mejorPrecio = precioPromo;
+      } else if (tipo.includes('fijo')) {
+        const precioPromo = Math.max(0, this.producto.precio_base - valor);
+        if (precioPromo < mejorPrecio) mejorPrecio = precioPromo;
+      }
+    }
+
+    return mejorPrecio;
   }
 
   loadColores() {
