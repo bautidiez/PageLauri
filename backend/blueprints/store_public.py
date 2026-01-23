@@ -151,9 +151,30 @@ def get_metodos_pago():
 
 @store_public_bp.route('/api/envios/calcular', methods=['POST'])
 def calcular_envio_route():
+    from services.shipping_service import ShippingService
     data = request.json
-    # Lógica simplificada de cálculo
-    return jsonify({'costo': 5500.0, 'metodo': data.get('metodo', 'estándar')}), 200
+    zip_code = data.get('codigo_postal')
+    
+    if not zip_code:
+        return jsonify({"error": "Código postal requerido"}), 400
+        
+    try:
+        options = ShippingService.calculate_cost(zip_code)
+        # Si el frontend pedía un método específico, podemos filtrar, 
+        # pero es mejor devolver todas las opciones reales disponibles.
+        metodo_solicitado = data.get('metodo_envio')
+        if metodo_solicitado and metodo_solicitado != 'retiro':
+            # Filtrar por el prefijo del ID (ej: 'andreani' matches 'andreani_sucursal')
+            options = [opt for opt in options if opt['id'].startswith(metodo_solicitado)]
+            
+        # Si solo se espera un resultado (compatibilidad con código previo)
+        if len(options) == 1:
+            return jsonify(options[0]), 200
+            
+        return jsonify(options), 200
+    except Exception as e:
+        logger.error(f"Error calculando envío: {str(e)}")
+        return jsonify({"error": "Error al calcular envío"}), 500
 
 # ==================== CONTACTO ====================
 

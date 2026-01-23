@@ -69,11 +69,14 @@ export class ShippingCalculatorComponent {
                 provincia: 'Buenos Aires' // Default o inferido
             }).subscribe({
                 next: (res) => {
-                    this.opcionesEnvio.push({
-                        id: metodo,
-                        nombre: this.getNombreMetodo(metodo),
-                        costo: res.costo || 2000,
-                        tiempo: res.tiempo || '3-5 días hábiles'
+                    const arrayRes = Array.isArray(res) ? res : [res];
+                    arrayRes.forEach(opt => {
+                        this.opcionesEnvio.push({
+                            id: opt.id || metodo,
+                            nombre: opt.nombre || this.getNombreMetodo(metodo),
+                            costo: opt.costo || 0,
+                            tiempo: opt.tiempo_estimado || opt.tiempo || '3-5 días hábiles'
+                        });
                     });
                     completed++;
                     this.checkFinalizacion(completed, metodos.length);

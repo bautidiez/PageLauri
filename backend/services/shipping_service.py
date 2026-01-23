@@ -1,32 +1,43 @@
+from .shipping_providers import AndreaniProvider, CorreoArgentinoProvider, TiendaNubeProvider
+import logging
+
+logger = logging.getLogger(__name__)
+
 class ShippingService:
     @staticmethod
-    def calculate_cost(zip_code):
+    def calculate_cost(zip_code, items=None):
         """
-        Lógica para calcular costos de envío basados en el CP. 
-        En un entorno real, aquí llamaríamos a la API de Andreani o Correo Argentino.
+        Lógica para calcular costos de envío usando proveedores reales.
         """
-        zip_code_val = int(zip_code)
+        try:
+            zip_code_val = int(zip_code)
+        except ValueError:
+            logger.error(f"ZIP code inválido: {zip_code}")
+            return []
+
+        results = []
         
-        # Simulación de costos
-        options = [
-            {
-                "id": "correo_argentino",
-                "nombre": "Correo Argentino (Sucursal)",
-                "costo": 3500 if zip_code_val < 2000 else 4800,
-                "tiempo_estimado": "3 a 5 días hábiles"
-            },
-            {
-                "id": "andreani_domicilio",
-                "nombre": "Andreani Premium (Domicilio)",
-                "costo": 5200 if zip_code_val < 2000 else 7500,
-                "tiempo_estimado": "2 a 3 días hábiles"
-            },
-            {
-                "id": "retiro_local",
-                "nombre": "Retiro en Local (Gratis)",
-                "costo": 0,
-                "tiempo_estimado": "Inmediato - Te avisaremos por WhatsApp"
-            }
+        # Proveedores
+        providers = [
+            AndreaniProvider(),
+            CorreoArgentinoProvider(),
+            TiendaNubeProvider()
         ]
         
-        return options
+        for provider in providers:
+            try:
+                rates = provider.calculate_rates(zip_code_val)
+                results.extend(rates)
+            except Exception as e:
+                logger.error(f"Error en provider {type(provider).__name__}: {str(e)}")
+
+        # Opción siempre presente: Retiro en local
+        results.append({
+            "id": "retiro_local",
+            "nombre": "Retiro en Local (Gratis)",
+            "costo": 0,
+            "tiempo_estimado": "Inmediato - Te avisaremos por WhatsApp"
+        })
+        
+        # Ordenar por costo para el cliente
+        return sorted(results, key=lambda x: x['costo'])
