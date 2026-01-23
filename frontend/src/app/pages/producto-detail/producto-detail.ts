@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -37,7 +37,8 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
     private apiService: ApiService,
     private cartService: CartService,
     private seoService: SeoService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
   ) { }
 
   ngOnInit() {
@@ -71,27 +72,44 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
 
     this.apiService.getProducto(id).subscribe({
       next: (data) => {
-        this.producto = data;
-        if (data.imagenes && data.imagenes.length > 0) {
-          this.imagenSeleccionada = data.imagenes.find((img: any) => img.es_principal) || data.imagenes[0];
-        }
+        this.zone.run(() => {
+          this.producto = data;
+          if (data.imagenes && data.imagenes.length > 0) {
+            this.imagenSeleccionada = data.imagenes.find((img: any) => img.es_principal) || data.imagenes[0];
+          }
 
-        // Update SEO meta tags
-        this.updateSeoTags();
+          // Update SEO meta tags
+          this.updateSeoTags();
 
-        // Cargar colores disponibles para este producto
-        this.loadColoresDisponibles();
-        this.loading = false;
+          // Cargar colores disponibles para este producto
+          this.loadColoresDisponibles();
 
-        // 🔥 FORZAR Change Detection
-        this.cdr.detectChanges();
+          // Auto-seleccionar primer talle con stock
+          this.autoSeleccionarTalle();
+
+          this.loading = false;
+          this.cdr.detectChanges();
+        });
       },
       error: (error) => {
         console.error('Error cargando producto:', error);
-        this.loading = false;
-        this.cdr.detectChanges();
+        this.zone.run(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        });
       }
     });
+  }
+
+  private autoSeleccionarTalle() {
+    if (this.producto && this.producto.stock_talles && this.talles.length > 0) {
+      // Intentar encontrar el primer talle que tenga stock real
+      const talleConStock = this.talles.find(t => this.tieneStockTalle(t.id));
+      if (talleConStock) {
+        this.talleSeleccionado = talleConStock;
+        this.cantidad = 1;
+      }
+    }
   }
 
   private updateSeoTags() {
@@ -131,7 +149,11 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   loadTalles() {
     this.apiService.getTalles().subscribe({
       next: (data) => {
-        this.talles = data;
+        this.zone.run(() => {
+          this.talles = data;
+          this.autoSeleccionarTalle(); // Re-intentar si el producto ya cargó
+          this.cdr.detectChanges();
+        });
       },
       error: (error) => {
         console.error('Error cargando talles:', error);

@@ -16,7 +16,8 @@
       <div class="product-detail-content">
         <div class="product-images">
           <div class="main-image">
-            [alt]="producto.nombre" class="product-main-image" loading="eager">
+            <img [src]="getImagenUrl(imagenSeleccionada)" [alt]="producto.nombre" class="product-main-image"
+              loading="eager">
 
             <!-- Badge overlay -->
             <div class="product-promo-badge-detail" *ngIf="producto.promociones && producto.promociones.length > 0">
