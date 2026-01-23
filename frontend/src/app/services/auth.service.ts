@@ -10,7 +10,7 @@ export class AuthService {
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.isLoggedIn());
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   private inactivityTimer: any = null;
-  private readonly INACTIVITY_TIMEOUT = 60 * 60 * 1000; // 1 hora en milisegundos
+  private readonly INACTIVITY_TIMEOUT = 8 * 60 * 60 * 1000; // 8 horas en milisegundos
 
   constructor(
     private apiService: ApiService,
