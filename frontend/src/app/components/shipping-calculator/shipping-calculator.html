@@ -88,4 +88,10 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal de puntos de retiro -->
+    <app-pickup-points-modal [visible]="mostrarModalPuntos" [puntos]="puntosRetiro"
+        [codigoPostal]="codigoPostalCalculado" [carrier]="carrierSeleccionado" (close)="cerrarModalPuntos()"
+        (selectPoint)="seleccionarPunto($event)">
+    </app-pickup-points-modal>
 </div>

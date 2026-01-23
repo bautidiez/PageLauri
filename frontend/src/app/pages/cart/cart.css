@@ -23,9 +23,9 @@
 
 .cart-content {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 2fr 1fr;
   grid-template-areas:
-    "summary items"
+    "items calculator"
     "summary calculator";
   gap: 40px;
   align-items: start;
@@ -135,8 +135,6 @@ app-shipping-calculator {
   padding: 30px;
   border-radius: 8px;
   height: fit-content;
-  position: sticky;
-  top: 100px;
 }
 
 .cart-summary h2 {

@@ -51,8 +51,14 @@ export class CheckoutComponent implements OnInit {
 
     // Auto-llenar email si el usuario está logueado
     const clienteLogueado = this.authService.getCliente();
+    const adminLogueado = this.authService.getAdmin();
+    
     if (clienteLogueado && clienteLogueado.email) {
       this.cliente.email = clienteLogueado.email;
+      console.log('Email auto-filled from cliente:', this.cliente.email);
+    } else if (adminLogueado && adminLogueado.email) {
+      this.cliente.email = adminLogueado.email;
+      console.log('Email auto-filled from admin:', this.cliente.email);
     }
 
     this.subtotal = this.cartService.getTotal();
