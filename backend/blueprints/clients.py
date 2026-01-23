@@ -179,3 +179,15 @@ def reset_password():
     except:
         pass
     return jsonify({'error': 'Token inválido o expirado'}), 400
+
+@clients_bp.route('/api/clientes/verify', methods=['GET'])
+@jwt_required()
+def verify_token_cliente():
+    """Verificar token JWT para cliente"""
+    cliente_id = get_jwt_identity()
+    return jsonify({
+        'cliente': {
+            'id': int(cliente_id),
+            'authenticated': True
+        }
+    }), 200
