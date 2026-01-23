@@ -138,21 +138,17 @@ export class ShippingCalculatorComponent {
     getOpcionesDomicilio() {
         return this.opcionesEnvio.filter(o => {
             const name = o.nombre.toLowerCase();
-            return (name.includes('domicilio') ||
-                name.includes('estándar') ||
-                name.includes('envío') ||
-                name.includes('nube')) &&
-                !name.includes('sucursal') &&
-                !name.includes('retiro');
+            const isHomeKeyword = name.includes('domicilio') || name.includes('estándar') || name.includes('envío') || name.includes('nube');
+            const isPickupKeyword = name.includes('sucursal') || name.includes('retiro') || name.includes('local');
+            return isHomeKeyword && !isPickupKeyword;
         });
     }
 
     getOpcionesRetiro() {
-        return this.opcionesEnvio.filter(o =>
-            o.nombre.toLowerCase().includes('retiro') ||
-            o.nombre.toLowerCase().includes('sucursal') ||
-            o.id === 'retiro'
-        );
+        return this.opcionesEnvio.filter(o => {
+            const name = o.nombre.toLowerCase();
+            return name.includes('sucursal') || name.includes('retiro') || name.includes('local');
+        });
     }
 
     verPuntosRetiro(carrier: string) {

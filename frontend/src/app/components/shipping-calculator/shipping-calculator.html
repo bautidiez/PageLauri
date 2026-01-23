@@ -82,8 +82,10 @@
                 <span class="total-val">${{ (precioBase + opcionesEnvio[0]?.costo || 0) | number:'1.0-0' }}</span>
             </div>
             <div class="total-row promo-total">
-                <span class="promo-val">O ${{ getPrecioConTransferencia(opcionesEnvio[0]?.costo || 0) | number:'1.2-2'
-                    }} con transferencia (15% OFF)</span>
+                <span class="promo-label">Precio con transferencia:</span>
+                <span class="promo-val">${{ getPrecioConTransferencia(opcionesEnvio[0]?.costo || 0) | number:'1.2-2'
+                    }}</span>
+                <span class="promo-badge">¡15% OFF!</span>
             </div>
         </div>
     </div>

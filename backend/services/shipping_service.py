@@ -37,28 +37,28 @@ class ShippingService:
         
         if not has_correo:
             results.append({
-                "id": "envio_estandar",
-                "nombre": "Correo Argentino (Domicilio)",
+                "id": "correo_argentino_domicilio_fallback",
+                "nombre": "Correo Argentino (Envío a Domicilio)",
                 "costo": 5500 if zip_code_val < 2000 else 7500,
                 "tiempo_estimado": "5 a 8 días hábiles"
             })
             results.append({
-                "id": "correo_sucursal_fallback",
-                "nombre": "Correo Argentino (Sucursal)",
+                "id": "correo_argentino_sucursal_fallback",
+                "nombre": "Correo Argentino (Retiro en Sucursal)",
                 "costo": 4800 if zip_code_val < 2000 else 6600,
-                "tiempo_estimado": "4 a 6 días hábiles"
+                "tiempo_estimado": "3 a 5 días hábiles"
             })
             
         if not has_andreani:
             results.append({
                 "id": "andreani_sucursal_fallback",
-                "nombre": "Andreani (Sucursal)",
+                "nombre": "Andreani (Retiro en Sucursal)",
                 "costo": 5000 if zip_code_val < 2000 else 6900,
-                "tiempo_estimado": "3 a 5 días hábiles"
+                "tiempo_estimado": "2 a 4 días hábiles"
             })
             results.append({
                 "id": "andreani_domicilio_fallback",
-                "nombre": "Andreani (Domicilio)",
+                "nombre": "Andreani (Envío a Domicilio)",
                 "costo": 5800 if zip_code_val < 2000 else 7900,
                 "tiempo_estimado": "3 a 5 días hábiles"
             })
