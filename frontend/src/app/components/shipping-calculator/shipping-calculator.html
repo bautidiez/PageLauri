@@ -57,9 +57,11 @@
                         <span class="metodo-nombre">{{ opcion.nombre }}</span>
                         <span class="metodo-tiempo">{{ opcion.tiempo }}</span>
                         <a *ngIf="opcion.nombre.toLowerCase().includes('correo') && !opcion.nombre.toLowerCase().includes('local')"
-                            href="#" class="ver-direcciones-link" (click)="$event.preventDefault()">Ver direcciones</a>
+                            href="javascript:void(0)" class="ver-direcciones-link"
+                            (click)="verPuntosRetiro('correo_argentino')">📍 Ver direcciones</a>
                         <a *ngIf="opcion.nombre.toLowerCase().includes('andreani') && !opcion.nombre.toLowerCase().includes('local')"
-                            href="#" class="ver-direcciones-link" (click)="$event.preventDefault()">Ver direcciones</a>
+                            href="javascript:void(0)" class="ver-direcciones-link"
+                            (click)="verPuntosRetiro('andreani')">📍 Ver direcciones</a>
                     </div>
                     <div class="item-price">
                         <span class="price-val" *ngIf="opcion.costo > 0">${{ opcion.costo | number:'1.0-0' }}</span>

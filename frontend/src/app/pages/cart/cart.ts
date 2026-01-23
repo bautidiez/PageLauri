@@ -73,4 +73,9 @@ export class CartComponent implements OnInit {
   getFormattedImageUrl(url: string | null | undefined): string {
     return this.apiService.getFormattedImageUrl(url);
   }
+
+  getPrecioConTransferencia(): number {
+    // 10% descuento por transferencia/efectivo
+    return this.total * 0.9;
+  }
 }

@@ -2,11 +2,12 @@ import { Component, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { PickupPointsModalComponent, PuntoRetiro } from '../pickup-points-modal/pickup-points-modal';
 
 @Component({
     selector: 'app-shipping-calculator',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, PickupPointsModalComponent],
     templateUrl: './shipping-calculator.html',
     styleUrl: './shipping-calculator.css'
 })
@@ -21,6 +22,11 @@ export class ShippingCalculatorComponent {
     mostrarResultados: boolean = false;
     mostrarTodasOpciones: boolean = false; // Para toggle "Ver más/menos"
     editandoCodigoPostal: boolean = false; // Para mostrar/ocultar campo de cambio
+
+    // Modal de puntos de retiro
+    mostrarModalPuntos: boolean = false;
+    puntosRetiro: PuntoRetiro[] = [];
+    carrierSeleccionado: string = '';
 
     constructor(
         private apiService: ApiService,
@@ -147,5 +153,31 @@ export class ShippingCalculatorComponent {
             o.nombre.toLowerCase().includes('sucursal') ||
             o.id === 'retiro'
         );
+    }
+
+    verPuntosRetiro(carrier: string) {
+        this.carrierSeleccionado = carrier;
+        // Fetch pickup points from API
+        this.apiService.getPuntosRetiro(carrier, this.codigoPostalCalculado).subscribe({
+            next: (puntos: PuntoRetiro[]) => {
+                this.puntosRetiro = puntos;
+                this.mostrarModalPuntos = true;
+            },
+            error: (err: any) => {
+                console.error('Error fetching pickup points:', err);
+                // Show modal anyway with empty list
+                this.puntosRetiro = [];
+                this.mostrarModalPuntos = true;
+            }
+        });
+    }
+
+    cerrarModalPuntos() {
+        this.mostrarModalPuntos = false;
+    }
+
+    seleccionarPunto(punto: PuntoRetiro) {
+        console.log('Punto seleccionado:', punto);
+        // Aquí puedes almacenar el punto seleccionado
     }
 }

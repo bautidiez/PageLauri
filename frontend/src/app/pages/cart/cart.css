@@ -164,6 +164,18 @@ app-shipping-calculator {
   color: #28a745;
 }
 
+.summary-row.transfer-price {
+  font-size: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed #e0e0e0;
+  margin-top: 10px;
+}
+
+.transfer-val {
+  color: #e53e3e;
+  font-weight: 700;
+}
+
 .cart-summary .btn {
   width: 100%;
   margin-top: 20px;

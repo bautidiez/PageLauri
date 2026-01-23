@@ -1,0 +1,32 @@
+<div class="modal-overlay" *ngIf="visible" (click)="cerrar()">
+    <div class="modal-content" (click)="stopPropagation($event)">
+        <div class="modal-header">
+            <h3>PUNTOS DE RETIRO</h3>
+            <button class="close-btn" (click)="cerrar()">✕</button>
+        </div>
+
+        <div class="modal-body">
+            <div *ngIf="puntos.length === 0" class="no-points">
+                <p>📍 No hay locales disponibles en tu localidad</p>
+                <p class="help-text">Cercanos al CP: {{ codigoPostal }}</p>
+            </div>
+
+            <div *ngIf="puntos.length > 0" class="points-list">
+                <div class="point-item" *ngFor="let punto of puntos" (click)="seleccionar(punto)">
+                    <div class="point-icon">📍</div>
+                    <div class="point-info">
+                        <p class="point-name">{{ carrier === 'correo_argentino' ? 'Correo Argentino Clásico' :
+                            'Andreani' }} - {{ punto.nombre }}</p>
+                        <p class="point-address">{{ punto.direccion }}, {{ punto.localidad }} - {{ punto.provincia }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer" *ngIf="puntos.length > 0">
+                <p class="footer-note">Cercanos al CP: {{ codigoPostal }}</p>
+                <p class="footer-disclaimer">Vas a poder elegir estas opciones antes de finalizar la compra</p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -374,6 +374,10 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/envios/calcular`, datos);
   }
 
+  getPuntosRetiro(carrier: string, codigoPostal: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/envios/puntos-retiro?carrier=${carrier}&codigo_postal=${codigoPostal}`);
+  }
+
   // Métodos de pago
   getMetodosPago(): Observable<any> {
     return this.http.get(`${this.apiUrl}/metodos-pago`);

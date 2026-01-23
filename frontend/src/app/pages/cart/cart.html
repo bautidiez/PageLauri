@@ -48,6 +48,10 @@
           <span>Total:</span>
           <span>${{ total | number:'1.0-0' }}</span>
         </div>
+        <div class="summary-row transfer-price">
+          <span>O con transferencia/efectivo:</span>
+          <span class="transfer-val">${{ getPrecioConTransferencia() | number:'1.2-2' }}</span>
+        </div>
         <div id="login-required-msg" *ngIf="showLoginError" class="login-error-msg">
           <p>⚠️ Para finalizar tu compra, por favor <strong>inicia sesión</strong> o <strong>crea una cuenta</strong>.
           </p>
