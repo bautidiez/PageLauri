@@ -23,10 +23,10 @@
 
 .cart-content {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 2fr;
   grid-template-areas:
-    "items summary"
-    "calculator summary";
+    "summary items"
+    "summary calculator";
   gap: 40px;
   align-items: start;
 }
