@@ -75,7 +75,7 @@ export class CartComponent implements OnInit {
   }
 
   getPrecioConTransferencia(): number {
-    // 10% descuento por transferencia/efectivo
-    return this.total * 0.9;
+    // 15% descuento por transferencia/efectivo
+    return this.total * 0.85;
   }
 }

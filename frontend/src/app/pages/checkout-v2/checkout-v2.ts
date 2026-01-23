@@ -132,25 +132,28 @@ export class CheckoutV2Component implements OnInit {
         return this.shippingOptions.find(o => o.id === id);
     }
 
+    getDiscountAmount() {
+        const shipping = this.getSelectedShipping();
+        const metodoPago = this.pagoForm.get('metodo')?.value;
+        const subtotalConEnvio = this.total + (shipping ? shipping.costo : 0);
+
+        if (['efectivo_local', 'transferencia', 'efectivo'].includes(metodoPago)) {
+            return subtotalConEnvio * 0.15;
+        }
+        return 0;
+    }
+
     getFinalTotal() {
         const shipping = this.getSelectedShipping();
         const metodoPago = this.pagoForm.get('metodo')?.value;
         let total = this.total + (shipping ? shipping.costo : 0);
 
-        // Descuento del 15% si es efectivo en el local
-        if (metodoPago === 'efectivo_local') {
-            return total * 0.85;
-        }
-        // Descuento del 15% si es transferencia
-        if (metodoPago === 'transferencia') {
-            return total * 0.85;
-        }
-        // Descuento del 15% si es efectivo (Rapipago)
-        if (metodoPago === 'efectivo') {
+        // Descuento del 15%
+        if (['efectivo_local', 'transferencia', 'efectivo'].includes(metodoPago)) {
             return total * 0.85;
         }
 
-        // Aplicar cupón si existe
+        // Aplicar cupón si existe (si no se aplicó el de transferencia)
         if (this.appliedCoupon) {
             if (this.appliedCoupon.envio_gratis) {
                 // Si es envío gratis, restar costo de envío (si hay)

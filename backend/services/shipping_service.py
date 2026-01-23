@@ -31,13 +31,24 @@ class ShippingService:
             except Exception as e:
                 logger.error(f"Error en provider {type(provider).__name__}: {str(e)}")
 
-        # Fallback si las APIs fallan o no están configuradas
-        if not results:
+        # Asegurar que siempre haya una opción de "Correo" si las APIs no devolvieron nada real
+        # (Andreani y Correo Argentino suelen devolver IDs específicos)
+        has_real_carrier = any(opt['id'].startswith(('andreani', 'correo_argentino')) for opt in results)
+        
+        if not has_real_carrier:
             results.append({
                 "id": "envio_estandar",
-                "nombre": "Envío Estándar (Correo)",
+                "nombre": "Envío Estándar (Correo Argentino)",
                 "costo": 5500 if zip_code_val < 2000 else 7500,
                 "tiempo_estimado": "5 a 8 días hábiles"
+            })
+            
+            # También agregamos Andreani Domicilio como fallback si no hay nada
+            results.append({
+                "id": "andreani_domicilio_fallback",
+                "nombre": "Andreani (Domicilio)",
+                "costo": 5800 if zip_code_val < 2000 else 7900,
+                "tiempo_estimado": "4 a 6 días hábiles"
             })
 
         # Opción siempre presente: Retiro en local
