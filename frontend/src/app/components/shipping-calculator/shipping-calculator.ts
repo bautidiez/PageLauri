@@ -14,10 +14,13 @@ export class ShippingCalculatorComponent {
     @Input() precioBase: number = 0;
 
     codigoPostal: string = '';
+    codigoPostalCalculado: string = ''; // CP actualmente calculado
     calculando: boolean = false;
     opcionesEnvio: any[] = [];
     error: string = '';
     mostrarResultados: boolean = false;
+    mostrarTodasOpciones: boolean = false; // Para toggle "Ver más/menos"
+    editandoCodigoPostal: boolean = false; // Para mostrar/ocultar campo de cambio
 
     constructor(
         private apiService: ApiService,
@@ -94,6 +97,8 @@ export class ShippingCalculatorComponent {
         if (current === total) {
             this.calculando = false;
             this.mostrarResultados = true;
+            this.codigoPostalCalculado = this.codigoPostal;
+            this.editandoCodigoPostal = false;
             // Ordenar por costo
             this.opcionesEnvio.sort((a, b) => a.costo - b.costo);
             // Forzar detección de cambios para mostrar resultados inmediatamente
@@ -114,5 +119,33 @@ export class ShippingCalculatorComponent {
         // Ejemplo: 10% de descuento por transferencia sobre el total
         const total = this.precioBase + costoEnvio;
         return total * 0.9;
+    }
+
+    cambiarCodigoPostal() {
+        this.editandoCodigoPostal = true;
+        this.codigoPostalCalculado = '';
+        this.mostrarResultados = false;
+        this.codigoPostal = '';
+    }
+
+    toggleOpciones() {
+        this.mostrarTodasOpciones = !this.mostrarTodasOpciones;
+    }
+
+    getOpcionesDomicilio() {
+        return this.opcionesEnvio.filter(o =>
+            o.nombre.toLowerCase().includes('domicilio') ||
+            o.nombre.toLowerCase().includes('estándar') ||
+            (o.nombre.toLowerCase().includes('correo') && !o.nombre.toLowerCase().includes('retiro')) ||
+            (o.nombre.toLowerCase().includes('andreani') && !o.nombre.toLowerCase().includes('retiro'))
+        );
+    }
+
+    getOpcionesRetiro() {
+        return this.opcionesEnvio.filter(o =>
+            o.nombre.toLowerCase().includes('retiro') ||
+            o.nombre.toLowerCase().includes('sucursal') ||
+            o.id === 'retiro'
+        );
     }
 }

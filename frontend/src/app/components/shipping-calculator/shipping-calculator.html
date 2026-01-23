@@ -5,18 +5,17 @@
     </div>
 
     <div class="calculator-body">
-        <div class="input-group">
+        <!-- Modo inicial: ingresar CP -->
+        <div *ngIf="!mostrarResultados || editandoCodigoPostal" class="input-group">
             <input type="text" [(ngModel)]="codigoPostal" placeholder="Tu código postal" class="cp-input"
                 (keyup.enter)="calcular()">
             <button class="calc-button" (click)="calcular()" [disabled]="calculando">
                 <span>{{ calculando ? 'CALCULANDO...' : 'CALCULAR' }}</span>
             </button>
-            <button class="calc-button secondary" (click)="volver()">
-                <span>VOLVER</span>
-            </button>
         </div>
 
-        <a href="https://www.correoargentino.com.ar/formularios/cpa" target="_blank" class="cp-link">
+        <a href="https://www.correoargentino.com.ar/formularios/cpa" target="_blank" class="cp-link"
+            *ngIf="!mostrarResultados || editandoCodigoPostal">
             No sé mi código postal
         </a>
 
@@ -25,27 +24,64 @@
         </div>
     </div>
 
-    <div class="calculator-results" *ngIf="mostrarResultados">
-        <div class="shipping-options">
-            <div class="shipping-item" *ngFor="let opcion of opcionesEnvio">
-                <div class="item-main">
-                    <span class="metodo-nombre">{{ opcion.nombre }}</span>
-                    <span class="metodo-tiempo">{{ opcion.tiempo }}</span>
-                </div>
-                <div class="item-price">
-                    <span class="price-val" *ngIf="opcion.costo > 0">${{ opcion.costo | number:'1.0-0' }}</span>
-                    <span class="price-val free" *ngIf="opcion.costo === 0">Gratis</span>
+    <!-- Resultados: mostrar opciones agrupadas -->
+    <div class="calculator-results" *ngIf="mostrarResultados && !editandoCodigoPostal">
+        <div class="results-header">
+            <h4>Entregas para el CP: {{ codigoPostalCalculado }}</h4>
+            <button class="change-cp-btn" (click)="cambiarCodigoPostal()">Cambiar código postal</button>
+        </div>
+
+        <!-- Envío a domicilio -->
+        <div class="shipping-section" *ngIf="getOpcionesDomicilio().length > 0">
+            <h5 class="section-title">📦 Envío a domicilio</h5>
+            <div class="shipping-options">
+                <div class="shipping-item" *ngFor="let opcion of getOpcionesDomicilio(); let i = index"
+                    [class.hidden]="!mostrarTodasOpciones && i >= 2">
+                    <div class="item-main">
+                        <span class="metodo-nombre">{{ opcion.nombre }}</span>
+                        <span class="metodo-tiempo">{{ opcion.tiempo }}</span>
+                    </div>
+                    <div class="item-price">
+                        <span class="price-val">${{ opcion.costo | number:'1.0-0' }}</span>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- Retirar por -->
+        <div class="shipping-section" *ngIf="getOpcionesRetiro().length > 0">
+            <h5 class="section-title">🏪 Retirar por</h5>
+            <div class="shipping-options">
+                <div class="shipping-item" *ngFor="let opcion of getOpcionesRetiro()">
+                    <div class="item-main">
+                        <span class="metodo-nombre">{{ opcion.nombre }}</span>
+                        <span class="metodo-tiempo">{{ opcion.tiempo }}</span>
+                        <a *ngIf="opcion.nombre.toLowerCase().includes('correo') && !opcion.nombre.toLowerCase().includes('local')"
+                            href="#" class="ver-direcciones-link" (click)="$event.preventDefault()">Ver direcciones</a>
+                        <a *ngIf="opcion.nombre.toLowerCase().includes('andreani') && !opcion.nombre.toLowerCase().includes('local')"
+                            href="#" class="ver-direcciones-link" (click)="$event.preventDefault()">Ver direcciones</a>
+                    </div>
+                    <div class="item-price">
+                        <span class="price-val" *ngIf="opcion.costo > 0">${{ opcion.costo | number:'1.0-0' }}</span>
+                        <span class="price-val free" *ngIf="opcion.costo === 0">Gratis</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toggle para ver más/menos opciones -->
+        <button class="toggle-options-btn" (click)="toggleOpciones()" *ngIf="getOpcionesDomicilio().length > 2">
+            {{ mostrarTodasOpciones ? 'Ver menos opciones de envío' : 'Ver más opciones de envío' }}
+        </button>
+
         <div class="total-updated" *ngIf="precioBase > 0">
             <div class="total-row main-total">
                 <span>Total con envío:</span>
-                <span class="total-val">${{ (precioBase + opcionesEnvio[0].costo) | number:'1.0-0' }}</span>
+                <span class="total-val">${{ (precioBase + opcionesEnvio[0]?.costo || 0) | number:'1.0-0' }}</span>
             </div>
             <div class="total-row promo-total">
-                <span class="promo-val">O ${{ getPrecioConTransferencia(opcionesEnvio[0].costo) | number:'1.2-2' }} con
+                <span class="promo-val">O ${{ getPrecioConTransferencia(opcionesEnvio[0]?.costo || 0) | number:'1.2-2'
+                    }} con
                     transferencia</span>
             </div>
         </div>
