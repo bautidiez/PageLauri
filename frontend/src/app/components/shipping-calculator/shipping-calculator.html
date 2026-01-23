@@ -72,7 +72,7 @@
         </div>
 
         <!-- Toggle para ver más/menos opciones -->
-        <button class="toggle-options-btn" (click)="toggleOpciones()" *ngIf="getOpcionesDomicilio().length > 2">
+        <button class="toggle-options-btn" (click)="toggleOpciones()" *ngIf="getOpcionesDomicilio().length > 5">
             {{ mostrarTodasOpciones ? 'Ver menos opciones de envío' : 'Ver más opciones de envío' }}
         </button>
 
@@ -83,8 +83,7 @@
             </div>
             <div class="total-row promo-total">
                 <span class="promo-val">O ${{ getPrecioConTransferencia(opcionesEnvio[0]?.costo || 0) | number:'1.2-2'
-                    }} con
-                    transferencia</span>
+                    }} con transferencia (15% OFF)</span>
             </div>
         </div>
     </div>
