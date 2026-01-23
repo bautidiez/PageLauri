@@ -154,8 +154,11 @@ export class RegistroComponent implements OnInit {
             telefono: `${this.prefijoTelefono} ${this.cliente.telefono}`
         };
 
+        console.log('DEBUG REGISTRO: Enviando datos', clienteParaEnviar);
+
         this.apiService.registrarCliente(clienteParaEnviar).subscribe({
-            next: () => {
+            next: (res) => {
+                console.log('DEBUG REGISTRO: Registro exitoso', res);
                 this.zone.run(() => {
                     // Guardar estado en localStorage
                     localStorage.setItem('pending_registration', JSON.stringify({
@@ -170,6 +173,7 @@ export class RegistroComponent implements OnInit {
                 });
             },
             error: (error: any) => {
+                console.error('DEBUG REGISTRO: Error en registro', error);
                 this.zone.run(() => {
                     this.mensajeError = error.error?.error || 'Error al registrar. Intenta nuevamente.';
                     this.registrando = false;

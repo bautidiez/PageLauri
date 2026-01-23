@@ -25,6 +25,7 @@ export class LoginClienteComponent {
     ) { }
 
     login() {
+        console.log('DEBUG LOGIN: Iniciando proceso para', this.email);
         if (!this.email || !this.password) {
             this.error = 'Por favor completa todos los campos';
             return;
@@ -35,6 +36,8 @@ export class LoginClienteComponent {
 
         this.authService.loginUnified(this.email, this.password).subscribe({
             next: (response) => {
+                console.log('DEBUG LOGIN: Respuesta exitosa', response);
+                this.loading = false;
                 if (response.user_type === 'admin') {
                     this.router.navigate(['/admin']);
                 } else {
@@ -42,14 +45,15 @@ export class LoginClienteComponent {
                 }
             },
             error: (err) => {
+                console.error('DEBUG LOGIN: Error en login', err);
                 this.zone.run(() => {
                     this.loading = false;
                     if (err.status === 403 && err.error?.requires_verification) {
-                        alert('Debes verificar tu teléfono antes de entrar. Te redirigimos.');
+                        alert('Debes verificar tu email antes de entrar. Te redirigimos.');
                         this.router.navigate(['/registro'], { queryParams: { email: this.email, verify: true } });
                         return;
                     }
-                    this.error = 'Credenciales incorrectas';
+                    this.error = 'Credenciales incorrectas o error en servidor';
                     this.cdr.detectChanges();
                 });
             }
