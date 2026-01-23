@@ -86,6 +86,7 @@ export class ShippingCalculatorComponent {
                 this.mostrarResultados = true;
                 this.codigoPostalCalculado = this.codigoPostal;
                 this.editandoCodigoPostal = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Error calculando envío:', err);
@@ -135,14 +136,15 @@ export class ShippingCalculatorComponent {
     }
 
     getOpcionesDomicilio() {
-        return this.opcionesEnvio.filter(o =>
-            o.nombre.toLowerCase().includes('domicilio') ||
-            o.nombre.toLowerCase().includes('estándar') ||
-            o.nombre.toLowerCase().includes('envío') ||
-            o.nombre.toLowerCase().includes('nube') ||
-            (o.nombre.toLowerCase().includes('correo') && !o.nombre.toLowerCase().includes('retiro')) ||
-            (o.nombre.toLowerCase().includes('andreani') && !o.nombre.toLowerCase().includes('retiro'))
-        );
+        return this.opcionesEnvio.filter(o => {
+            const name = o.nombre.toLowerCase();
+            return (name.includes('domicilio') ||
+                name.includes('estándar') ||
+                name.includes('envío') ||
+                name.includes('nube')) &&
+                !name.includes('sucursal') &&
+                !name.includes('retiro');
+        });
     }
 
     getOpcionesRetiro() {

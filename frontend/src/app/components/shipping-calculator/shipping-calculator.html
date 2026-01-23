@@ -36,7 +36,7 @@
             <h5 class="section-title">📦 Envío a domicilio</h5>
             <div class="shipping-options">
                 <div class="shipping-item" *ngFor="let opcion of getOpcionesDomicilio(); let i = index"
-                    [class.hidden]="!mostrarTodasOpciones && i >= 2">
+                    [class.hidden]="!mostrarTodasOpciones && i >= 5">
                     <div class="item-main">
                         <span class="metodo-nombre">{{ opcion.nombre }}</span>
                         <span class="metodo-tiempo">{{ opcion.tiempo }}</span>

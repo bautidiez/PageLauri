@@ -51,6 +51,12 @@ class ShippingService:
             
         if not has_andreani:
             results.append({
+                "id": "andreani_sucursal_fallback",
+                "nombre": "Andreani (Sucursal)",
+                "costo": 5000 if zip_code_val < 2000 else 6900,
+                "tiempo_estimado": "3 a 5 días hábiles"
+            })
+            results.append({
                 "id": "andreani_domicilio_fallback",
                 "nombre": "Andreani (Domicilio)",
                 "costo": 5800 if zip_code_val < 2000 else 7900,
