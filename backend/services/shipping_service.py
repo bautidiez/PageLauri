@@ -31,33 +31,40 @@ class ShippingService:
             except Exception as e:
                 logger.error(f"Error en provider {type(provider).__name__}: {str(e)}")
 
-        # Asegurar que siempre haya una opción de "Correo" si las APIs no devolvieron nada real
-        # (Andreani y Correo Argentino suelen devolver IDs específicos)
-        has_real_carrier = any(opt['id'].startswith(('andreani', 'correo_argentino')) for opt in results)
+        # Asegurar que siempre haya una opción de "Correo" y "Andreani" si las APIs no devolvieron nada real
+        has_andreani = any('andreani' in opt['id'] for opt in results)
+        has_correo = any('correo_argentino' in opt['id'] for opt in results)
         
-        if not has_real_carrier:
+        if not has_correo:
             results.append({
                 "id": "envio_estandar",
-                "nombre": "Envío Estándar (Correo Argentino)",
+                "nombre": "Correo Argentino (Domicilio)",
                 "costo": 5500 if zip_code_val < 2000 else 7500,
                 "tiempo_estimado": "5 a 8 días hábiles"
             })
+            results.append({
+                "id": "correo_sucursal_fallback",
+                "nombre": "Correo Argentino (Sucursal)",
+                "costo": 4800 if zip_code_val < 2000 else 6600,
+                "tiempo_estimado": "4 a 6 días hábiles"
+            })
             
-            # También agregamos Andreani Domicilio como fallback si no hay nada
+        if not has_andreani:
             results.append({
                 "id": "andreani_domicilio_fallback",
                 "nombre": "Andreani (Domicilio)",
                 "costo": 5800 if zip_code_val < 2000 else 7900,
-                "tiempo_estimado": "4 a 6 días hábiles"
+                "tiempo_estimado": "3 a 5 días hábiles"
             })
 
         # Opción siempre presente: Retiro en local
-        results.append({
-            "id": "retiro_local",
-            "nombre": "Retiro en Local (Gratis)",
-            "costo": 0,
-            "tiempo_estimado": "Inmediato - Te avisaremos por WhatsApp"
-        })
+        if not any('retiro' in opt['id'] for opt in results):
+            results.append({
+                "id": "retiro_local",
+                "nombre": "Retiro en Local (Gratis)",
+                "costo": 0,
+                "tiempo_estimado": "Inmediato - Te avisaremos por WhatsApp"
+            })
         
         # Ordenar por costo para el cliente
         return sorted(results, key=lambda x: x['costo'])
