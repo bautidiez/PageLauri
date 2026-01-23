@@ -13,7 +13,7 @@ export class CheckoutService {
 
     // Cálculo de Envío
     calcularEnvio(codigo_postal: string): Observable<any[]> {
-        return this.http.post<any[]>(`${this.apiUrl}/shipping/calculate`, { codigo_postal });
+        return this.http.post<any[]>(`${this.apiUrl}/envios/calcular`, { codigo_postal });
     }
 
     // Gestión de Pedidos

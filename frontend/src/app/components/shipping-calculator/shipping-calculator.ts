@@ -57,45 +57,41 @@ export class ShippingCalculatorComponent {
         // Guardar CP
         localStorage.setItem('codigo_postal', this.codigoPostal);
 
-        const metodos = ['correo_argentino', 'andreani', 'tienda_nube', 'retiro'];
-        let completed = 0;
+        // Llamar a la API una sola vez para obtener todo
+        this.apiService.calcularEnvio({
+            codigo_postal: this.codigoPostal,
+            provincia: 'Buenos Aires'
+        }).subscribe({
+            next: (res) => {
+                const options = Array.isArray(res) ? res : [res];
 
-        metodos.forEach(metodo => {
-            if (metodo === 'retiro') {
-                this.opcionesEnvio.push({
-                    id: 'retiro',
-                    nombre: 'Retiro en local',
-                    costo: 0,
-                    tiempo: 'Inmediato'
-                });
-                completed++;
-                this.checkFinalizacion(completed, metodos.length);
-                return;
-            }
+                this.opcionesEnvio = options.map(opt => ({
+                    id: opt.id,
+                    nombre: opt.nombre,
+                    costo: opt.costo,
+                    tiempo: opt.tiempo_estimado || opt.tiempo || '3-5 días hábiles'
+                }));
 
-            this.apiService.calcularEnvio({
-                codigo_postal: this.codigoPostal,
-                metodo_envio: metodo,
-                provincia: 'Buenos Aires' // Default o inferido
-            }).subscribe({
-                next: (res) => {
-                    const arrayRes = Array.isArray(res) ? res : [res];
-                    arrayRes.forEach(opt => {
-                        this.opcionesEnvio.push({
-                            id: opt.id || metodo,
-                            nombre: opt.nombre || this.getNombreMetodo(metodo),
-                            costo: opt.costo || 0,
-                            tiempo: opt.tiempo_estimado || opt.tiempo || '3-5 días hábiles'
-                        });
+                // Asegurar que "Retiro en Local" esté presente si no vino de la API
+                if (!this.opcionesEnvio.find(o => o.id.includes('retiro'))) {
+                    this.opcionesEnvio.push({
+                        id: 'retiro_local',
+                        nombre: 'Retiro en local',
+                        costo: 0,
+                        tiempo: 'Inmediato'
                     });
-                    completed++;
-                    this.checkFinalizacion(completed, metodos.length);
-                },
-                error: () => {
-                    completed++;
-                    this.checkFinalizacion(completed, metodos.length);
                 }
-            });
+
+                this.calculando = false;
+                this.mostrarResultados = true;
+                this.codigoPostalCalculado = this.codigoPostal;
+                this.editandoCodigoPostal = false;
+            },
+            error: (err) => {
+                console.error('Error calculando envío:', err);
+                this.error = 'Hubo un error al calcular los envíos. Por favor intenta más tarde.';
+                this.calculando = false;
+            }
         });
     }
 

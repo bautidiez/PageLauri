@@ -160,16 +160,11 @@ def calcular_envio_route():
         
     try:
         options = ShippingService.calculate_cost(zip_code)
-        # Si el frontend pedía un método específico, podemos filtrar, 
-        # pero es mejor devolver todas las opciones reales disponibles.
+        
         metodo_solicitado = data.get('metodo_envio')
         if metodo_solicitado and metodo_solicitado != 'retiro':
             # Filtrar por el prefijo del ID (ej: 'andreani' matches 'andreani_sucursal')
             options = [opt for opt in options if opt['id'].startswith(metodo_solicitado)]
-            
-        # Si solo se espera un resultado (compatibilidad con código previo)
-        if len(options) == 1:
-            return jsonify(options[0]), 200
             
         return jsonify(options), 200
     except Exception as e:

@@ -31,6 +31,15 @@ class ShippingService:
             except Exception as e:
                 logger.error(f"Error en provider {type(provider).__name__}: {str(e)}")
 
+        # Fallback si las APIs fallan o no están configuradas
+        if not results:
+            results.append({
+                "id": "envio_estandar",
+                "nombre": "Envío Estándar (Correo)",
+                "costo": 5500 if zip_code_val < 2000 else 7500,
+                "tiempo_estimado": "5 a 8 días hábiles"
+            })
+
         # Opción siempre presente: Retiro en local
         results.append({
             "id": "retiro_local",
