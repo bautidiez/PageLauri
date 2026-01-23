@@ -203,6 +203,9 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   }
 
   getImagenUrl(imagen: any): string {
+    if (!imagen || !imagen.url) {
+      return 'assets/logo.png'; // Fallback to logo or placeholder
+    }
     const apiBase = this.apiService.getApiUrl().replace('/api', '');
     return `${apiBase}${imagen.url}`;
   }
@@ -223,17 +226,19 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   }
 
   getPrecioConDescuento(): number {
-    return this.getPrecioFinal() * 0.85; // 15% de descuento sobre el mejor precio
+    const final = this.getPrecioFinal();
+    return final ? final * 0.85 : 0;
   }
 
   getPrecioCuotas(): number {
-    return this.getPrecioFinal() / 3; // 3 cuotas sin interés
+    const final = this.getPrecioFinal();
+    return final ? final / 3 : 0;
   }
 
   // Obtener el mejor precio disponible (base, descuento directo o promoción)
   getPrecioFinal(): number {
     if (!this.producto) return 0;
-    let mejorPrecio = this.producto.precio_descuento || this.producto.precio_base;
+    let mejorPrecio = this.producto.precio_descuento || this.producto.precio_base || 0;
 
     if (this.producto.promociones && this.producto.promociones.length > 0) {
       const promo = this.producto.promociones[0];
@@ -241,10 +246,10 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
       const valor = promo.valor || 0;
 
       if (tipo.includes('porcentaje')) {
-        const precioPromo = this.producto.precio_base * (1 - (valor / 100));
+        const precioPromo = (this.producto.precio_base || 0) * (1 - (valor / 100));
         if (precioPromo < mejorPrecio) mejorPrecio = precioPromo;
       } else if (tipo.includes('fijo')) {
-        const precioPromo = Math.max(0, this.producto.precio_base - valor);
+        const precioPromo = Math.max(0, (this.producto.precio_base || 0) - valor);
         if (precioPromo < mejorPrecio) mejorPrecio = precioPromo;
       }
     }
@@ -265,14 +270,15 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   getBadgeText(): string {
     if (!this.producto || !this.producto.promociones || this.producto.promociones.length === 0) return '';
     const promo = this.producto.promociones[0];
+    if (!promo) return '';
     const tipo = (promo.tipo_promocion_nombre || '').toLowerCase();
 
-    if (tipo.includes('porcentaje')) return `${promo.valor}% OFF`;
-    if (tipo.includes('fijo')) return `$${promo.valor} OFF`;
+    if (tipo.includes('porcentaje')) return `${promo.valor || 0}% OFF`;
+    if (tipo.includes('fijo')) return `$${promo.valor || 0} OFF`;
     if (tipo.includes('2x1')) return '2x1';
     if (tipo.includes('3x2')) return '3x2';
 
-    return promo.tipo_promocion_nombre;
+    return promo.tipo_promocion_nombre || '';
   }
 
   loadColores() {
