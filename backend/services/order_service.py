@@ -1,5 +1,5 @@
-from models import db, Pedido, ItemPedido, Producto, Talle, StockTalle, PromocionProducto
-from datetime import datetime
+from models import db, Pedido, ItemPedido, Producto, Talle, StockTalle, PromocionProducto, MetodoPago
+from datetime import datetime, timedelta
 import uuid
 
 class OrderService:
@@ -8,19 +8,32 @@ class OrderService:
         """
         Lógica de creación de pedido con validación de stock, promociones automáticas y cupones.
         """
-        numero_pedido = f"PED-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
+        metodo_pago_val = data.get('metodo_pago') or data.get('metodo_pago_id')
+        metodo_pago_id = None
         
+        if isinstance(metodo_pago_val, str) and not metodo_pago_val.isdigit():
+            # Buscar ID por nombre
+            metodo = MetodoPago.query.filter(MetodoPago.nombre.ilike(f"%{metodo_pago_val}%")).first()
+            if metodo:
+                metodo_pago_id = metodo.id
+            else:
+                # Fallback o asignar uno por defecto si no existe
+                metodo_pago_id = 1
+        else:
+            metodo_pago_id = int(metodo_pago_val) if metodo_pago_val else 1
+
         pedido = Pedido(
             numero_pedido=numero_pedido,
             cliente_nombre=data.get('cliente_nombre'),
             cliente_email=data.get('cliente_email'),
             cliente_telefono=data.get('cliente_telefono', ''),
-            cliente_direccion=data.get('cliente_direccion'),
-            cliente_codigo_postal=data.get('cliente_codigo_postal'),
-            cliente_localidad=data.get('cliente_localidad'),
-            cliente_provincia=data.get('cliente_provincia'),
-            metodo_pago_id=int(data.get('metodo_pago_id')),
+            cliente_direccion=data.get('calle', '') + ' ' + str(data.get('altura', '')),
+            cliente_codigo_postal=data.get('codigo_postal'),
+            cliente_localidad=data.get('ciudad'),
+            cliente_provincia=data.get('provincia'),
+            metodo_pago_id=metodo_pago_id,
             metodo_envio=data.get('metodo_envio', 'correo_argentino'),
+            costo_envio=float(data.get('costo_envio', 0)),
             estado='pendiente_aprobacion',
             aprobado=False,
             fecha_expiracion=datetime.now() + timedelta(days=5)
@@ -99,9 +112,14 @@ class OrderService:
             else:
                 raise Exception("El cupón no aplica a los productos en el carrito")
 
-        pedido.subtotal = subtotal_bruto - descuento_promo_automatica - descuento_cupon
-        pedido.descuento = descuento_promo_automatica + descuento_cupon
-        pedido.total = pedido.subtotal + data.get('costo_envio', 0)
+        # 3. Aplicar descuento del 15% si es transferencia/efectivo
+        descuento_pago = 0
+        metodo = MetodoPago.query.get(metodo_pago_id)
+        if metodo and any(x in metodo.nombre.lower() for x in ['transferencia', 'efectivo']):
+            descuento_pago = (pedido.subtotal + pedido.costo_envio) * 0.15
+            
+        pedido.total = (pedido.subtotal + pedido.costo_envio) - descuento_pago
+        pedido.descuento += descuento_pago
         
         return pedido
 

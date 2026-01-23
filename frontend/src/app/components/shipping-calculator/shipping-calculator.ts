@@ -118,9 +118,9 @@ export class ShippingCalculatorComponent {
     }
 
     getPrecioConTransferencia(costoEnvio: number): number {
-        // Ejemplo: 10% de descuento por transferencia sobre el total
+        // Ejemplo: 15% de descuento por transferencia sobre el total
         const total = this.precioBase + costoEnvio;
-        return total * 0.9;
+        return total * 0.85;
     }
 
     cambiarCodigoPostal() {
@@ -138,6 +138,8 @@ export class ShippingCalculatorComponent {
         return this.opcionesEnvio.filter(o =>
             o.nombre.toLowerCase().includes('domicilio') ||
             o.nombre.toLowerCase().includes('estándar') ||
+            o.nombre.toLowerCase().includes('envío') ||
+            o.nombre.toLowerCase().includes('nube') ||
             (o.nombre.toLowerCase().includes('correo') && !o.nombre.toLowerCase().includes('retiro')) ||
             (o.nombre.toLowerCase().includes('andreani') && !o.nombre.toLowerCase().includes('retiro'))
         );
