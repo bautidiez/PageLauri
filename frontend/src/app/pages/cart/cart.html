@@ -48,9 +48,13 @@
           <span>Total:</span>
           <span>${{ total | number:'1.0-0' }}</span>
         </div>
-        <div class="summary-row transfer-price">
-          <span>O con transferencia/efectivo (15% OFF):</span>
+        <div class="summary-row transfer-price updated-v2">
+          <span class="promo-label">O con transferencia/efectivo: <strong>¡15% OFF!</strong></span>
           <span class="transfer-val">${{ getPrecioConTransferencia() | number:'1.2-2' }}</span>
+        </div>
+        <!-- Version Marker -->
+        <div class="version-marker" style="font-size: 10px; color: #ccc; text-align: right; margin-top: 10px;">
+          v1.0.5 - 15% Discount Active
         </div>
         <div id="login-required-msg" *ngIf="showLoginError" class="login-error-msg">
           <p>⚠️ Para finalizar tu compra, por favor <strong>inicia sesión</strong> o <strong>crea una cuenta</strong>.
