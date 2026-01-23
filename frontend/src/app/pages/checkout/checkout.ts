@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CartService } from '../../services/cart.service';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-checkout',
@@ -37,7 +38,8 @@ export class CheckoutComponent implements OnInit {
   constructor(
     private cartService: CartService,
     private apiService: ApiService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
@@ -45,6 +47,12 @@ export class CheckoutComponent implements OnInit {
     if (this.items.length === 0) {
       this.router.navigate(['/carrito']);
       return;
+    }
+
+    // Auto-llenar email si el usuario está logueado
+    const clienteLogueado = this.authService.getCliente();
+    if (clienteLogueado && clienteLogueado.email) {
+      this.cliente.email = clienteLogueado.email;
     }
 
     this.subtotal = this.cartService.getTotal();

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
@@ -21,7 +21,8 @@ export class ShippingCalculatorComponent {
 
     constructor(
         private apiService: ApiService,
-        private location: Location
+        private location: Location,
+        private cdr: ChangeDetectorRef
     ) {
         // Recuperar CP de localStorage si existe
         const savedCP = localStorage.getItem('codigo_postal');
@@ -95,6 +96,8 @@ export class ShippingCalculatorComponent {
             this.mostrarResultados = true;
             // Ordenar por costo
             this.opcionesEnvio.sort((a, b) => a.costo - b.costo);
+            // Forzar detección de cambios para mostrar resultados inmediatamente
+            this.cdr.detectChanges();
         }
     }
 

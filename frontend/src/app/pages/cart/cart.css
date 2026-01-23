@@ -24,13 +24,26 @@
 .cart-content {
   display: grid;
   grid-template-columns: 2fr 1fr;
+  grid-template-areas:
+    "items summary"
+    "calculator summary";
   gap: 40px;
+  align-items: start;
 }
 
 .cart-items {
+  grid-area: items;
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+app-shipping-calculator {
+  grid-area: calculator;
+}
+
+.cart-summary {
+  grid-area: summary;
 }
 
 .cart-item {
