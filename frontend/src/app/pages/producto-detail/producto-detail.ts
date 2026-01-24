@@ -362,14 +362,18 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   }
 
   onMouseMove(e: MouseEvent) {
-    const target = e.currentTarget as HTMLElement;
-    const { left, top, width, height } = target.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    this.zoomOrigin = `${x}% ${y}%`;
+    // Deprecated for modal zoom
   }
 
-  onMouseLeave() {
-    this.zoomOrigin = 'center center';
+  isZoomOpen = false;
+
+  openZoom() {
+    this.isZoomOpen = true;
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+  }
+
+  closeZoom() {
+    this.isZoomOpen = false;
+    document.body.style.overflow = ''; // Restore scrolling
   }
 }

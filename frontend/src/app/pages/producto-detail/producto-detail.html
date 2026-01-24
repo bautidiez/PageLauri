@@ -128,4 +128,10 @@
   <div class="no-data" *ngIf="!loading && !producto">
     <p>No disponible</p>
   </div>
+
+  <!-- Zoom Modal -->
+  <div class="zoom-modal" *ngIf="isZoomOpen" (click)="closeZoom()">
+    <span class="zoom-close">&times;</span>
+    <img [src]="getImagenUrl(imagenSeleccionada)" [alt]="producto?.nombre" (click)="$event.stopPropagation()">
+  </div>
 </div>
