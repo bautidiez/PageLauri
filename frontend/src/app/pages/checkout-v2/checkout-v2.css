@@ -522,6 +522,31 @@
     align-items: flex-end;
 }
 
+.checkout-item-price {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-weight: 600;
+}
+
+.checkout-item-price .strikethrough {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9em;
+}
+
+.checkout-item-price .final {
+    color: #28a745;
+}
+
+.checkout-item-price .badge {
+    background: #28a745;
+    color: white;
+    font-size: 0.7em;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
 .summary-row.total.strikethrough {
     font-size: 15px;
     color: #a0aec0;
