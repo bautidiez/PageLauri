@@ -41,4 +41,17 @@ export class CheckoutService {
     validarCupon(codigo: string): Observable<any> {
         return this.http.post<any>(`${this.apiUrl}/promociones/validar`, { codigo });
     }
+
+    // Gestión de Cuenta (Cliente)
+    updateProfile(data: any): Observable<any> {
+        return this.http.put<any>(`${this.apiUrl}/clientes/me`, data);
+    }
+
+    changePassword(data: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/clientes/change-password`, data);
+    }
+
+    getMyOrders(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/clientes/me/orders`);
+    }
 }

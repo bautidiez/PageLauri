@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, decode_token
 from extensions import limiter
-from models import Cliente, db
+from models import Cliente, Pedido, db
 from services.notification_service import NotificationService
 import re
 import logging
@@ -191,3 +191,59 @@ def verify_token_cliente():
             'authenticated': True
         }
     }), 200
+
+@clients_bp.route('/api/clientes/me', methods=['PUT'])
+@jwt_required()
+def update_profile():
+    cliente_id = get_jwt_identity()
+    cliente = Cliente.query.get(cliente_id)
+    if not cliente:
+        return jsonify({'error': 'Cliente no encontrado'}), 404
+        
+    data = request.json
+    if 'nombre' in data:
+        cliente.nombre = data['nombre']
+    if 'telefono' in data:
+        cliente.telefono = data['telefono']
+    
+    db.session.commit()
+    return jsonify(cliente.to_dict()), 200
+
+@clients_bp.route('/api/clientes/change-password', methods=['POST'])
+@jwt_required()
+def change_password():
+    cliente_id = get_jwt_identity()
+    cliente = Cliente.query.get(cliente_id)
+    if not cliente:
+        return jsonify({'error': 'Cliente no encontrado'}), 404
+        
+    data = request.json
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    
+    if not old_password or not new_password:
+        return jsonify({'error': 'Faltan datos'}), 400
+        
+    if not cliente.check_password(old_password):
+        return jsonify({'error': 'Contraseña actual incorrecta'}), 400
+        
+    if len(new_password) < 8:
+         return jsonify({'error': 'La nueva contraseña debe tener al menos 8 caracteres'}), 400
+         
+    cliente.set_password(new_password)
+    db.session.commit()
+    
+    return jsonify({'message': 'Contraseña actualizada correctamente'}), 200
+
+@clients_bp.route('/api/clientes/me/orders', methods=['GET'])
+@jwt_required()
+def get_my_orders():
+    cliente_id = get_jwt_identity()
+    cliente = Cliente.query.get(cliente_id)
+    if not cliente:
+        return jsonify({'error': 'Cliente no encontrado'}), 404
+        
+    # Buscar pedidos por email del cliente
+    pedidos = Pedido.query.filter_by(cliente_email=cliente.email).order_by(Pedido.created_at.desc()).all()
+    
+    return jsonify([p.to_dict() for p in pedidos]), 200

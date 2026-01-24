@@ -1,43 +1,104 @@
-<div class="mis-pedidos-container">
-    <h1>Seguimiento de mis pedidos</h1>
-    <p class="subtitle">Ingresá tu email para ver el estado de tus compras.</p>
+<div class="account-container">
+    <h1>Mi Cuenta</h1>
 
-    <div class="search-box">
-        <input type="email" [(ngModel)]="email" placeholder="tu@email.com" (keyup.enter)="buscar()">
-        <button class="btn-primary" (click)="buscar()" [disabled]="loading">
-            {{ loading ? 'Buscando...' : 'VER MIS PEDIDOS' }}
-        </button>
+    <div class="tabs">
+        <button class="tab-btn" [class.active]="activeTab === 'profile'" (click)="setActiveTab('profile')">Mis
+            Datos</button>
+        <button class="tab-btn" [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">Mis
+            Compras</button>
     </div>
 
-    <div class="results-msg" *ngIf="searched && pedidos.length === 0">
-        <p>No encontramos pedidos asociados a este email.</p>
-    </div>
+    <!-- PESTAÑA PERFIL -->
+    <div class="tab-content" *ngIf="activeTab === 'profile'">
+        <div class="profile-card">
+            <h2>Mis Datos Personales</h2>
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" [(ngModel)]="profileData.nombre" class="form-control" placeholder="Nombre completo">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" [(ngModel)]="profileData.email" class="form-control" disabled
+                    title="El email no se puede cambiar">
+                <small class="hint">El email no se puede modificar.</small>
+            </div>
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input type="tel" [(ngModel)]="profileData.telefono" class="form-control" placeholder="Teléfono">
+            </div>
 
-    <div class="pedidos-list" *ngIf="pedidos.length > 0">
-        <div class="pedido-card" *ngFor="let p of pedidos" (click)="verDetalle(p)">
-            <div class="card-header">
-                <span class="order-num">#{{ p.numero_pedido }}</span>
-                <span class="order-date">{{ p.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+            <button class="btn-primary" (click)="saveProfile()" [disabled]="savingProfile">
+                {{ savingProfile ? 'Guardando...' : 'Guardar Cambios' }}
+            </button>
+        </div>
+
+        <div class="security-card">
+            <h2>Seguridad</h2>
+            <p>Si deseas cambiar tu contraseña, utiliza el siguiente formulario.</p>
+
+            <div class="form-group">
+                <label>Contraseña Actual</label>
+                <input type="password" [(ngModel)]="passwordData.old" class="form-control">
             </div>
-            <div class="card-body">
-                <div class="status-badge" [style.background-color]="getEstadoColor(p.estado)">
-                    {{ p.estado | uppercase }}
-                </div>
-                <div class="order-total">
-                    <strong>Total:</strong> ${{ p.total | number:'1.0-2' }}
-                </div>
+            <div class="form-group">
+                <label>Nueva Contraseña</label>
+                <input type="password" [(ngModel)]="passwordData.new" class="form-control">
             </div>
-            <div class="card-footer">
-                <span>Click para ver más detalles y tracking</span>
+            <div class="form-group">
+                <label>Confirmar Nueva Contraseña</label>
+                <input type="password" [(ngModel)]="passwordData.confirm" class="form-control">
+            </div>
+
+            <button class="btn-secondary" (click)="changePassword()" [disabled]="changingPassword">
+                {{ changingPassword ? 'Actualizando...' : 'Cambiar Contraseña' }}
+            </button>
+
+            <div class="forgot-link">
+                <a routerLink="/recuperar-password">o olvidé mi contraseña actual</a>
             </div>
         </div>
     </div>
 
-    <!-- MODAL DETALLE -->
+    <!-- PESTAÑA PEDIDOS -->
+    <div class="tab-content" *ngIf="activeTab === 'orders'">
+        <div *ngIf="loadingOrders" class="loading-spinner">Cargando pedidos...</div>
+
+        <div class="no-orders" *ngIf="!loadingOrders && pedidos.length === 0">
+            <p>No tienes pedidos registrados aún.</p>
+            <a routerLink="/productos" class="btn-primary">Ir a comprar</a>
+        </div>
+
+        <div class="pedidos-list" *ngIf="!loadingOrders && pedidos.length > 0">
+            <div class="pedido-card" *ngFor="let p of pedidos" (click)="verDetalle(p)"
+                [class.cancelled]="isCancelled(p)">
+                <div class="card-header">
+                    <span class="order-num">#{{ p.numero_pedido }}</span>
+                    <span class="order-date">{{ p.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="status-badge" [ngStyle]="{'background-color': getEstadoColor(p)}">
+                        {{ getEstadoLabel(p) | uppercase }}
+                    </div>
+                    <div class="order-total">
+                        <strong>Total:</strong> ${{ p.total | number:'1.0-2' }}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span>{{ isCancelled(p) ? 'Pedido Anulado' : 'Ver detalle' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETALLE (IGUAL QUE ANTES PERO ADAPTADO) -->
     <div class="modal-overlay" *ngIf="pedidoDetalle" (click)="cerrarDetalle()">
         <div class="modal-content" (click)="$event.stopPropagation()">
             <button class="btn-close" (click)="cerrarDetalle()">✕</button>
             <h2>Detalle del Pedido #{{ pedidoDetalle.numero_pedido }}</h2>
+
+            <div class="status-banner" [ngStyle]="{'background-color': getEstadoColor(pedidoDetalle)}">
+                {{ getEstadoLabel(pedidoDetalle) | uppercase }}
+            </div>
 
             <div class="info-section">
                 <h3>Información de entrega</h3>
@@ -46,30 +107,15 @@
                 <p>{{ pedidoDetalle.cliente_localidad }}, {{ pedidoDetalle.cliente_provincia }}</p>
             </div>
 
-            <div class="info-section">
-                <h3>Estado del Envío</h3>
-                <div class="shipment-status" *ngIf="pedidoDetalle.envio">
-                    <p><strong>Transportista:</strong> {{ pedidoDetalle.envio.transportista }}</p>
-                    <p><strong>Nro de Guía:</strong> {{ pedidoDetalle.envio.numero_guia || 'Pendiente' }}</p>
-
-                    <div class="tracking-actions" *ngIf="pedidoDetalle.envio.numero_guia">
-                        <a *ngIf="getTrackingUrl(pedidoDetalle.envio.transportista, pedidoDetalle.envio.numero_guia) as url"
-                            [href]="url" target="_blank" class="btn-track">
-                            🚚 Seguir envío en {{ pedidoDetalle.envio.transportista }}
-                        </a>
-                    </div>
-
-                    <div class="tracking-history" *ngIf="pedidoDetalle.envio.updates?.length > 0">
-                        <h4>Historial de movimientos:</h4>
-                        <div class="tracking-item" *ngFor="let up of pedidoDetalle.envio.updates">
-                            <span class="t-date">{{ up.fecha | date:'dd/MM HH:mm' }}</span>
-                            <span class="t-status">{{ up.estado }}</span>
-                            <p class="t-desc">{{ up.descripcion }}</p>
-                        </div>
-                    </div>
-                    <p class="no-updates" *ngIf="pedidoDetalle.envio.updates?.length === 0">
-                        Aún no hay actualizaciones de seguimiento.
-                    </p>
+            <div class="info-section" *ngIf="pedidoDetalle.envio">
+                <h3>Seguimiento</h3>
+                <p><strong>Transportista:</strong> {{ pedidoDetalle.envio.transportista }}</p>
+                <div *ngIf="pedidoDetalle.envio.numero_guia">
+                    <p><strong>Guía:</strong> {{ pedidoDetalle.envio.numero_guia }}</p>
+                    <a *ngIf="getTrackingUrl(pedidoDetalle.envio.transportista, pedidoDetalle.envio.numero_guia) as url"
+                        [href]="url" target="_blank" class="btn-track">
+                        Ver Seguimiento en {{ pedidoDetalle.envio.transportista }}
+                    </a>
                 </div>
             </div>
 

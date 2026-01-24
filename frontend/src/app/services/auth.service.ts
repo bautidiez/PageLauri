@@ -73,6 +73,10 @@ export class AuthService {
     this.isAuthenticatedSubject.next(true);
   }
 
+  updateCliente(cliente: any): void {
+    localStorage.setItem('cliente', JSON.stringify(cliente));
+  }
+
   resetPassword(token: string, password: string): Observable<any> {
     return this.apiService.post('/auth/reset-password', { token, password });
   }
