@@ -193,7 +193,7 @@ class Producto(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
         if include_stock:
-            data['stock_talles'] = [st.to_dict() for st in self.stock_talles]
+            data['stock_talles'] = [st.to_dict() for st in self.stock_talles if st.talle and st.talle.nombre != 'XS']
         return data
 
 class Talle(db.Model):

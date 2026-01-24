@@ -77,6 +77,10 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
           if (data.imagenes && data.imagenes.length > 0) {
             this.imagenSeleccionada = data.imagenes.find((img: any) => img.es_principal) || data.imagenes[0];
           }
+          // Filter XS from product stock if backend returned it
+          if (data.stock_talles) {
+            data.stock_talles = data.stock_talles.filter((st: any) => st.talle_nombre !== 'XS');
+          }
 
           // Update SEO meta tags
           this.updateSeoTags();
@@ -150,7 +154,7 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
     this.apiService.getTalles().subscribe({
       next: (data) => {
         this.zone.run(() => {
-          this.talles = data;
+          this.talles = data.filter((t: any) => t.nombre !== 'XS');
           this.autoSeleccionarTalle(); // Re-intentar si el producto ya cargó
           this.cdr.detectChanges();
         });

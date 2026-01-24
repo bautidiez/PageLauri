@@ -86,6 +86,8 @@ def get_talles():
     talles = Talle.query.all()
     orden = {'S':1, 'M':2, 'L':3, 'XL':4, 'XXL':5, 'XXXL':6}
     talles_s = sorted(talles, key=lambda t: orden.get(t.nombre.upper(), 99))
+    # Filter out XS explicitly just in case
+    talles_s = [t for t in talles_s if t.nombre != 'XS']
     return jsonify([t.to_dict() for t in talles_s]), 200
 
 @store_public_bp.route('/api/colores', methods=['GET'])
