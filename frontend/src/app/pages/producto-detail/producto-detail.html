@@ -15,9 +15,9 @@
 
       <div class="product-detail-content">
         <div class="product-images">
-          <div class="main-image" (click)="openZoom()">
+          <div class="main-image" (mousemove)="onMouseMove($event)" (mouseleave)="onMouseLeave()">
             <img [src]="getImagenUrl(imagenSeleccionada)" [alt]="producto.nombre" class="product-main-image"
-              loading="eager">
+              loading="eager" [style.transform-origin]="zoomOrigin">
 
             <!-- Badge overlay -->
             <div class="product-promo-badge-detail" *ngIf="producto.promociones && producto.promociones.length > 0">
@@ -127,11 +127,5 @@
 
   <div class="no-data" *ngIf="!loading && !producto">
     <p>No disponible</p>
-  </div>
-
-  <!-- Zoom Modal -->
-  <div class="zoom-modal" *ngIf="isZoomOpen" (click)="closeZoom()">
-    <span class="zoom-close">&times;</span>
-    <img [src]="getImagenUrl(imagenSeleccionada)" [alt]="producto?.nombre" (click)="$event.stopPropagation()">
   </div>
 </div>
