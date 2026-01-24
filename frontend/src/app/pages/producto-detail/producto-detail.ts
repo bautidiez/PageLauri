@@ -27,6 +27,7 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   coloresDisponibles: any[] = [];
   colorSeleccionado: any = null;
   subcategorias: any[] = [];
+  zoomOrigin = 'center center';
 
   // ✅ FIX: Add Subject for cleanup
   private destroy$ = new Subject<void>();
@@ -355,6 +356,17 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
           this.subcategorias = categorias.filter((c: any) =>
             c.categoria_padre_id === categoriaActual.id
           );
+        }
+        onMouseMove(e: MouseEvent) {
+          const target = e.currentTarget as HTMLElement;
+          const { left, top, width, height } = target.getBoundingClientRect();
+          const x = ((e.clientX - left) / width) * 100;
+          const y = ((e.clientY - top) / height) * 100;
+          this.zoomOrigin = `${x}% ${y}%`;
+        }
+
+        onMouseLeave() {
+          this.zoomOrigin = 'center center';
         }
       }
     });
