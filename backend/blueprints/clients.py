@@ -245,23 +245,47 @@ def get_my_orders():
         
     # Buscar pedidos por email del cliente (case insensitive y sin espacios)
     # DEBUG: Log para ver qué está pasando
-    print(f"DEBUG: Buscando pedidos para usuario ID {cliente.id} con email [{cliente.email}]", flush=True)
+    print(f"DEBUG: Buscando pedidos para usuario ID {cliente.id} con email [{cliente.email}] y telefono [{cliente.telefono}]", flush=True)
     
-    # Normalizar email de busqueda
+    # Lista para acumular resultados únicos
+    pedidos_map = {}
+
+    # 1. Búsqueda por EMAIL
     search_email = cliente.email.strip().lower()
     
     # Intentar búsqueda exacta primero
-    pedidos = Pedido.query.filter(Pedido.cliente_email == search_email).order_by(Pedido.created_at.desc()).all()
+    pedidos_email_exact = Pedido.query.filter(Pedido.cliente_email == search_email).all()
+    for p in pedidos_email_exact: pedidos_map[p.id] = p
     
-    if not pedidos:
-        # Intentar búsqueda flexible con ILIKE y wildcards al principio/final por si acaso
-        print("DEBUG: Búsqueda exacta falló, intentando ILIKE flexible...", flush=True)
-        pedidos = Pedido.query.filter(Pedido.cliente_email.ilike(f"%{search_email}%")).order_by(Pedido.created_at.desc()).all()
+    # Búsqueda flexible email
+    pedidos_email_like = Pedido.query.filter(Pedido.cliente_email.ilike(f"%{search_email}%")).all()
+    for p in pedidos_email_like: pedidos_map[p.id] = p
 
-    print(f"DEBUG: Se encontraron {len(pedidos)} pedidos para {search_email}", flush=True)
-    if len(pedidos) == 0:
-        # Check if there are ANY orders with that email vaguely?
-        check = Pedido.query.filter(Pedido.cliente_email == cliente.email).count()
-        print(f"DEBUG: Verificación exacta devolvió: {check}", flush=True)
+    # 2. Búsqueda por TELÉFONO (si el cliente tiene)
+    if cliente.telefono:
+        # Limpiar teléfono cliente (dejar solo dígitos)
+        clean_phone = "".join(filter(str.isdigit, str(cliente.telefono)))
+        
+        # Usar los últimos 8 dígitos para mayor probabilidad de match 
+        # (ignora prefijos de país 54, móvil 9, o área 0)
+        # Ej: 5493584171716 -> 84171716. 
+        # Si el pedido tiene 3584171716 -> Contiene 84171716. Match.
+        
+        search_term = clean_phone
+        if len(clean_phone) > 8:
+            search_term = clean_phone[-8:]
+            
+        if len(search_term) >= 6: # Mínimo de seguridad
+            print(f"DEBUG: Intentando búsqueda por teléfono. Term: {search_term} (Original: {clean_phone})", flush=True)
+            pedidos_fono = Pedido.query.filter(Pedido.cliente_telefono.ilike(f"%{search_term}%")).all()
+            
+            for p in pedidos_fono:
+                pedidos_map[p.id] = p
+                
+    # Convertir a lista y ordenar
+    pedidos_finales = list(pedidos_map.values())
+    pedidos_finales.sort(key=lambda x: x.created_at, reverse=True)
 
-    return jsonify([p.to_dict() for p in pedidos]), 200
+    print(f"DEBUG: Se encontraron {len(pedidos_finales)} pedidos en total para {search_email}", flush=True)
+
+    return jsonify([p.to_dict() for p in pedidos_finales]), 200
