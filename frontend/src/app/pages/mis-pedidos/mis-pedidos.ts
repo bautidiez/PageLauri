@@ -13,7 +13,9 @@ import { AuthService } from '../../services/auth.service';
     styleUrl: './mis-pedidos.css'
 })
 export class MisPedidosComponent implements OnInit {
-    activeTab: string = 'orders'; // Start on orders as before, or profile
+    // UI State
+    isEditingProfile = false;
+    showPasswordModal = false;
 
     // Profile Data
     profileData = {
@@ -53,8 +55,17 @@ export class MisPedidosComponent implements OnInit {
         }
     }
 
-    setActiveTab(tab: string) {
-        this.activeTab = tab;
+    // --- UI Helpers ---
+    toggleEditMode() {
+        this.isEditingProfile = !this.isEditingProfile;
+    }
+
+    togglePasswordModal() {
+        this.showPasswordModal = !this.showPasswordModal;
+        // Reset form when closing
+        if (!this.showPasswordModal) {
+            this.passwordData = { old: '', new: '', confirm: '' };
+        }
     }
 
     // --- Profile Management ---
@@ -66,6 +77,7 @@ export class MisPedidosComponent implements OnInit {
                 this.authService.updateCliente(updatedCliente); // Update local storage
                 alert('Perfil actualizado correctamente');
                 this.savingProfile = false;
+                this.isEditingProfile = false; // Return to view mode
             },
             error: (err) => {
                 console.error(err);
@@ -93,6 +105,7 @@ export class MisPedidosComponent implements OnInit {
             next: (res) => {
                 alert(res.message);
                 this.passwordData = { old: '', new: '', confirm: '' };
+                this.togglePasswordModal();
                 this.changingPassword = false;
             },
             error: (err) => {
@@ -123,8 +136,7 @@ export class MisPedidosComponent implements OnInit {
         // Condition: Status is 'cancelado' (Anulado)
         if (pedido.estado === 'cancelado') return true;
 
-        // Also check if pending approval and > 5 days
-        // Note: Backend should handle this, but for display purposes:
+        // Also check if pending approval and > 5 days (Display logic only)
         if (pedido.estado === 'pendiente_aprobacion' && pedido.created_at) {
             const created = new Date(pedido.created_at);
             const diff = new Date().getTime() - created.getTime();

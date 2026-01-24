@@ -1,40 +1,96 @@
 <div class="account-container">
     <h1>Mi Cuenta</h1>
 
-    <div class="tabs">
-        <button class="tab-btn" [class.active]="activeTab === 'profile'" (click)="setActiveTab('profile')">Mis
-            Datos</button>
-        <button class="tab-btn" [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">Mis
-            Compras</button>
-    </div>
+    <div class="account-grid">
+        <!-- LEFT COLUMN: MIS DATOS -->
+        <div class="account-section">
+            <div class="section-header">
+                <span>Mis datos</span>
+                <a class="edit-link" *ngIf="!isEditingProfile" (click)="toggleEditMode()">Editar ></a>
+            </div>
+            <div class="section-content">
+                <!-- VIEW MODE -->
+                <div *ngIf="!isEditingProfile">
+                    <div class="data-row">
+                        <span class="data-icon">👤</span>
+                        <span>{{ profileData.nombre }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-icon">✉️</span>
+                        <span>{{ profileData.email }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-icon">📞</span>
+                        <span>{{ profileData.telefono || 'Sin teléfono' }}</span>
+                    </div>
 
-    <!-- PESTAÑA PERFIL -->
-    <div class="tab-content" *ngIf="activeTab === 'profile'">
-        <div class="profile-card">
-            <h2>Mis Datos Personales</h2>
-            <div class="form-group">
-                <label>Nombre Completo</label>
-                <input type="text" [(ngModel)]="profileData.nombre" class="form-control" placeholder="Nombre completo">
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" [(ngModel)]="profileData.email" class="form-control" disabled
-                    title="El email no se puede cambiar">
-                <small class="hint">El email no se puede modificar.</small>
-            </div>
-            <div class="form-group">
-                <label>Teléfono</label>
-                <input type="tel" [(ngModel)]="profileData.telefono" class="form-control" placeholder="Teléfono">
-            </div>
+                    <!-- Security Section (Only in View Mode) -->
+                    <div class="security-section">
+                        <button class="security-link-btn" (click)="togglePasswordModal()">
+                            Cambiar contraseña >
+                        </button>
+                    </div>
+                </div>
 
-            <button class="btn-primary" (click)="saveProfile()" [disabled]="savingProfile">
-                {{ savingProfile ? 'Guardando...' : 'Guardar Cambios' }}
-            </button>
+                <!-- EDIT MODE -->
+                <div class="edit-form" *ngIf="isEditingProfile">
+                    <div class="form-group">
+                        <label>Nombre Completo</label>
+                        <input type="text" [(ngModel)]="profileData.nombre" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" [(ngModel)]="profileData.telefono" class="form-control">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-save" (click)="saveProfile()" [disabled]="savingProfile">
+                            {{ savingProfile ? 'Guardando...' : 'Guardar cambios' }}
+                        </button>
+                        <button class="btn-cancel" (click)="toggleEditMode()">Cancelar</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="security-card">
-            <h2>Seguridad</h2>
-            <p>Si deseas cambiar tu contraseña, utiliza el siguiente formulario.</p>
+        <!-- RIGHT COLUMN: MIS COMPRAS -->
+        <div class="account-section">
+            <div class="section-header">
+                <span>Mis compras</span>
+            </div>
+            <div class="section-content">
+                <div class="no-orders-container" *ngIf="!loadingOrders && pedidos.length === 0">
+                    <p class="no-orders-text">¡Hacé tu primera compra!</p>
+                    <a routerLink="/productos" class="shop-now-link">Ir a la tienda ></a>
+                </div>
+
+                <div class="loading-spinner" *ngIf="loadingOrders">
+                    Cargando pedidos...
+                </div>
+
+                <div class="pedidos-list" *ngIf="!loadingOrders && pedidos.length > 0">
+                    <div class="pedido-card" *ngFor="let p of pedidos" (click)="verDetalle(p)">
+                        <div class="card-header">
+                            <span class="order-date">{{ p.created_at | date:'dd/MM/yyyy' }}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="status-badge" [ngStyle]="{'background-color': getEstadoColor(p)}">
+                                {{ getEstadoLabel(p) | uppercase }}
+                            </div>
+                            <div class="order-total">
+                                <strong>${{ p.total | number:'1.0-2' }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CHANGE PASSWORD -->
+    <div class="modal-overlay" *ngIf="showPasswordModal" (click)="togglePasswordModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <button class="btn-close" (click)="togglePasswordModal()">✕</button>
+            <h2>Cambiar Contraseña</h2>
 
             <div class="form-group">
                 <label>Contraseña Actual</label>
@@ -49,48 +105,17 @@
                 <input type="password" [(ngModel)]="passwordData.confirm" class="form-control">
             </div>
 
-            <button class="btn-secondary" (click)="changePassword()" [disabled]="changingPassword">
+            <button class="btn-primary" (click)="changePassword()" [disabled]="changingPassword">
                 {{ changingPassword ? 'Actualizando...' : 'Cambiar Contraseña' }}
             </button>
 
             <div class="forgot-link">
-                <a routerLink="/recuperar-password">o olvidé mi contraseña actual</a>
+                <a routerLink="/recuperar-password" (click)="togglePasswordModal()">o olvidé mi contraseña actual</a>
             </div>
         </div>
     </div>
 
-    <!-- PESTAÑA PEDIDOS -->
-    <div class="tab-content" *ngIf="activeTab === 'orders'">
-        <div *ngIf="loadingOrders" class="loading-spinner">Cargando pedidos...</div>
-
-        <div class="no-orders" *ngIf="!loadingOrders && pedidos.length === 0">
-            <p>No tienes pedidos registrados aún.</p>
-            <a routerLink="/productos" class="btn-primary">Ir a comprar</a>
-        </div>
-
-        <div class="pedidos-list" *ngIf="!loadingOrders && pedidos.length > 0">
-            <div class="pedido-card" *ngFor="let p of pedidos" (click)="verDetalle(p)"
-                [class.cancelled]="isCancelled(p)">
-                <div class="card-header">
-                    <span class="order-num">#{{ p.numero_pedido }}</span>
-                    <span class="order-date">{{ p.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
-                </div>
-                <div class="card-body">
-                    <div class="status-badge" [ngStyle]="{'background-color': getEstadoColor(p)}">
-                        {{ getEstadoLabel(p) | uppercase }}
-                    </div>
-                    <div class="order-total">
-                        <strong>Total:</strong> ${{ p.total | number:'1.0-2' }}
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <span>{{ isCancelled(p) ? 'Pedido Anulado' : 'Ver detalle' }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DETALLE (IGUAL QUE ANTES PERO ADAPTADO) -->
+    <!-- MODAL DETALLE PEDIDO -->
     <div class="modal-overlay" *ngIf="pedidoDetalle" (click)="cerrarDetalle()">
         <div class="modal-content" (click)="$event.stopPropagation()">
             <button class="btn-close" (click)="cerrarDetalle()">✕</button>
