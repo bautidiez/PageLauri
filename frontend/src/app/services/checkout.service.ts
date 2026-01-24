@@ -11,6 +11,16 @@ export class CheckoutService {
 
     constructor(private http: HttpClient) { }
 
+    private getHeaders() {
+        const token = localStorage.getItem('token');
+        return {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        };
+    }
+
     // Cálculo de Envío
     calcularEnvio(codigo_postal: string): Observable<any[]> {
         return this.http.post<any[]>(`${this.apiUrl}/envios/calcular`, { codigo_postal });
@@ -44,14 +54,14 @@ export class CheckoutService {
 
     // Gestión de Cuenta (Cliente)
     updateProfile(data: any): Observable<any> {
-        return this.http.put<any>(`${this.apiUrl}/clientes/me`, data);
+        return this.http.put<any>(`${this.apiUrl}/clientes/me`, data, this.getHeaders());
     }
 
     changePassword(data: any): Observable<any> {
-        return this.http.post<any>(`${this.apiUrl}/clientes/change-password`, data);
+        return this.http.post<any>(`${this.apiUrl}/clientes/change-password`, data, this.getHeaders());
     }
 
     getMyOrders(): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/clientes/me/orders`);
+        return this.http.get<any[]>(`${this.apiUrl}/clientes/me/orders`, this.getHeaders());
     }
 }
