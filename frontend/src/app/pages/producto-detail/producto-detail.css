@@ -324,9 +324,10 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
-  font-size: 13px;
-  /* Texto más chico */
-  font-weight: 500;
+  font-size: 15px;
+  /* Texto más grande */
+  font-weight: 700;
+  /* Más negrita */
   display: flex;
   flex-direction: column;
   align-items: center;
