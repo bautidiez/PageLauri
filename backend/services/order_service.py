@@ -22,11 +22,9 @@ class OrderService:
         else:
             metodo_pago_id = int(metodo_pago_val) if metodo_pago_val else 1
 
-        # 1. Calcular Subtotal Real y Validar Stock (En Memoria)
-        subtotal_calculado = 0
-        descuento_promo_automatica_total = 0
+        # 1. Validar Stock y Preparar Items
         items_procesados = []
-
+        
         for item_data in data.get('items', []):
             producto = Producto.query.get(item_data['producto_id'])
             talle = Talle.query.get(item_data['talle_id'])
@@ -39,35 +37,78 @@ class OrderService:
             if not stock_talle or stock_talle.cantidad < cantidad:
                 raise Exception(f"Stock insuficiente: {producto.nombre} ({talle.nombre})")
             
-            # Usar precio actual (con descuento de producto si existe, e.g. oferta base)
+            # Usar precio actual
             precio_unitario = producto.get_precio_actual()
-            subtotal_item = precio_unitario * cantidad
-            
-            # Chequear Promociones AUTOMÁTICAS (no cupones)
-            promo_auto_descuento = 0
-            promos_auto = PromocionProducto.query.filter_by(activa=True, es_cupon=False).all()
-            for promo in promos_auto:
-                if promo.esta_activa() and OrderService._is_promo_applicable(promo, producto):
-                    promo_auto_descuento += promo.calcular_descuento(cantidad, precio_unitario)
-            
-            descuento_promo_automatica_total += promo_auto_descuento
-            subtotal_calculado += subtotal_item
             
             items_procesados.append({
                 'producto': producto,
                 'talle': talle,
                 'cantidad': cantidad,
                 'precio_unitario': precio_unitario,
-                'descuento_aplicado': promo_auto_descuento,
-                'subtotal': subtotal_item - promo_auto_descuento
+                'descuento_aplicado': 0, # Se calculará globalmente
             })
 
-        # Aplicar descuento de promociones automáticas al subtotal base? 
-        # Depende de lógica de negocio, asumimos que subtotal es la suma de precios unitarios
-        # y el descuento se resta después o se impacta en el total.
-        # En el modelo actual: subtotal es valor bruto, descuento es campo separado.
+        # 2. Calcular Promociones AUTOMÁTICAS (Globalmente)
+        promos_auto = PromocionProducto.query.filter_by(activa=True, es_cupon=False).all()
         
-        # 2. Crear Pedido Base
+        # Agrupar items por promoción aplicable para casos 2x1, 3x2, etc.
+        # Nota: Un item podría tener múltiples promociones. 
+        # Simplificación: Iteramos promociones y buscamos items que apliquen.
+        
+        for promo in promos_auto:
+            if not promo.esta_activa():
+                continue
+                
+            items_aplicables = [item for item in items_procesados if OrderService._is_promo_applicable(promo, item['producto'])]
+            
+            if not items_aplicables:
+                continue
+                
+            tipo = promo.tipo_promocion.nombre.lower()
+            valor = promo.valor or 0
+            
+            if 'porcentaje' in tipo:
+                for item in items_aplicables:
+                    descuento = (item['precio_unitario'] * item['cantidad'] * valor) / 100
+                    item['descuento_aplicado'] += descuento
+                    
+            elif 'fijo' in tipo:
+                for item in items_aplicables:
+                    # Descuento fijo por unidad? O total? Asumimos por unidad si es 'descuento_fijo'
+                    descuento = valor * item['cantidad']
+                    # No descontar más que el precio
+                    max_desc = item['precio_unitario'] * item['cantidad']
+                    item['descuento_aplicado'] += min(descuento, max_desc)
+                    
+            elif '2x1' in tipo or '3x2' in tipo:
+                # Expandir a unidades individuales para "Mix & Match"
+                unidades = []
+                for item in items_aplicables:
+                    for _ in range(item['cantidad']):
+                        unidades.append({'precio': item['precio_unitario'], 'ref_item': item})
+                
+                # Ordenar por precio descendente (pagas los caros, gratis los baratos)
+                unidades.sort(key=lambda x: x['precio'], reverse=True)
+                
+                n = 2 if '2x1' in tipo else 3
+                
+                for i, unidad in enumerate(unidades):
+                    # Si es slot gratuito (cada n-ésimo item, indices 0-based: 2x1 -> paga 0, gratis 1. 3x2 -> paga 0,1, gratis 2)
+                    # wait, logic: 2x1 -> Buy 2, items index 0, 1. Pay 0. Free 1.
+                    # if (i + 1) % n == 0: -> Free
+                    if (i + 1) % n == 0:
+                        unidad['ref_item']['descuento_aplicado'] += unidad['precio']
+
+        # Calcular Subtotal y Descuento Total acumulado
+        subtotal_calculado = 0
+        descuento_total = 0
+        
+        for item in items_procesados:
+            line_total = item['precio_unitario'] * item['cantidad']
+            subtotal_calculado += line_total
+            descuento_total += item['descuento_aplicado']
+
+        # 3. Crear Pedido Base
         numero_pedido = OrderService._generate_next_order_id()
         pedido = Pedido(
             numero_pedido=numero_pedido,
@@ -84,17 +125,16 @@ class OrderService:
             costo_envio=float(data.get('costo_envio', 0)),
             estado='pendiente_aprobacion',
             aprobado=False,
-            # Subtotal inicial calculado
             subtotal=subtotal_calculado, 
-            descuento=descuento_promo_automatica_total,
+            descuento=descuento_total,
             total=0, # Se calcula al final
             fecha_expiracion=datetime.now() + timedelta(days=5)
         )
         
         db.session.add(pedido)
-        db.session.flush() # Para tener ID de pedido
+        db.session.flush() # ID
         
-        # 3. Guardar Items
+        # 4. Guardar Items
         for item in items_procesados:
             item_pedido = ItemPedido(
                 pedido_id=pedido.id,
@@ -103,70 +143,56 @@ class OrderService:
                 cantidad=item['cantidad'],
                 precio_unitario=item['precio_unitario'],
                 descuento_aplicado=item['descuento_aplicado'],
-                subtotal=item['subtotal']
+                subtotal=(item['precio_unitario'] * item['cantidad']) - item['descuento_aplicado']
             )
             db.session.add(item_pedido)
             
-        # 4. Procesar Cupón (si existe)
-        descuento_cupon = 0
+        # 5. Procesar Cupón (si existe) -> Puede ser adicional
         codigo_cupon = data.get('codigo_cupon')
+        descuento_cupon = 0
         if codigo_cupon:
             cupon = PromocionProducto.query.filter_by(codigo=codigo_cupon, activa=True, es_cupon=True).first()
-            if not cupon or not cupon.esta_activa():
-                raise Exception("Cupón inválido o expirado")
-            
-            if cupon.max_usos is not None and cupon.usos_actuales >= cupon.max_usos:
-                raise Exception("Cupón agotado")
+            if cupon and cupon.esta_activa():
+                # Validaciones simples de cupón
+                if cupon.max_usos and cupon.usos_actuales >= cupon.max_usos:
+                    raise Exception("Cupón agotado")
+                if subtotal_calculado < cupon.compra_minima:
+                    raise Exception(f"Monto mínimo: ${cupon.compra_minima}")
                 
-            if subtotal_calculado < cupon.compra_minima:
-                raise Exception(f"Monto mínimo para este cupón: ${cupon.compra_minima}")
-            
-            # Aplicar cupón por alcance
-            cupon_aplicado_items = False
-            
-            # Recargar items vinculados para asegurar consistencia
-            for item in pedido.items:
-                producto = Producto.query.get(item.producto_id) # O usar relación directo si lazy load
-                if OrderService._is_promo_applicable(cupon, producto):
-                    desc = cupon.calcular_descuento(item.cantidad, item.precio_unitario)
-                    item.descuento_aplicado += desc
-                    item.subtotal -= desc
-                    descuento_cupon += desc
-                    cupon_aplicado_items = True
-
-            # Si es envío gratis
-            if cupon.envio_gratis:
-                pedido.costo_envio = 0
-                descuento_cupon += float(data.get('costo_envio', 0)) # Contabilizar como descuento visualmente si se quiere
-
-            if descuento_cupon > 0 or cupon.envio_gratis:
+                 # Aplicar cupón
+                # Simplificación: Aplicar sobre el total restante o recalcular?
+                # Aplicamos directo al descuento total del pedido
+                if cupon.tipo_promocion.nombre == 'descuento_porcentaje':
+                     # Sobre el total descontado o sobre el subtotal? Usualmente sobre el total previo
+                     base = subtotal_calculado - descuento_total
+                     desc = base * (cupon.valor / 100)
+                     descuento_cupon += desc
+                elif cupon.tipo_promocion.nombre == 'descuento_fijo':
+                    descuento_cupon += cupon.valor
+                
+                if cupon.envio_gratis:
+                    pedido.costo_envio = 0
+                    
                 cupon.usos_actuales += 1
-            else:
-                 # Si no aplicó a nada
-                pass
-        
+                
         pedido.descuento += descuento_cupon
 
-        # 5. Aplicar descuento del 15% por Método de Pago (Transferencia o Efectivo Local o Efectivo Rapipago)
-        # El usuario pidió explícitamente que Rapipago/PagoFacil tenga el descuento
+        # 6. Descuento Método de Pago (15%)
+        # Se aplica sobre el FINAL (Total + Envio - DescuentosPrevios)
+        
+        base_pago = (pedido.subtotal - pedido.descuento) + pedido.costo_envio
+        base_pago = max(0, base_pago)
+        
         descuento_pago = 0
         metodo = MetodoPago.query.get(metodo_pago_id)
-        # Validar keywords: 'transferencia', 'efectivo' (que cubre efectivo local y efectivo rapipago)
         if metodo:
-            nombre_metodo = metodo.nombre.lower()
-            if 'transferencia' in nombre_metodo or 'efectivo' in nombre_metodo:
-                # El descuento aplica sobre (Subtotal - DescuentosPrevios + Envio) o directo?
-                # Generalmente es sobre el total final a pagar.
-                base_calculo = (pedido.subtotal - pedido.descuento) + pedido.costo_envio
-                # Evitar negativos
-                base_calculo = max(0, base_calculo)
-                descuento_pago = base_calculo * 0.15
-            
+            nombre = metodo.nombre.lower()
+            if 'transferencia' in nombre or 'efectivo' in nombre:
+                descuento_pago = base_pago * 0.15
+        
         pedido.descuento += descuento_pago
         
-        # 6. Calcular Total Final
-        # Total = Subtotal + Envio - Descuentos Totales
-        # (Ya hemos sumado los descuentos en pedido.descuento)
+        # 7. Total Final
         total_final = (pedido.subtotal + pedido.costo_envio) - pedido.descuento
         pedido.total = max(0, total_final)
         
