@@ -365,6 +365,11 @@ export class CheckoutV2Component implements OnInit {
         return this.apiService.getFormattedImageUrl(url);
     }
 
+    updateDiscount() {
+        console.log('Payment method changed:', this.pagoForm.get('metodo')?.value);
+        this.cdr.detectChanges();
+    }
+
     getWhatsAppUrl(order: any): string {
         if (!order) return '';
         const phone = '5493564639908'; // Default number

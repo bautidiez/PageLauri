@@ -236,7 +236,8 @@
                         <div class="payment-item">
                             <label class="payment-header">
                                 <div class="radio-wrapper">
-                                    <input type="radio" formControlName="metodo" value="efectivo_local">
+                                    <input type="radio" formControlName="metodo" value="efectivo_local"
+                                        (change)="updateDiscount()">
                                     <span>Efectivo en el local</span>
                                 </div>
                                 <span class="badge">15% OFF</span>
@@ -253,7 +254,8 @@
                         <div class="payment-item">
                             <label class="payment-header">
                                 <div class="radio-wrapper">
-                                    <input type="radio" formControlName="metodo" value="mercadopago_card">
+                                    <input type="radio" formControlName="metodo" value="mercadopago_card"
+                                        (change)="updateDiscount()">
                                     <span>Tarjeta de crédito o débito</span>
                                 </div>
                                 <span class="badge">Hasta 3 cuotas sin interés</span>
@@ -280,7 +282,8 @@
                         <div class="payment-item">
                             <label class="payment-header">
                                 <div class="radio-wrapper">
-                                    <input type="radio" formControlName="metodo" value="transferencia">
+                                    <input type="radio" formControlName="metodo" value="transferencia"
+                                        (change)="updateDiscount()">
                                     <span>Transferencia</span>
                                 </div>
                                 <span class="badge">15% OFF</span>
@@ -298,7 +301,8 @@
                         <div class="payment-item">
                             <label class="payment-header">
                                 <div class="radio-wrapper">
-                                    <input type="radio" formControlName="metodo" value="efectivo">
+                                    <input type="radio" formControlName="metodo" value="efectivo"
+                                        (change)="updateDiscount()">
                                     <span>Efectivo (Pago Fácil / Rapipago)</span>
                                 </div>
                                 <span class="badge">15% OFF</span>
@@ -315,7 +319,8 @@
                         <div class="payment-item">
                             <label class="payment-header">
                                 <div class="radio-wrapper">
-                                    <input type="radio" formControlName="metodo" value="mercadopago">
+                                    <input type="radio" formControlName="metodo" value="mercadopago"
+                                        (change)="updateDiscount()">
                                     <span>Mercado Pago</span>
                                 </div>
                                 <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('mercadopago') |
