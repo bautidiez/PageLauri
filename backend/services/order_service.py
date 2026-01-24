@@ -113,7 +113,7 @@ class OrderService:
         pedido = Pedido(
             numero_pedido=numero_pedido,
             cliente_nombre=data.get('cliente_nombre'),
-            cliente_email=data.get('cliente_email'),
+            cliente_email=data.get('cliente_email', '').lower().strip(), # Normalize email
             cliente_telefono=data.get('cliente_telefono', ''),
             cliente_direccion=data.get('calle', '') + ' ' + str(data.get('altura', '')),
             cliente_codigo_postal=data.get('codigo_postal'),
