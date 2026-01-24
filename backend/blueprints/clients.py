@@ -266,14 +266,14 @@ def get_my_orders():
         # Limpiar teléfono cliente (dejar solo dígitos)
         clean_phone = "".join(filter(str.isdigit, str(cliente.telefono)))
         
-        # Usar los últimos 8 dígitos para mayor probabilidad de match 
-        # (ignora prefijos de país 54, móvil 9, o área 0)
-        # Ej: 5493584171716 -> 84171716. 
-        # Si el pedido tiene 3584171716 -> Contiene 84171716. Match.
+        # Usar los últimos 7 dígitos para máxima compatibilidad en Argentina
+        # (ignora prefijos 54, 9, 0, y el infame 15)
+        # 5493584171716 -> 4171716
+        # 0358154171716 -> 4171716
         
         search_term = clean_phone
-        if len(clean_phone) > 8:
-            search_term = clean_phone[-8:]
+        if len(clean_phone) > 7:
+            search_term = clean_phone[-7:]
             
         if len(search_term) >= 6: # Mínimo de seguridad
             print(f"DEBUG: Intentando búsqueda por teléfono. Term: {search_term} (Original: {clean_phone})", flush=True)
