@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -40,7 +40,8 @@ export class MisPedidosComponent implements OnInit {
 
     constructor(
         private checkoutService: CheckoutService,
-        private authService: AuthService
+        private authService: AuthService,
+        private cd: ChangeDetectorRef
     ) { }
 
     ngOnInit() {
@@ -78,11 +79,13 @@ export class MisPedidosComponent implements OnInit {
                 alert('Perfil actualizado correctamente');
                 this.savingProfile = false;
                 this.isEditingProfile = false; // Return to view mode
+                this.cd.detectChanges();
             },
             error: (err) => {
                 console.error(err);
                 alert('Error al actualizar perfil');
                 this.savingProfile = false;
+                this.cd.detectChanges();
             }
         });
     }
@@ -107,11 +110,13 @@ export class MisPedidosComponent implements OnInit {
                 this.passwordData = { old: '', new: '', confirm: '' };
                 this.togglePasswordModal();
                 this.changingPassword = false;
+                this.cd.detectChanges();
             },
             error: (err) => {
                 console.error(err);
                 alert(err.error?.error || 'Error al cambiar contraseña');
                 this.changingPassword = false;
+                this.cd.detectChanges();
             }
         });
     }
@@ -124,10 +129,12 @@ export class MisPedidosComponent implements OnInit {
             next: (data) => {
                 this.pedidos = data;
                 this.loadingOrders = false;
+                this.cd.detectChanges(); // Force update
             },
             error: (err) => {
                 console.error(err);
                 this.loadingOrders = false;
+                this.cd.detectChanges(); // Force update
             }
         });
     }
@@ -147,20 +154,38 @@ export class MisPedidosComponent implements OnInit {
     }
 
     getEstadoLabel(pedido: any): string {
-        if (this.isCancelled(pedido)) return 'Anulado';
-        if (pedido.estado === 'entregado') return 'Finalizado';
-        return pedido.estado.replace('_', ' ');
+        if (this.isCancelled(pedido)) return 'Cancelado';
+
+        switch (pedido.estado) {
+            case 'pendiente_aprobacion': return 'Revisión';
+            case 'entregado': return 'Finalizado';
+            // Any other state implies the admin approved it but it's not yet delivered
+            case 'confirmado':
+            case 'pagado':
+            case 'en_preparacion':
+            case 'enviado':
+                return 'Aprobado';
+            default: return pedido.estado.replace('_', ' ');
+        }
     }
 
     getEstadoColor(pedido: any): string {
-        if (this.isCancelled(pedido)) return '#e53e3e'; // Red
+        if (this.isCancelled(pedido)) return '#e53e3e'; // Red (Cancelado)
 
         switch (pedido.estado) {
-            case 'pendiente_aprobacion': return '#ed8936'; // Orange
-            case 'pagado': return '#48bb78'; // Green
-            case 'preparando': return '#4299e1'; // Blue
-            case 'enviado': return '#9f7aea'; // Purple
-            case 'entregado': return '#2f855a'; // Dark Green
+            case 'pendiente_aprobacion': return '#ed8936'; // Orange (Revisión)
+            case 'entregado': return '#2f855a'; // Dark Green (Finalizado)
+
+            // All "Aprobado" states (Green/Blue/Purple spectrum but user asked for "Aprobado")
+            // We can keep distinct colors or unify them. A unified "Good" color might be better for "Aprobado".
+            // Let's keep them somewhat distinct to give more info via color, or unify if "Aprobado" is the only text.
+            // If the text is "Aprobado", maybe just Green is fine.
+            case 'confirmado':
+            case 'pagado':
+            case 'en_preparacion':
+            case 'enviado':
+                return '#48bb78'; // Green
+
             default: return '#718096'; // Gray
         }
     }
