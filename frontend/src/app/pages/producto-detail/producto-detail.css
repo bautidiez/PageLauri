@@ -290,54 +290,50 @@
 }
 
 .talles-grid {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  /* Permitir que bajen si no entran */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 8px;
   overflow-x: visible;
-  /* Quitar scroll */
   padding-bottom: 0;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 .talles-grid::-webkit-scrollbar {
-  height: 6px;
+  display: none;
 }
 
 .talles-grid::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  display: none;
 }
 
 .talles-grid::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 4px;
+  display: none;
 }
 
 .talles-grid::-webkit-scrollbar-thumb:hover {
-  background: #999;
+  display: none;
 }
 
 .talle-btn {
-  padding: 8px 10px;
-  /* Reducir padding */
-  border: 2px solid #e0e0e0;
+  padding: 8px 4px;
+  /* Muy poco padding */
+  border: 1px solid #e0e0e0;
+  /* Borde más fino */
   background: #fff;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
-  font-size: 14px;
-  /* Un poco mas chico */
+  font-size: 13px;
+  /* Texto más chico */
   font-weight: 500;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  flex: 1 0 auto;
-  /* Crecer para ocupar espacio */
-  min-width: 60px;
-  /* Minimo razonable */
-  max-width: 100%;
+  gap: 2px;
+  min-width: 0;
+  /* Permitir que se achique cuanto sea necesario */
+  width: 100%;
 }
 
 .talle-btn:hover:not(.disabled) {
@@ -356,8 +352,12 @@
 }
 
 .stock-indicator {
-  font-size: 12px;
+  font-size: 10px;
   color: #28a745;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .stock-indicator.agotado {
