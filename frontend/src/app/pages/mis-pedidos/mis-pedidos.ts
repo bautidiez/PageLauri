@@ -37,6 +37,7 @@ export class MisPedidosComponent implements OnInit {
     pedidos: any[] = [];
     loadingOrders = false;
     pedidoDetalle: any = null;
+    currentUserEmail: string = '';
 
     constructor(
         private checkoutService: CheckoutService,
@@ -47,6 +48,7 @@ export class MisPedidosComponent implements OnInit {
     ngOnInit() {
         const cliente = this.authService.getCliente();
         if (cliente) {
+            this.currentUserEmail = cliente.email;
             this.profileData = {
                 nombre: cliente.nombre,
                 email: cliente.email,

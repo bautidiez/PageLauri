@@ -203,6 +203,10 @@ class OrderService:
         except Exception as e:
             print(f"Error enviando notificación de pedido: {e}")
 
+        # Asegurar que el método de pago esté cargado para la respuesta
+        if not pedido.metodo_pago:
+            pedido.metodo_pago = MetodoPago.query.get(pedido.metodo_pago_id)
+
         return pedido
 
     @staticmethod

@@ -423,6 +423,14 @@
                             <button class="btn-secondary" routerLink="/mis-pedidos">Ver Mis Pedidos</button>
                         </div>
                     </div>
+
+                    <!-- DEBUG INFO (Temporary) -->
+                    <div style="margin-top: 50px; opacity: 0.5; font-size: 10px;">
+                        <p>Debug ID: {{ orderCreated?.metodo_pago_id }}</p>
+                        <p>Debug Method Name: {{ orderCreated?.metodo_pago_nombre }}</p>
+                        <p>Raw Method: {{ orderCreated?.metodo_pago }}</p>
+                    </div>
+
                 </div>
 
             </div>
