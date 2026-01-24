@@ -15,9 +15,9 @@
 
       <div class="product-detail-content">
         <div class="product-images">
-          <div class="main-image" (mousemove)="onMouseMove($event)" (mouseleave)="onMouseLeave()">
+          <div class="main-image" (click)="openZoom()">
             <img [src]="getImagenUrl(imagenSeleccionada)" [alt]="producto.nombre" class="product-main-image"
-              loading="eager" [style.transform-origin]="zoomOrigin">
+              loading="eager">
 
             <!-- Badge overlay -->
             <div class="product-promo-badge-detail" *ngIf="producto.promociones && producto.promociones.length > 0">
