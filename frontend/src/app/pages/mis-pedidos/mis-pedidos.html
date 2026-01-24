@@ -1,5 +1,26 @@
 <div class="account-container">
     <h1>Mi Cuenta</h1>
+    <!-- DEBUG SECTION -->
+    <div class="debug-panel"
+        style="border: 2px solid #ff4444; background: #fff0f0; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
+        <h3 style="color: #d32f2f; margin-top: 0;">🛠 Panel de Diagnóstico (Si no ves tus pedidos)</h3>
+        <p style="font-size: 14px; color: #333;"><strong>Tu usuario (según el sistema):</strong> {{
+            debugInfo.cliente?.email }}</p>
+        <p style="font-size: 14px; color: #333;"><strong>Tu teléfono:</strong> {{ debugInfo.cliente?.telefono }}</p>
+        <p style="font-size: 14px; color: #333;"><strong>Estado Token:</strong> {{ debugInfo.token }}</p>
+        <div *ngIf="debugError" style="margin-top: 10px; color: #d32f2f;">
+            <strong>ERROR DETECTADO:</strong>
+            <pre style="background: #ffebee; padding: 10px; overflow: auto;">{{ debugError }}</pre>
+        </div>
+        <div *ngIf="debugResponse" style="margin-top: 10px;">
+            <strong>Respuesta del Servidor (Pedidos encontrados: {{debugResponse?.length}}):</strong>
+            <pre
+                style="background: #eee; padding: 10px; max-height: 100px; overflow: auto; font-size: 12px;">{{ debugResponse | json }}</pre>
+        </div>
+        <p style="font-size: 12px; color: #666; margin-top: 5px;">Por favor, enviame una captura de esta pantalla si el
+            problema persiste.</p>
+    </div>
+
     <p style="text-align: center; color: #666; margin-bottom: 30px;">
         Usuario: {{ currentUserEmail }}
     </p>

@@ -39,6 +39,11 @@ export class MisPedidosComponent implements OnInit {
     pedidoDetalle: any = null;
     currentUserEmail: string = '';
 
+    // Debug Data
+    debugInfo: any = {};
+    debugError: string = '';
+    debugResponse: any = null;
+
     constructor(
         private checkoutService: CheckoutService,
         private authService: AuthService,
@@ -54,6 +59,13 @@ export class MisPedidosComponent implements OnInit {
                 email: cliente.email,
                 telefono: cliente.telefono
             };
+
+            // Populate Debug Info
+            this.debugInfo = {
+                cliente: cliente,
+                token: localStorage.getItem('token') ? 'Presente' : 'Faltante'
+            };
+
             this.loadOrders();
         }
     }
@@ -127,19 +139,31 @@ export class MisPedidosComponent implements OnInit {
 
     loadOrders() {
         this.loadingOrders = true;
+        this.debugError = '';
+
         this.checkoutService.getMyOrders().subscribe({
             next: (data) => {
+                console.log('DEBUG: MIS PEDIDOS API DATA:', data);
+                this.debugResponse = data; // Guardar respuesta raw para debug visual
+
+                if (data.length === 0) {
+                    console.log('DEBUG: No se encontraron pedidos.');
+                }
                 this.pedidos = data;
                 this.loadingOrders = false;
-                this.cd.detectChanges(); // Force update
+                this.cd.detectChanges();
             },
             error: (err) => {
-                console.error(err);
+                console.error('API Error:', err);
+                this.debugError = JSON.stringify(err);
+                if (err.status === 401) this.debugError += ' (401 Unauthorized)';
+
                 this.loadingOrders = false;
-                this.cd.detectChanges(); // Force update
+                this.cd.detectChanges();
             }
         });
     }
+
 
     isCancelled(pedido: any): boolean {
         // Condition: Status is 'cancelado' (Anulado)
