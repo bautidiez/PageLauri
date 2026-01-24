@@ -352,7 +352,9 @@ export class CheckoutV2Component implements OnInit {
                 this.currentStep = 4; // Success is now Step 4 (was 5)
             },
             error: (err) => {
-                alert("Error al crear el pedido: " + err.message);
+                console.error("Error creating order:", err);
+                const msg = err.error?.error || err.message || "Error desconocido al procesar el pedido";
+                alert("Error al crear el pedido: " + msg);
                 this.loading = false;
             }
         });
