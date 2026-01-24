@@ -120,22 +120,26 @@ class AdminService:
                 intervalos.append((meses_es[mes_num], inicio, fin))
                 
         elif periodo == 'anio':
-            # Año a año: Arrancar desde el año actual y crecer con el tiempo
-            # En 2026 muestra solo: 2026
-            # En 2027 muestra: 2026, 2027
-            # En 2028 muestra: 2026, 2027, 2028
+            # Año a año: Arrancar desde el primer registro histórico
             anio_actual = ahora.year
-            anio_inicio = 2026  # Año de lanzamiento del sistema
             
-            # Si estamos antes de 2026, usar el año actual
-            if anio_actual < anio_inicio:
-                anio_inicio = anio_actual
+            # Obtener el año más antiguo de pedidos o ventas
+            min_pedido = db.session.query(func.min(Pedido.created_at)).scalar()
+            min_venta = db.session.query(func.min(VentaExterna.fecha)).scalar()
+            
+            y1 = min_pedido.year if min_pedido else anio_actual
+            y2 = min_venta.year if min_venta else anio_actual
+            
+            anio_inicio = min(y1, y2)
+            
+            # Asegurar que al menos mostramos desde el año pasado si no hay data (o el actual)
+            # anio_inicio = min(anio_inicio, anio_actual) 
             
             for year in range(anio_inicio, anio_actual + 1):
                 inicio = datetime(year, 1, 1, 0, 0, 0)
                 fin = datetime(year, 12, 31, 23, 59, 59)
                 
-                # Si es el año actual y aún no terminó, cortar hasta hoy
+                # Si es el año actual y aún no terminó, cortar hasta hoy (opcional, o dejar fin de año)
                 if year == anio_actual and fin > ahora:
                     fin = ahora
                     
