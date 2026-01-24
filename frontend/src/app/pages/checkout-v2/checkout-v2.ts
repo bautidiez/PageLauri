@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone, ApplicationRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CartService } from '../../services/cart.service';
@@ -43,7 +43,8 @@ export class CheckoutV2Component implements OnInit {
         private authService: AuthService,
         private router: Router,
         private cdr: ChangeDetectorRef,
-        private zone: NgZone
+        private zone: NgZone,
+        private appRef: ApplicationRef
     ) {
         this.datosForm = this.fb.group({
             email: ['', [Validators.required, Validators.email]],
@@ -347,25 +348,22 @@ export class CheckoutV2Component implements OnInit {
         this.checkoutService.crearPedido(pedidoData).subscribe({
             next: (order) => {
                 this.zone.run(() => {
-                    setTimeout(() => {
-                        this.orderCreated = order;
-                        this.cartService.clearCart();
-                        this.currentStep = 4;
-                        this.loading = false;
-                        this.cdr.detectChanges();
-                        window.scrollTo(0, 0);
-                    }, 0);
+                    this.orderCreated = order;
+                    this.cartService.clearCart();
+                    this.currentStep = 4;
+                    this.loading = false;
+                    // Force full application check
+                    this.appRef.tick();
+                    window.scrollTo(0, 0);
                 });
             },
             error: (err) => {
                 this.zone.run(() => {
-                    setTimeout(() => {
-                        console.error("Error creating order:", err);
-                        const msg = err.error?.error || err.message || "Error desconocido al procesar el pedido";
-                        alert("Error al crear el pedido: " + msg);
-                        this.loading = false;
-                        this.cdr.detectChanges();
-                    }, 0);
+                    console.error("Error creating order:", err);
+                    const msg = err.error?.error || err.message || "Error desconocido al procesar el pedido";
+                    alert("Error al crear el pedido: " + msg);
+                    this.loading = false;
+                    this.cdr.detectChanges();
                 });
             }
         });
