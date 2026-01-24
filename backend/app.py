@@ -188,6 +188,7 @@ with app.app_context():
             db.session.execute(text("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS external_id VARCHAR(100)"))
             db.session.execute(text("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS comprobante_url VARCHAR(500)"))
             db.session.execute(text("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS codigo_pago_unico VARCHAR(50)"))
+            db.session.execute(text("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_dni VARCHAR(20)"))
             db.session.commit()
         except Exception as e:
             db.session.rollback()
