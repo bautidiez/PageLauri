@@ -231,6 +231,20 @@ export class CheckoutV2Component implements OnInit {
         });
     }
 
+    // Helper to get total of products BEFORE any discount
+    getSubtotalBruto(): number {
+        return this.items.reduce((sum, item) => {
+            return sum + (item.precio_unitario * item.cantidad);
+        }, 0);
+    }
+
+    // Helper to get total of product-specific discounts
+    getDescuentoProductos(): number {
+        return this.items.reduce((sum, item) => {
+            return sum + (item.descuento || 0);
+        }, 0);
+    }
+
     getDiscountAmount() {
         const shipping = this.getSelectedShipping();
         const metodoPago = this.pagoForm.get('metodo')?.value;

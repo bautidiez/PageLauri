@@ -398,72 +398,87 @@
 
                 <div class="summary-row">
                     <span>Subtotal</span>
+                    <span>${{ getSubtotalBruto() | number:'1.0-0' }}</span>
+                </div>
+                <div class="summary-row" *ngIf="getDescuentoProductos() > 0" style="color: #28a745;">
+                    <span>Descuento Promociones</span>
+                    <span>-${{ getDescuentoProductos() | number:'1.0-0' }}</span>
+                </div>
+                <!-- Line separator if product discount exists -->
+                <div class="summary-divider" *ngIf="getDescuentoProductos() > 0"></div>
+
+                <!-- Subtotal Net (What CartService.total returns) -->
+                <div class="summary-row" *ngIf="getDescuentoProductos() > 0">
+                    <span>Subtotal con desc.</span>
                     <span>${{ total | number:'1.0-0' }}</span>
                 </div>
+
                 <div class="summary-row" *ngIf="getSelectedShipping()">
-                    <span>Envío ({{ getSelectedShipping().nombre }})</span>
-                    <span>${{ getSelectedShipping().costo | number:'1.0-0' }}</span>
-                </div>
-                <div class="summary-row" *ngIf="getDiscountAmount() > 0">
-                    <span>Descuento (15% OFF)</span>
-                    <span class="discount-val">-${{ getDiscountAmount() | number:'1.0-0' }}</span>
-                </div>
-                <div class="summary-divider"></div>
-                <div class="summary-divider"></div>
-
-                <div class="summary-row promo-highlight" *ngIf="getDiscountAmount() > 0">
-                    <span class="promo-title">Total con 15% OFF:</span>
-                    <span class="promo-value">${{ getFinalTotal() | number:'1.2-2' }}</span>
-                </div>
-
-                <div class="summary-row total" [class.strikethrough]="getDiscountAmount() > 0" *ngIf="!loading">
-                    <span>{{ getDiscountAmount() > 0 ? 'Total sin descuento' : 'Total' }}</span>
-                    <span>${{ (total + (getSelectedShipping()?.costo || 0)) | number:'1.2-2' }}</span>
-                </div>
-                <!-- Loading indicator for total -->
-                <div class="summary-row total" *ngIf="loading">
-                    <span>Total</span>
-                    <span>Calculando...</span>
-                </div>
-
-                <div class="payment-method-promo" *ngIf="getDiscountAmount() > 0">
-                    ✓ Descuento por pago con {{ pagoForm.get('metodo')?.value === 'transferencia' ? 'Transferencia' :
-                    'Efectivo' }} aplicado
-                </div>
-
-                <div class="coupon-section" [formGroup]="couponForm">
-                    <div class="coupon-input-group">
-                        <input type="text" formControlName="code" placeholder="Código de cupón">
-                        <button class="btn-coupon" (click)="validateCoupon()"
-                            [disabled]="couponForm.invalid || validatingCoupon">
-                            {{ validatingCoupon ? '...' : 'Aplicar' }}
-                        </button>
+                    <div class="summary-row" *ngIf="getSelectedShipping()">
+                        <span>Envío ({{ getSelectedShipping().nombre }})</span>
+                        <span>${{ getSelectedShipping().costo | number:'1.0-0' }}</span>
                     </div>
-                    <p class="error-msg" *ngIf="couponError">{{ couponError }}</p>
-                    <p class="success-msg" *ngIf="couponSuccess">{{ couponSuccess }}</p>
+                    <div class="summary-row" *ngIf="getDiscountAmount() > 0">
+                        <span>Descuento (15% OFF)</span>
+                        <span class="discount-val">-${{ getDiscountAmount() | number:'1.0-0' }}</span>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-divider"></div>
 
-                    <div class="applied-coupon" *ngIf="appliedCoupon">
-                        <div class="coupon-info">
-                            <strong>🏷️ {{ appliedCoupon.codigo }}</strong>
-                            <span *ngIf="appliedCoupon.envio_gratis">Envío Gratis</span>
-                            <span
-                                *ngIf="!appliedCoupon.envio_gratis && appliedCoupon.tipo_promocion_nombre === 'descuento_porcentaje'">
-                                {{ appliedCoupon.valor }}% OFF
-                            </span>
-                            <span
-                                *ngIf="!appliedCoupon.envio_gratis && appliedCoupon.tipo_promocion_nombre === 'descuento_fijo'">
-                                ${{ appliedCoupon.valor }} OFF
-                            </span>
+                    <div class="summary-row promo-highlight" *ngIf="getDiscountAmount() > 0">
+                        <span class="promo-title">Total con 15% OFF:</span>
+                        <span class="promo-value">${{ getFinalTotal() | number:'1.2-2' }}</span>
+                    </div>
+
+                    <div class="summary-row total" [class.strikethrough]="getDiscountAmount() > 0" *ngIf="!loading">
+                        <span>{{ getDiscountAmount() > 0 ? 'Total sin descuento' : 'Total' }}</span>
+                        <span>${{ (total + (getSelectedShipping()?.costo || 0)) | number:'1.2-2' }}</span>
+                    </div>
+                    <!-- Loading indicator for total -->
+                    <div class="summary-row total" *ngIf="loading">
+                        <span>Total</span>
+                        <span>Calculando...</span>
+                    </div>
+
+                    <div class="payment-method-promo" *ngIf="getDiscountAmount() > 0">
+                        ✓ Descuento por pago con {{ pagoForm.get('metodo')?.value === 'transferencia' ? 'Transferencia'
+                        :
+                        'Efectivo' }} aplicado
+                    </div>
+
+                    <div class="coupon-section" [formGroup]="couponForm">
+                        <div class="coupon-input-group">
+                            <input type="text" formControlName="code" placeholder="Código de cupón">
+                            <button class="btn-coupon" (click)="validateCoupon()"
+                                [disabled]="couponForm.invalid || validatingCoupon">
+                                {{ validatingCoupon ? '...' : 'Aplicar' }}
+                            </button>
                         </div>
-                        <button class="remove-coupon" (click)="appliedCoupon = null; couponSuccess = ''">✕</button>
-                    </div>
-                    <!-- Version Marker -->
-                    <div class="version-marker"
-                        style="font-size: 10px; color: #ccc; text-align: right; margin-top: 15px;">
-                        v1.0.5 - 15% Discount Active
+                        <p class="error-msg" *ngIf="couponError">{{ couponError }}</p>
+                        <p class="success-msg" *ngIf="couponSuccess">{{ couponSuccess }}</p>
+
+                        <div class="applied-coupon" *ngIf="appliedCoupon">
+                            <div class="coupon-info">
+                                <strong>🏷️ {{ appliedCoupon.codigo }}</strong>
+                                <span *ngIf="appliedCoupon.envio_gratis">Envío Gratis</span>
+                                <span
+                                    *ngIf="!appliedCoupon.envio_gratis && appliedCoupon.tipo_promocion_nombre === 'descuento_porcentaje'">
+                                    {{ appliedCoupon.valor }}% OFF
+                                </span>
+                                <span
+                                    *ngIf="!appliedCoupon.envio_gratis && appliedCoupon.tipo_promocion_nombre === 'descuento_fijo'">
+                                    ${{ appliedCoupon.valor }} OFF
+                                </span>
+                            </div>
+                            <button class="remove-coupon" (click)="appliedCoupon = null; couponSuccess = ''">✕</button>
+                        </div>
+                        <!-- Version Marker -->
+                        <div class="version-marker"
+                            style="font-size: 10px; color: #ccc; text-align: right; margin-top: 15px;">
+                            v1.0.5 - 15% Discount Active
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
