@@ -6,8 +6,103 @@ class NotificationService:
     @staticmethod
     def send_order_confirmation(pedido):
         """Envía notificaciones de pedido recibido/pendiente"""
-        # Aquí se enviaría el primer email/WhatsApp si se desea
-        pass
+        api_key = os.environ.get('BREVO_API_KEY')
+        if not api_key:
+            print("DEBUG NOTIFICACION: BREVO_API_KEY no configurada. No se puede enviar confirmación de pedido.")
+            return
+
+        # Construir instrucciones dinámicas según pago
+        instrucciones_pago = ""
+        metodo_nombre = pedido.metodo_pago.nombre.lower() if pedido.metodo_pago else ""
+
+        if 'efectivo' in metodo_nombre and 'local' in metodo_nombre:
+            instrucciones_pago = """
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <h3>💵 Paso final: Confirmar pago en efectivo</h3>
+                <p>Para preparar tu pedido, necesitamos que nos confirmes por WhatsApp que pasarás a retirar y abonar.</p>
+                <p><a href="https://wa.me/5493564639908?text=Hola! Hice el pedido %23{numero} y paso a retirar." style="background-color: #25d366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 20px;">Confirmar pedido por WhatsApp</a></p>
+            </div>
+            """.format(numero=pedido.numero_pedido)
+        elif 'transferencia' in metodo_nombre:
+            instrucciones_pago = """
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <h3>🏦 Datos para la Transferencia</h3>
+                <p><strong>Banco:</strong> Mercado Pago<br>
+                <strong>Titular:</strong> Tomas Cruseno<br>
+                <strong>CVU:</strong> 0000003100068933152485<br>
+                <strong>Alias:</strong> el.vestuario.r4</p>
+                <p><strong>Monto a transferir:</strong> ${total}</p>
+                <br>
+                <p style="color: #d32f2f;"><strong>⚠️ IMPORTANTE:</strong> Enviá el comprobante por WhatsApp para confirmar tu pedido.</p>
+                <p><a href="https://wa.me/5493564639908" style="background-color: #25d366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 20px;">Enviar Comprobante</a></p>
+            </div>
+            """.format(total=pedido.total)
+        elif 'efectivo' in metodo_nombre: # Pago Facil / Rapipago
+            instrucciones_pago = """
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <h3>📄 Instrucciones de Pago (Rapipago / Pago Fácil)</h3>
+                <p>Acercate a la sucursal e indicá este código CVU para ingresar dinero:</p>
+                <div style="font-size: 20px; font-weight: bold; background: #e3f2fd; padding: 10px; text-align: center;">0000003100068933152485</div>
+                <p><strong>Monto a pagar:</strong> ${total}</p>
+                <br>
+                <p style="color: #d32f2f;"><strong>⚠️ IMPORTANTE:</strong> Una vez pagado, envianos el ticket por WhatsApp.</p>
+                <p><a href="https://wa.me/5493564639908" style="background-color: #25d366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 20px;">Enviar Comprobante</a></p>
+            </div>
+            """.format(total=pedido.total)
+
+        # Construir lista de items
+        items_html = ""
+        for item in pedido.items:
+            items_html += f"<li>{item.producto.nombre} (x{item.cantidad}) - Talle: {item.talle.nombre}</li>"
+
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <h2 style="text-align: center; color: #000;">¡Gracias por tu compra, {pedido.cliente_nombre}!</h2>
+                    <p style="text-align: center; font-size: 18px;">Tu pedido <strong>#{pedido.numero_pedido}</strong> ha sido registrado.</p>
+                    
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    
+                    <h3>📋 Detalles del Pedido</h3>
+                    <ul>
+                        {items_html}
+                    </ul>
+                    <p><strong>Total: ${pedido.total}</strong></p>
+                    <p>Forma de Pago: {pedido.metodo_pago.nombre if pedido.metodo_pago else 'A convenir'}</p>
+                    <p>Forma de Envío/Retiro: {pedido.metodo_envio}</p>
+                    
+                    {instrucciones_pago}
+                    
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    
+                    <p style="font-size: 12px; color: #999; text-align: center;">
+                        Si tienes alguna duda, responde a este correo o contáctanos por WhatsApp.
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": api_key
+        }
+        
+        payload = {
+            "sender": {"name": "El Vestuario", "email": os.environ.get('MAIL_DEFAULT_SENDER', 'elvestuario.r4@gmail.com')},
+            "to": [{"email": pedido.cliente_email}],
+            "subject": f"Confirmación de Pedido #{pedido.numero_pedido} - El Vestuario",
+            "htmlContent": html_content
+        }
+        
+        try:
+            print(f"DEBUG NOTIFICACION: Enviando confirmación de pedido a {pedido.cliente_email}...", flush=True)
+            requests.post(url, headers=headers, json=payload, timeout=15)
+        except Exception as e:
+            print(f"DEBUG NOTIFICACION: Error enviando mail de pedido: {e}")
 
     @staticmethod
     def send_payment_confirmation(pedido):

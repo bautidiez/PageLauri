@@ -196,6 +196,13 @@ class OrderService:
         total_final = (pedido.subtotal + pedido.costo_envio) - pedido.descuento
         pedido.total = max(0, total_final)
         
+        # Enviar notificación de confirmación
+        try:
+            from services.notification_service import NotificationService
+            NotificationService.send_order_confirmation(pedido)
+        except Exception as e:
+            print(f"Error enviando notificación de pedido: {e}")
+
         return pedido
 
     @staticmethod
