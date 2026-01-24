@@ -71,11 +71,43 @@ app-shipping-calculator {
 
 .item-info p {
   color: #666;
-  margin-bottom: 5px;
+  margin: 0;
+}
+
+.price-container {
+  margin-top: 5px;
 }
 
 .item-price {
-  font-size: 20px;
+  font-weight: 600;
+  color: #000;
+  font-size: 16px;
+}
+
+.item-price.has-discount {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 14px;
+}
+
+.discount-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.discount-badge {
+  background: #28a745;
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.final-price {
+  font-size: 18px;
   font-weight: 700;
   color: #000;
 }

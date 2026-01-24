@@ -244,6 +244,9 @@ export class CartService {
   private calculateTotal(): number {
     let total = 0;
 
+    // Reset discounts first
+    this.cartItems.forEach(item => item.descuento = 0);
+
     // Agrupar items por tipo de promoción
     const itemsPorPromocion: { [key: string]: CartItem[] } = {};
     const itemsSinPromocion: CartItem[] = [];
@@ -253,6 +256,7 @@ export class CartService {
       if (item.producto.promociones && item.producto.promociones.length > 0) {
         const promo = item.producto.promociones[0];
         // Usar ID o nombre de la promoción para agrupar
+        // FIX: Ensure promo.id is used if available to grouping by specific promo instance
         const key = promo.id ? `promo_${promo.id}` : `type_${promo.tipo_promocion_nombre}`;
 
         if (!itemsPorPromocion[key]) {
@@ -271,49 +275,75 @@ export class CartService {
 
     // Calcular items con promoción agrupada
     Object.values(itemsPorPromocion).forEach(group => {
-      // Aplanar el grupo: crear una lista de precios individuales
-      let prices: number[] = [];
-      group.forEach(item => {
-        for (let i = 0; i < item.cantidad; i++) {
-          prices.push(item.precio_unitario);
-        }
-      });
+      // Logic complexity: Mapping "flattened" prices back to specific items is tricky if mixed.
+      // But usually a group corresponds to one promotion type.
 
-      // Ordenar precios de mayor a menor (para descontar los más baratos)
-      prices.sort((a, b) => b - a);
-
-      // Determinar el tipo de promoción del grupo (asumimos que todos en el grupo tienen la misma)
       const promo = group[0].producto.promociones[0];
       const tipo = promo.tipo_promocion_nombre.toLowerCase();
       const valor = promo.valor || 0;
 
-      if (tipo.includes('2x1')) {
-        // Pagar 1 de cada 2 (el más caro)
-        for (let i = 0; i < prices.length; i++) {
-          if (i % 2 === 0) { // Indices 0, 2, 4... se pagan
-            total += prices[i];
-          }
-        }
-      } else if (tipo.includes('3x2')) {
-        // Pagar 2 de cada 3
-        for (let i = 0; i < prices.length; i++) {
-          if ((i + 1) % 3 !== 0) { // Indices 0, 1, 3, 4... se pagan. Indices 2, 5... (cada 3ro) son gratis
-            total += prices[i];
-          }
-        }
-      } else if (tipo.includes('porcentaje')) {
-        // Aplicar descuento porcentual a cada item del grupo
-        prices.forEach(p => {
-          total += p * (1 - (valor / 100));
+      // Handle simple per-item discounts (Percentage / Fixed) directly on the item
+      if (tipo.includes('porcentaje')) {
+        group.forEach(item => {
+          const discountPerUnit = item.precio_unitario * (valor / 100);
+          item.descuento = discountPerUnit * item.cantidad;
+          total += (item.precio_unitario * item.cantidad) - item.descuento;
         });
       } else if (tipo.includes('fijo')) {
-        // Aplicar descuento fijo a cada item
-        prices.forEach(p => {
-          total += Math.max(0, p - valor);
+        group.forEach(item => {
+          const discountPerUnit = Math.min(item.precio_unitario, valor); // Can't discount more than price
+          item.descuento = discountPerUnit * item.cantidad;
+          total += (item.precio_unitario * item.cantidad) - item.descuento;
         });
-      } else {
-        // Fallback: sumar todo
-        prices.forEach(p => total += p);
+      }
+      // Handle Quantity-based discounts (2x1, 3x2)
+      else if (tipo.includes('2x1') || tipo.includes('3x2')) {
+        // Create a flattened list of "Slots" { price, parentItem }
+        let slots: { price: number, parentItem: CartItem }[] = [];
+
+        group.forEach(item => {
+          for (let i = 0; i < item.cantidad; i++) {
+            slots.push({ price: item.precio_unitario, parentItem: item });
+          }
+        });
+
+        // Sort by price DESC (so we discount the cheapest ones usually? No, usually pay the most expensive)
+        // 2x1: Pay 1 (expensive), Free 1 (cheap)
+        slots.sort((a, b) => b.price - a.price);
+
+        let groupTotal = 0;
+
+        if (tipo.includes('2x1')) {
+          for (let i = 0; i < slots.length; i++) {
+            // Pay indices 0, 2, 4... Free indices 1, 3, 5...
+            if (i % 2 !== 0) {
+              // This is a free slot
+              const discountAmount = slots[i].price;
+              slots[i].parentItem.descuento = (slots[i].parentItem.descuento || 0) + discountAmount;
+            } else {
+              groupTotal += slots[i].price;
+            }
+          }
+        } else if (tipo.includes('3x2')) {
+          for (let i = 0; i < slots.length; i++) {
+            // Pay 0, 1. Free 2. Pay 3, 4. Free 5.
+            if ((i + 1) % 3 === 0) {
+              // Free slot
+              const discountAmount = slots[i].price;
+              slots[i].parentItem.descuento = (slots[i].parentItem.descuento || 0) + discountAmount;
+            } else {
+              groupTotal += slots[i].price;
+            }
+          }
+        }
+
+        total += groupTotal;
+      }
+      else {
+        // Fallback
+        group.forEach(item => {
+          total += item.precio_unitario * item.cantidad;
+        });
       }
     });
 

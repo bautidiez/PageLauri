@@ -16,7 +16,17 @@
           <div class="item-info">
             <h3>{{ item.producto.nombre }}</h3>
             <p>Talle: {{ item.talle.nombre }}</p>
-            <p class="item-price">${{ item.precio_unitario | number:'1.0-0' }}</p>
+            <div class="price-container">
+              <p class="item-price" [class.has-discount]="item.descuento && item.descuento > 0">
+                ${{ item.precio_unitario | number:'1.0-0' }}
+              </p>
+              <div class="discount-info" *ngIf="item.descuento && item.descuento > 0">
+                <span class="discount-badge">-{{ (item.descuento / (item.precio_unitario * item.cantidad)) * 100 |
+                  number:'1.0-0' }}% OFF</span>
+                <p class="final-price">${{ (item.precio_unitario - (item.descuento / item.cantidad)) | number:'1.0-0' }}
+                </p>
+              </div>
+            </div>
           </div>
           <div class="item-quantity">
             <button (click)="updateQuantity(i, item.cantidad - 1)">-</button>
