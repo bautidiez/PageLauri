@@ -130,9 +130,16 @@ def validar_cupon():
 
 # ==================== CHECKOUT ====================
 
-@store_public_bp.route('/api/orders', methods=['POST'])
+@store_public_bp.route('/api/orders', methods=['POST', 'OPTIONS'])
 @limiter.limit("3 per minute")
 def create_pedido():
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
+        return response, 200
+
     data = request.get_json()
     try:
         pedido = OrderService.create_order(data)

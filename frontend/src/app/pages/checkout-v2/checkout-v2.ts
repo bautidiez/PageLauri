@@ -191,8 +191,11 @@ export class CheckoutV2Component implements OnInit {
                         this.shippingOptions = options;
                         this.loading = false;
                         this.isCalculatingShipping = false;
-                        this.cdr.markForCheck();
-                        this.cdr.detectChanges();
+
+                        // Force detection with a tick delay to ensure UI updates
+                        setTimeout(() => {
+                            this.cdr.detectChanges();
+                        }, 0);
                     });
                 },
                 error: (err) => {

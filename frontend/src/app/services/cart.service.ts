@@ -146,7 +146,10 @@ export class CartService {
   }
 
   addItem(producto: any, talle: any, cantidad: number): void {
-    const precio = producto.precio_actual || producto.precio_base;
+    // Usar precio_descuento si existe (oferta estática), sino precio_actual o base
+    const precio = (producto.precio_descuento && producto.precio_descuento > 0)
+      ? producto.precio_descuento
+      : (producto.precio_actual || producto.precio_base);
     const existingIndex = this.cartItems.findIndex(
       item => item.producto.id === producto.id && item.talle.id === talle.id
     );
