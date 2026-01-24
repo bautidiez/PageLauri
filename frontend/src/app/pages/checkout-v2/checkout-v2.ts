@@ -344,25 +344,28 @@ export class CheckoutV2Component implements OnInit {
         };
 
         this.loading = true;
-        this.loading = true;
         this.checkoutService.crearPedido(pedidoData).subscribe({
             next: (order) => {
                 this.zone.run(() => {
-                    this.orderCreated = order;
-                    this.cartService.clearCart();
-                    this.currentStep = 4;
-                    this.loading = false;
-                    this.cdr.detectChanges();
-                    window.scrollTo(0, 0); // Ensure top scroll
+                    setTimeout(() => {
+                        this.orderCreated = order;
+                        this.cartService.clearCart();
+                        this.currentStep = 4;
+                        this.loading = false;
+                        this.cdr.detectChanges();
+                        window.scrollTo(0, 0);
+                    }, 0);
                 });
             },
             error: (err) => {
                 this.zone.run(() => {
-                    console.error("Error creating order:", err);
-                    const msg = err.error?.error || err.message || "Error desconocido al procesar el pedido";
-                    alert("Error al crear el pedido: " + msg);
-                    this.loading = false;
-                    this.cdr.detectChanges();
+                    setTimeout(() => {
+                        console.error("Error creating order:", err);
+                        const msg = err.error?.error || err.message || "Error desconocido al procesar el pedido";
+                        alert("Error al crear el pedido: " + msg);
+                        this.loading = false;
+                        this.cdr.detectChanges();
+                    }, 0);
                 });
             }
         });
