@@ -34,7 +34,23 @@ export class CartService {
     this.initCart();
   }
 
-  // ... (previous code)
+  private initCart(): void {
+    // Suscribirse a cambios de autenticación para recargar y FUSIONAR si es necesario
+    this.authService.isAuthenticated$.subscribe((isAuth) => {
+      if (isAuth) {
+        this.mergeGuestCart();
+      }
+      this.loadCart();
+    });
+  }
+
+  private getCartKey(): string {
+    const cliente = this.authService.getCliente();
+    if (this.authService.isLoggedIn() && cliente && cliente.id) {
+      return `cart_client_${cliente.id}`;
+    }
+    return 'cart_guest';
+  }
 
   private loadCart(): void {
     const key = this.getCartKey();
