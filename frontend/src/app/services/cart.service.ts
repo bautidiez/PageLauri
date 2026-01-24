@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { ApiService } from './api.service';
 
 export interface CartItem {
   producto: any;
@@ -26,30 +27,14 @@ export class CartService {
   // Constantes de tiempo
   private readonly CART_EXPIRATION = 48 * 60 * 60 * 1000; // 48 horas según pedido
 
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private apiService: ApiService
+  ) {
     this.initCart();
   }
 
-  private initCart(): void {
-    // Suscribirse a cambios de autenticación para recargar y FUSIONAR si es necesario
-    this.authService.isAuthenticated$.subscribe((isAuth) => {
-      if (isAuth) {
-        this.mergeGuestCart();
-      }
-      this.loadCart();
-    });
-  }
-
-  private getCartKey(): string {
-    const cliente = this.authService.getCliente();
-    // Si hay un cliente logueado, usar su ID.
-    // Nota: El carrito de admin se mantiene separado o se puede tratar como invitado si se prefiere,
-    // pero aquí priorizamos al cliente comprador.
-    if (this.authService.isLoggedIn() && cliente && cliente.id) {
-      return `cart_client_${cliente.id}`;
-    }
-    return 'cart_guest';
-  }
+  // ... (previous code)
 
   private loadCart(): void {
     const key = this.getCartKey();
@@ -71,7 +56,7 @@ export class CartService {
           lastUpdated = parsed.lastUpdated || 0;
         }
 
-        // Verificar expiración (24 horas)
+        // Verificar expiración (48 horas)
         const now = Date.now();
         if (now - lastUpdated > this.CART_EXPIRATION) {
           console.log(`Carrito expirado (${key}). Limpiando.`);
@@ -79,6 +64,8 @@ export class CartService {
           return;
         } else {
           this.cartItems = items;
+          // Refresh data to get latest promotions/prices
+          this.refreshCartData();
         }
       } catch (e) {
         console.error('Error al cargar carrito', e);
@@ -87,6 +74,48 @@ export class CartService {
     }
 
     this.cartSubject.next(this.cartItems);
+  }
+
+  private refreshCartData() {
+    if (this.cartItems.length === 0) return;
+
+    // Create a list of observables or a batch request
+    // For simplicity and to avoid race conditions with local state, we'll update one by one or forkJoin
+    // But since we don't have forkJoin imported, let's just iterate. 
+    // Ideally, backend should support batch get.
+
+    this.cartItems.forEach((item, index) => {
+      this.apiService.getProducto(item.producto.id).subscribe({
+        next: (freshProduct) => {
+          // Update product data (includes fresh promotions)
+          this.cartItems[index].producto = freshProduct;
+
+          // Update base price criteria if needed, BUT preserve the logic:
+          // If product has static offer (precio_descuento), use it.
+          // Dynamic offers are handled in calculateTotal via item.producto.promociones
+
+          const precio = (freshProduct.precio_descuento && freshProduct.precio_descuento > 0)
+            ? freshProduct.precio_descuento
+            : (freshProduct.precio_actual || freshProduct.precio_base);
+
+          this.cartItems[index].precio_unitario = precio;
+
+          // Filter XS if backend didn't (safety)
+          if (freshProduct.stock_talles) {
+            this.cartItems[index].producto.stock_talles = freshProduct.stock_talles.filter((st: any) => st.talle_nombre !== 'XS');
+          }
+
+          // Trigger save and notify only after last update? 
+          // Doing it per item is chatty can cause UI jitter but ensures eventual consistency.
+          this.saveCart();
+        },
+        error: (err) => {
+          console.error(`Error refreshing product ${item.producto.id}:`, err);
+          // If 404/inactive, maybe remove from cart?
+          // For now, keep as is or mark as unavailable.
+        }
+      });
+    });
   }
 
   private mergeGuestCart(): void {
