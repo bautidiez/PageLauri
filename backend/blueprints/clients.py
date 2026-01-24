@@ -244,6 +244,15 @@ def get_my_orders():
         return jsonify({'error': 'Cliente no encontrado'}), 404
         
     # Buscar pedidos por email del cliente (case insensitive)
-    pedidos = Pedido.query.filter(Pedido.cliente_email.ilike(cliente.email)).order_by(Pedido.created_at.desc()).all()
+    # DEBUG: Log para ver qué está pasando
+    print(f"DEBUG: Buscando pedidos para usuario ID {cliente.id} con email [{cliente.email}]", flush=True)
     
+    pedidos = Pedido.query.filter(Pedido.cliente_email.ilike(cliente.email.strip())).order_by(Pedido.created_at.desc()).all()
+    
+    print(f"DEBUG: Se encontraron {len(pedidos)} pedidos para {cliente.email}", flush=True)
+    if len(pedidos) == 0:
+        # Check if there are ANY orders with that email vaguely?
+        check = Pedido.query.filter(Pedido.cliente_email == cliente.email).count()
+        print(f"DEBUG: Verificación exacta devolvió: {check}", flush=True)
+
     return jsonify([p.to_dict() for p in pedidos]), 200
