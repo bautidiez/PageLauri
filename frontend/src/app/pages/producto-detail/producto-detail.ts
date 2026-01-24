@@ -357,18 +357,19 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
             c.categoria_padre_id === categoriaActual.id
           );
         }
-        onMouseMove(e: MouseEvent) {
-          const target = e.currentTarget as HTMLElement;
-          const { left, top, width, height } = target.getBoundingClientRect();
-          const x = ((e.clientX - left) / width) * 100;
-          const y = ((e.clientY - top) / height) * 100;
-          this.zoomOrigin = `${x}% ${y}%`;
-        }
-
-        onMouseLeave() {
-          this.zoomOrigin = 'center center';
-        }
       }
     });
+  }
+
+  onMouseMove(e: MouseEvent) {
+    const target = e.currentTarget as HTMLElement;
+    const { left, top, width, height } = target.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    this.zoomOrigin = `${x}% ${y}%`;
+  }
+
+  onMouseLeave() {
+    this.zoomOrigin = 'center center';
   }
 }
