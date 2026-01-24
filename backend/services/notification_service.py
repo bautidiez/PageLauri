@@ -105,6 +105,90 @@ class NotificationService:
             print(f"DEBUG NOTIFICACION: Error enviando mail de pedido: {e}")
 
     @staticmethod
+    def send_order_approved_email(pedido):
+        """Envía email cuando el admin aprueba/envía el pedido"""
+        api_key = os.environ.get('BREVO_API_KEY')
+        if not api_key: return
+
+        # Construir lista de items
+        items_html = ""
+        for item in pedido.items:
+            # Check for attributes safely in case eager loading isn't on
+            p_nombre = item.producto.nombre if item.producto else "Producto"
+            t_nombre = item.talle.nombre if item.talle else "-"
+            items_html += f"<li>{p_nombre} (x{item.cantidad}) - Talle: {t_nombre}</li>"
+
+        tracking_info = ""
+        if pedido.metodo_envio and 'propio' not in pedido.metodo_envio.lower() and 'local' not in pedido.metodo_envio.lower():
+             tracking_info = f"""
+             <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <h3>🚚 Información de Envío</h3>
+                <p>Tu pedido ha sido despachado por <strong>{pedido.metodo_envio}</strong>.</p>
+                <p>Pronto recibirás un código de seguimiento o novedades adicionales.</p>
+             </div>
+             """
+        elif 'local' in (pedido.metodo_envio or '').lower():
+             tracking_info = f"""
+             <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <h3>🏬 ¡Listo para retirar!</h3>
+                <p>Tu pedido ya está listo en nuestro local.</p>
+                <p>Te esperamos en los horarios de atención.</p>
+             </div>
+             """
+
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h2 style="color: #2e7d32;">¡Tu pedido está en camino! 🚀</h2>
+                        <p style="font-size: 16px;">Hola {pedido.cliente_nombre}, tenemos buenas noticias.</p>
+                    </div>
+                    
+                    <p>El pedido <strong>#{pedido.numero_pedido}</strong> ha sido aprobado y procesado exitosamente.</p>
+                    
+                    {tracking_info}
+                    
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    
+                    <h3>📦 Resumen de la compra</h3>
+                    <ul>
+                        {items_html}
+                    </ul>
+                    
+                    <p><strong>Total: ${pedido.total}</strong></p>
+                    
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    
+                    <p style="font-size: 12px; color: #999; text-align: center;">
+                        Gracias por confiar en El Vestuario.
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": api_key
+        }
+        
+        payload = {
+            "sender": {"name": "El Vestuario", "email": os.environ.get('MAIL_DEFAULT_SENDER', 'elvestuario.r4@gmail.com')},
+            "to": [{"email": pedido.cliente_email}],
+            "subject": f"¡Pedido Enviado! #{pedido.numero_pedido} - El Vestuario",
+            "htmlContent": html_content
+        }
+        
+        try:
+            print(f"DEBUG NOTIFICACION: Enviando aviso de aprobación a {pedido.cliente_email}...", flush=True)
+            requests.post(url, headers=headers, json=payload, timeout=15)
+        except Exception as e:
+            print(f"DEBUG NOTIFICACION: Error enviando mail de aprobación: {e}")
+
+    @staticmethod
     def send_payment_confirmation(pedido):
         """Envía notificaciones cuando el pago se acredita"""
         from app import mail # Importación diferida para evitar ciclos

@@ -646,9 +646,12 @@ def aprobar_pedido(pedido_id):
         invalidate_cache(pattern='estadisticas')
         invalidate_cache(pattern='productos')
         
-        # TODO: Enviar notificaciones al cliente (email/WhatsApp)
-        # from services.notification_service import NotificationService
-        # NotificationService.notificar_pedido_aprobado(pedido)
+        # Enviar notificaciones al cliente (email)
+        try:
+            from services.notification_service import NotificationService
+            NotificationService.send_order_approved_email(pedido)
+        except Exception as notif_err:
+             print(f"Error enviando notificacion aprobacion: {notif_err}")
         
         return jsonify({
             'message': 'Pedido aprobado exitosamente',
