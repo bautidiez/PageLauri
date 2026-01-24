@@ -324,7 +324,7 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
-  font-size: 15px;
+  font-size: 16px;
   /* Texto más grande */
   font-weight: 700;
   /* Más negrita */
@@ -353,7 +353,7 @@
 }
 
 .stock-indicator {
-  font-size: 10px;
+  font-size: 11px;
   color: #28a745;
   white-space: nowrap;
   overflow: hidden;

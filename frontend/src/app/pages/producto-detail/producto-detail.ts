@@ -106,6 +106,7 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   }
 
   private autoSeleccionarTalle() {
+    /* Auto-select disabled per user request
     if (this.producto && this.producto.stock_talles && this.talles.length > 0) {
       // Intentar encontrar el primer talle que tenga stock real
       const talleConStock = this.talles.find(t => this.tieneStockTalle(t.id));
@@ -114,6 +115,7 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
         this.cantidad = 1;
       }
     }
+    */
   }
 
   private updateSeoTags() {
