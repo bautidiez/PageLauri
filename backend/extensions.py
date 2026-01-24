@@ -11,12 +11,15 @@ jwt = JWTManager()
 mail = Mail()
 compress = Compress()
 
-# Configure CORS - Allow all origins for now (will restrict later)
+# Configure CORS - Allow all for easier cross-origin from Vercel
 cors = CORS(
-    resources={r"/*": {"origins": "*"}},
-    supports_credentials=False,
-    allow_headers=["Content-Type", "Authorization"],
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+    resources={r"/*": {
+        "origins": "*",
+        "allow_headers": "*",
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        "expose_headers": ["Content-Type", "Authorization"]
+    }},
+    supports_credentials=False
 )
 
 # Default limits, can be overridden per route

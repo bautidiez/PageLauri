@@ -187,9 +187,14 @@
 }
 
 .contact-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 20px;
+  flex-wrap: wrap;
+}
+
+.contact-grid .info-card {
+  flex: 1;
+  min-width: 250px;
 }
 
 @media (max-width: 480px) {

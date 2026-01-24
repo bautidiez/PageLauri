@@ -197,6 +197,23 @@
   margin: 0;
 }
 
+.transfer-price-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 5px 0;
+}
+
+.promo-badge {
+  background: #28a745;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 .product-colores {
   padding: 20px 0;
   border-top: 1px solid #e0e0e0;

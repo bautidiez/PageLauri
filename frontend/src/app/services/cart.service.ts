@@ -24,7 +24,7 @@ export class CartService {
   public cart$ = this.cartSubject.asObservable();
 
   // Constantes de tiempo
-  private readonly CART_EXPIRATION = 24 * 60 * 60 * 1000; // 24 horas para todos por pedido del usuario
+  private readonly CART_EXPIRATION = 48 * 60 * 60 * 1000; // 48 horas según pedido
 
   constructor(private authService: AuthService) {
     this.initCart();

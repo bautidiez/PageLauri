@@ -442,6 +442,7 @@ class Pedido(db.Model):
     cliente_codigo_postal = db.Column(db.String(20), nullable=False)
     cliente_localidad = db.Column(db.String(200), nullable=False)
     cliente_provincia = db.Column(db.String(200), nullable=False)
+    cliente_dni = db.Column(db.String(20))
     
     metodo_pago_id = db.Column(db.Integer, db.ForeignKey('metodos_pago.id'), nullable=False)
     metodo_envio = db.Column(db.String(100))  # 'andreani', 'correo_argentino', 'tienda_nube'
@@ -493,6 +494,7 @@ class Pedido(db.Model):
             'cliente_codigo_postal': self.cliente_codigo_postal,
             'cliente_localidad': self.cliente_localidad,
             'cliente_provincia': self.cliente_provincia,
+            'cliente_dni': self.cliente_dni,
             'metodo_pago_id': self.metodo_pago_id,
             'metodo_pago_nombre': self.metodo_pago.nombre if self.metodo_pago else None,
             'metodo_envio': self.metodo_envio,

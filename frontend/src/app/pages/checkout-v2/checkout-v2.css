@@ -215,24 +215,52 @@
 
 .btn-link {
     position: absolute;
-    right: 12px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
     color: #3182ce;
-    /* Link color */
     font-weight: 700;
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
-    background: transparent;
+    background: rgba(49, 130, 206, 0.1);
     border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    transition: background 0.2s;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn-link:hover {
-    background: #ebf8ff;
+    background: rgba(49, 130, 206, 0.2);
+    color: #2b6cb0;
+}
+
+.btn-link:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.shipping-loading-message {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #718096;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Loading Spinner */
@@ -490,8 +518,47 @@
     font-size: 22px;
     font-weight: 800;
     color: #000;
-    margin-top: 25px;
+    margin-top: 15px;
     align-items: flex-end;
+}
+
+.summary-row.total.strikethrough {
+    font-size: 15px;
+    color: #a0aec0;
+    text-decoration: line-through;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.promo-highlight {
+    background: #f0fff4;
+    margin: 15px -15px;
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid #2f855a;
+}
+
+.promo-title {
+    color: #2f855a;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.promo-value {
+    color: #2f855a;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.payment-method-promo {
+    font-size: 12px;
+    color: #2f855a;
+    font-weight: 600;
+    margin-top: 10px;
+    text-align: right;
 }
 
 .summary-divider {
@@ -608,6 +675,60 @@
         opacity: 1;
     }
 }
+
+/* Coupon Button Style */
+.coupon-input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.coupon-input-group input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.btn-coupon {
+    background: #000;
+    color: #fff;
+    padding: 0 25px;
+    height: 48px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.btn-coupon:hover {
+    background: #2d3748;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-coupon:active {
+    transform: translateY(0);
+}
+
+.btn-coupon:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Cleaned up redundant btn-coupon styles */
 
 @media (max-width: 900px) {
     .checkout-content {

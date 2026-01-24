@@ -130,7 +130,7 @@ def validar_cupon():
 
 # ==================== CHECKOUT ====================
 
-@store_public_bp.route('/api/pedidos', methods=['POST'])
+@store_public_bp.route('/api/orders', methods=['POST'])
 @limiter.limit("3 per minute")
 def create_pedido():
     data = request.get_json()

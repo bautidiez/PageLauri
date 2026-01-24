@@ -49,7 +49,10 @@
             </div>
             <div class="price-descuento-transferencia">
               <p class="price-label">En efectivo o transferencia:</p>
-              <p class="price-descuento">${{ getPrecioConDescuento() | number:'1.0-0' }}</p>
+              <div class="transfer-price-wrapper">
+                <p class="price-descuento">${{ getPrecioConDescuento() | number:'1.0-0' }}</p>
+                <span class="promo-badge">¡15% OFF!</span>
+              </div>
               <p class="price-cuotas">3 cuotas sin interés de ${{ getPrecioCuotas() | number:'1.0-0' }}</p>
             </div>
           </div>

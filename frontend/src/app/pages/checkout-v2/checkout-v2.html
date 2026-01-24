@@ -73,9 +73,14 @@
                                 <label>Código Postal</label>
                                 <div class="input-with-action">
                                     <input type="text" formControlName="codigo_postal" placeholder="Ej: 5800"
-                                        (blur)="calculateShipping()">
-                                    <button type="button" class="btn-link"
-                                        (click)="calculateShipping()">Calcular</button>
+                                        (keyup.enter)="calculateShipping()">
+                                    <button type="button" class="btn-link" (click)="calculateShipping()"
+                                        [disabled]="loading">
+                                        {{ loading ? '...' : 'Calcular' }}
+                                    </button>
+                                </div>
+                                <div class="shipping-loading-message" *ngIf="loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Calculando opciones de envío...
                                 </div>
                                 <div class="error-msg"
                                     *ngIf="datosForm.get('codigo_postal')?.invalid && datosForm.get('codigo_postal')?.touched">
@@ -85,20 +90,41 @@
 
                         <div class="loading-spinner" *ngIf="loading">Calculando opciones...</div>
 
-                        <!-- Shipping Options List -->
-                        <div class="shipping-options-list" *ngIf="shippingOptions.length > 0 && !loading"
+                        <!-- Shipping Options Grouped -->
+                        <div class="shipping-groups" *ngIf="shippingOptions.length > 0 && !loading"
                             [formGroup]="envioForm">
-                            <label class="shipping-option-item" *ngFor="let opt of shippingOptions"
-                                [class.selected]="envioForm.get('metodo_id')?.value === opt.id">
-                                <input type="radio" formControlName="metodo_id" [value]="opt.id">
-                                <div class="ship-info">
-                                    <span class="ship-name">{{ opt.nombre }}</span>
-                                    <span class="ship-time">{{ opt.tiempo_estimado }}</span>
-                                </div>
-                                <div class="ship-price">
-                                    {{ opt.costo === 0 ? 'Gratis' : '$' + (opt.costo | number:'1.0-0') }}
-                                </div>
-                            </label>
+
+                            <!-- Domicilio -->
+                            <div class="shipping-group" *ngIf="getOpcionesDomicilio().length > 0">
+                                <h4 class="group-title">📦 Envío a domicilio</h4>
+                                <label class="shipping-option-item" *ngFor="let opt of getOpcionesDomicilio()"
+                                    [class.selected]="envioForm.get('metodo_id')?.value === opt.id">
+                                    <input type="radio" formControlName="metodo_id" [value]="opt.id">
+                                    <div class="ship-info">
+                                        <span class="ship-name">{{ opt.nombre }}</span>
+                                        <span class="ship-time">{{ opt.tiempo_estimado }}</span>
+                                    </div>
+                                    <div class="ship-price">
+                                        {{ opt.costo === 0 ? 'Gratis' : '$' + (opt.costo | number:'1.0-0') }}
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Retiro -->
+                            <div class="shipping-group" *ngIf="getOpcionesRetiro().length > 0">
+                                <h4 class="group-title">🏪 Retirar por</h4>
+                                <label class="shipping-option-item" *ngFor="let opt of getOpcionesRetiro()"
+                                    [class.selected]="envioForm.get('metodo_id')?.value === opt.id">
+                                    <input type="radio" formControlName="metodo_id" [value]="opt.id">
+                                    <div class="ship-info">
+                                        <span class="ship-name">{{ opt.nombre }}</span>
+                                        <span class="ship-time">{{ opt.tiempo_estimado }}</span>
+                                    </div>
+                                    <div class="ship-price">
+                                        {{ opt.costo === 0 ? 'Gratis' : '$' + (opt.costo | number:'1.0-0') }}
+                                    </div>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -127,52 +153,55 @@
                                     *ngIf="datosForm.get('telefono')?.invalid && datosForm.get('telefono')?.touched">
                                     Este campo debería estar completo</div>
                             </div>
-                            <div class="field full">
-                                <input type="text" formControlName="calle" placeholder="Calle / Dirección"
-                                    [class.invalid]="datosForm.get('calle')?.invalid && datosForm.get('calle')?.touched">
-                                <div class="error-msg"
-                                    *ngIf="datosForm.get('calle')?.invalid && datosForm.get('calle')?.touched">Este
-                                    campo debería estar completo</div>
-                            </div>
-                            <div class="field">
-                                <input type="text" formControlName="altura" placeholder="Número">
-                            </div>
-                            <div class="field">
-                                <input type="text" formControlName="piso" placeholder="Depto (Opcional)">
-                            </div>
-                            <div class="field full">
-                                <input type="text" formControlName="ciudad" placeholder="Ciudad / Localidad"
-                                    [class.invalid]="datosForm.get('ciudad')?.invalid && datosForm.get('ciudad')?.touched">
-                            </div>
-                            <div class="field full">
-                                <select formControlName="provincia"
-                                    [class.invalid]="datosForm.get('provincia')?.invalid && datosForm.get('provincia')?.touched">
-                                    <option value="">Provincia...</option>
-                                    <option value="Buenos Aires">Buenos Aires</option>
-                                    <option value="CABA">CABA</option>
-                                    <option value="Catamarca">Catamarca</option>
-                                    <option value="Chaco">Chaco</option>
-                                    <option value="Chubut">Chubut</option>
-                                    <option value="Córdoba">Córdoba</option>
-                                    <option value="Corrientes">Corrientes</option>
-                                    <option value="Entre Ríos">Entre Ríos</option>
-                                    <option value="Formosa">Formosa</option>
-                                    <option value="Jujuy">Jujuy</option>
-                                    <option value="La Pampa">La Pampa</option>
-                                    <option value="La Rioja">La Rioja</option>
-                                    <option value="Mendoza">Mendoza</option>
-                                    <option value="Misiones">Misiones</option>
-                                    <option value="Neuquén">Neuquén</option>
-                                    <option value="Río Negro">Río Negro</option>
-                                    <option value="Salta">Salta</option>
-                                    <option value="San Juan">San Juan</option>
-                                    <option value="San Luis">San Luis</option>
-                                    <option value="Santa Cruz">Santa Cruz</option>
-                                    <option value="Santa Fe">Santa Fe</option>
-                                    <option value="Santiago del Estero">Santiago del Estero</option>
-                                    <option value="Tierra del Fuego">Tierra del Fuego</option>
-                                    <option value="Tucumán">Tucumán</option>
-                                </select>
+                            <!-- Address fields - Hidden if Retiro -->
+                            <div class="form-grid" *ngIf="!isRetiro()">
+                                <div class="field full">
+                                    <input type="text" formControlName="calle" placeholder="Calle / Dirección"
+                                        [class.invalid]="datosForm.get('calle')?.invalid && datosForm.get('calle')?.touched">
+                                    <div class="error-msg"
+                                        *ngIf="datosForm.get('calle')?.invalid && datosForm.get('calle')?.touched">Este
+                                        campo debería estar completo</div>
+                                </div>
+                                <div class="field">
+                                    <input type="text" formControlName="altura" placeholder="Número">
+                                </div>
+                                <div class="field">
+                                    <input type="text" formControlName="piso" placeholder="Depto (Opcional)">
+                                </div>
+                                <div class="field full">
+                                    <input type="text" formControlName="ciudad" placeholder="Ciudad / Localidad"
+                                        [class.invalid]="datosForm.get('ciudad')?.invalid && datosForm.get('ciudad')?.touched">
+                                </div>
+                                <div class="field full">
+                                    <select formControlName="provincia"
+                                        [class.invalid]="datosForm.get('provincia')?.invalid && datosForm.get('provincia')?.touched">
+                                        <option value="">Provincia...</option>
+                                        <option value="Buenos Aires">Buenos Aires</option>
+                                        <option value="CABA">CABA</option>
+                                        <option value="Catamarca">Catamarca</option>
+                                        <option value="Chaco">Chaco</option>
+                                        <option value="Chubut">Chubut</option>
+                                        <option value="Córdoba">Córdoba</option>
+                                        <option value="Corrientes">Corrientes</option>
+                                        <option value="Entre Ríos">Entre Ríos</option>
+                                        <option value="Formosa">Formosa</option>
+                                        <option value="Jujuy">Jujuy</option>
+                                        <option value="La Pampa">La Pampa</option>
+                                        <option value="La Rioja">La Rioja</option>
+                                        <option value="Mendoza">Mendoza</option>
+                                        <option value="Misiones">Misiones</option>
+                                        <option value="Neuquén">Neuquén</option>
+                                        <option value="Río Negro">Río Negro</option>
+                                        <option value="Salta">Salta</option>
+                                        <option value="San Juan">San Juan</option>
+                                        <option value="San Luis">San Luis</option>
+                                        <option value="Santa Cruz">Santa Cruz</option>
+                                        <option value="Santa Fe">Santa Fe</option>
+                                        <option value="Santiago del Estero">Santiago del Estero</option>
+                                        <option value="Tierra del Fuego">Tierra del Fuego</option>
+                                        <option value="Tucumán">Tucumán</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -201,8 +230,8 @@
                                     <span>Efectivo en el local</span>
                                 </div>
                                 <span class="badge">15% OFF</span>
-                                <span class="price-info">Pagás ${{ (getFinalTotal() * (pagoForm.get('metodo')?.value ===
-                                    'efectivo_local' ? 1 : 0.85)) | number:'1.2-2' }}</span>
+                                <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('efectivo_local') |
+                                    number:'1.2-2' }}</span>
                             </label>
                             <div class="payment-body" *ngIf="pagoForm.get('metodo')?.value === 'efectivo_local'">
                                 <p>Pagás al retirar tu pedido en nuestro local. <strong>¡Tenés un 15% de
@@ -218,6 +247,8 @@
                                     <span>Tarjeta de crédito o débito</span>
                                 </div>
                                 <span class="badge">Hasta 3 cuotas sin interés</span>
+                                <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('mercadopago_card') |
+                                    number:'1.2-2' }}</span>
                             </label>
                             <div class="payment-body" *ngIf="pagoForm.get('metodo')?.value === 'mercadopago_card'">
                                 <div class="form-grid">
@@ -243,8 +274,8 @@
                                     <span>Transferencia</span>
                                 </div>
                                 <span class="badge">15% OFF</span>
-                                <span class="price-info">Pagás ${{ (getFinalTotal() * (pagoForm.get('metodo')?.value ===
-                                    'transferencia' ? 1 : 0.85)) | number:'1.2-2' }}</span>
+                                <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('transferencia') |
+                                    number:'1.2-2' }}</span>
                             </label>
                             <div class="payment-body" *ngIf="pagoForm.get('metodo')?.value === 'transferencia'">
                                 <p>Pagás ${{ getFinalTotal() | number:'1.2-2' }}. <strong>¡Tenés un 15% de
@@ -261,6 +292,8 @@
                                     <span>Efectivo (Pago Fácil / Rapipago)</span>
                                 </div>
                                 <span class="badge">15% OFF</span>
+                                <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('efectivo') | number:'1.2-2'
+                                    }}</span>
                             </label>
                             <div class="payment-body" *ngIf="pagoForm.get('metodo')?.value === 'efectivo'">
                                 <p>Pagás ${{ getFinalTotal() | number:'1.2-2' }}. <strong>¡Tenés un 15% de
@@ -275,6 +308,8 @@
                                     <input type="radio" formControlName="metodo" value="mercadopago">
                                     <span>Mercado Pago</span>
                                 </div>
+                                <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('mercadopago') |
+                                    number:'1.2-2' }}</span>
                             </label>
                         </div>
                     </div>
@@ -283,7 +318,7 @@
                         <button class="btn-secondary" (click)="prevStep()">Volver</button>
                         <button class="btn-primary full-width" [disabled]="pagoForm.invalid || loading"
                             (click)="finalizarCompra()">
-                            {{ loading ? 'Pprocesando...' : 'REALIZAR PEDIDO' }}
+                            {{ loading ? 'Procesando...' : 'REALIZAR PEDIDO' }}
                         </button>
                     </div>
                 </div>
@@ -364,23 +399,32 @@
                     <span class="discount-val">-${{ getDiscountAmount() | number:'1.0-0' }}</span>
                 </div>
                 <div class="summary-divider"></div>
-                <div class="summary-row total">
-                    <span>Total</span>
-                    <span>${{ getFinalTotal() | number:'1.2-2' }}</span>
+                <div class="summary-divider"></div>
+
+                <div class="summary-row promo-highlight" *ngIf="getDiscountAmount() > 0">
+                    <span class="promo-title">Total con 15% OFF:</span>
+                    <span class="promo-value">${{ getFinalTotal() | number:'1.2-2' }}</span>
                 </div>
-                <p class="transfer-promo" *ngIf="pagoForm.get('metodo')?.value === 'transferencia'">
-                    Total con descuento transferencia: <strong>${{ getFinalTotal() | number:'1.2-2' }}</strong>
-                </p>
-                <p class="transfer-promo" *ngIf="pagoForm.get('metodo')?.value === 'efectivo'">
-                    Total con descuento Efectivo: <strong>${{ getFinalTotal() | number:'1.2-2' }}</strong>
-                </p>
-                <p class="transfer-promo" *ngIf="pagoForm.get('metodo')?.value === 'efectivo_local'">
-                    Total con descuento Efectivo: <strong>${{ getFinalTotal() | number:'1.2-2' }}</strong>
-                </p>
+
+                <div class="summary-row total" [class.strikethrough]="getDiscountAmount() > 0" *ngIf="!loading">
+                    <span>{{ getDiscountAmount() > 0 ? 'Total sin descuento' : 'Total' }}</span>
+                    <span>${{ (total + (getSelectedShipping()?.costo || 0)) | number:'1.2-2' }}</span>
+                </div>
+                <!-- Loading indicator for total -->
+                <div class="summary-row total" *ngIf="loading">
+                    <span>Total</span>
+                    <span>Calculando...</span>
+                </div>
+
+                <div class="payment-method-promo" *ngIf="getDiscountAmount() > 0">
+                    ✓ Descuento por pago con {{ pagoForm.get('metodo')?.value === 'transferencia' ? 'Transferencia' :
+                    'Efectivo' }} aplicado
+                </div>
+
                 <div class="coupon-section" [formGroup]="couponForm">
                     <div class="coupon-input-group">
                         <input type="text" formControlName="code" placeholder="Código de cupón">
-                        <button class="btn-small" (click)="validateCoupon()"
+                        <button class="btn-coupon" (click)="validateCoupon()"
                             [disabled]="couponForm.invalid || validatingCoupon">
                             {{ validatingCoupon ? '...' : 'Aplicar' }}
                         </button>
@@ -402,6 +446,11 @@
                             </span>
                         </div>
                         <button class="remove-coupon" (click)="appliedCoupon = null; couponSuccess = ''">✕</button>
+                    </div>
+                    <!-- Version Marker -->
+                    <div class="version-marker"
+                        style="font-size: 10px; color: #ccc; text-align: right; margin-top: 15px;">
+                        v1.0.5 - 15% Discount Active
                     </div>
                 </div>
             </div>

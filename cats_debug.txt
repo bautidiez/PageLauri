@@ -1,0 +1,34 @@
+8 | Shorts | None | 1 | Activa: True
+13 | Remeras | None | 1 | Activa: True
+5 | Retro | 13 | 2 | Activa: True
+6 | Temporada 25/26 | 13 | 2 | Activa: True
+7 | Entrenamiento | 13 | 2 | Activa: True
+9 | Temporada 24/25 | 13 | 2 | Activa: True
+10 | Selecciones 24/25 | 13 | 2 | Activa: True
+11 | Conjuntos | 13 | 2 | Activa: True
+20 | Entrenamiento | 8 | 2 | Activa: True
+23 | Conjuntos | 8 | 2 | Activa: True
+27 | Selecciones | 5 | 3 | Activa: True
+28 | Premier League | 5 | 3 | Activa: True
+29 | Bundesliga | 5 | 3 | Activa: True
+30 | Serie A | 5 | 3 | Activa: True
+31 | La Liga | 5 | 3 | Activa: True
+32 | Futbol Argentino | 5 | 3 | Activa: True
+33 | Resto del mundo | 5 | 3 | Activa: True
+35 | Premier League | 9 | 3 | Activa: True
+36 | Bundesliga | 9 | 3 | Activa: True
+37 | Serie A | 9 | 3 | Activa: True
+38 | La Liga | 9 | 3 | Activa: True
+39 | Futbol Argentino | 9 | 3 | Activa: True
+40 | Resto del mundo | 9 | 3 | Activa: True
+42 | Premier League | 6 | 3 | Activa: True
+43 | Bundesliga | 6 | 3 | Activa: True
+44 | Serie A | 6 | 3 | Activa: True
+45 | La Liga | 6 | 3 | Activa: True
+46 | Futbol Argentino | 6 | 3 | Activa: True
+47 | Resto del mundo | 6 | 3 | Activa: True
+70 | Brasileirão | 5 | 3 | Activa: True
+71 | Brasileirão | 6 | 3 | Activa: True
+72 | Brasileirão | 9 | 3 | Activa: True
+26 | Premier League | 6 | 3 | Activa: True
+78 | Mundial 2026 | 13 | 2 | Activa: True

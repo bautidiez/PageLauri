@@ -53,7 +53,13 @@ export class LoginClienteComponent {
                         this.router.navigate(['/registro'], { queryParams: { email: this.email, verify: true } });
                         return;
                     }
-                    this.error = 'Credenciales incorrectas o error en servidor';
+
+                    // Mejor manejo de mensajes de error
+                    if (err.status === 401 || err.status === 400 || err.status === 404) {
+                        this.error = 'Email o contraseña incorrecta';
+                    } else {
+                        this.error = 'Error del servidor, intenta más tarde';
+                    }
                     this.cdr.detectChanges();
                 });
             }

@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CartService } from '../../services/cart.service';
 import { CheckoutService } from '../../services/checkout.service';
 import { ApiService } from '../../services/api.service';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-checkout-v2',
@@ -39,7 +40,10 @@ export class CheckoutV2Component implements OnInit {
         private cartService: CartService,
         private checkoutService: CheckoutService,
         private apiService: ApiService,
-        private router: Router
+        private authService: AuthService,
+        private router: Router,
+        private cdr: ChangeDetectorRef,
+        private zone: NgZone
     ) {
         this.datosForm = this.fb.group({
             email: ['', [Validators.required, Validators.email]],
@@ -87,6 +91,64 @@ export class CheckoutV2Component implements OnInit {
         this.checkoutService.getDatosTransferencia().subscribe(data => {
             this.transferData = data;
         });
+
+        this.prefillClientData();
+        this.setupConditionalValidation();
+    }
+
+    prefillClientData() {
+        const cliente = this.authService.getCliente();
+        if (cliente) {
+            this.datosForm.patchValue({
+                email: cliente.email,
+                nombre: cliente.nombre || '',
+                apellido: cliente.apellido || '',
+                telefono: cliente.telefono || '',
+                codigo_postal: cliente.codigo_postal || '',
+                calle: cliente.calle || '',
+                altura: cliente.altura || '',
+                piso: cliente.piso || '',
+                ciudad: cliente.ciudad || '',
+                provincia: cliente.provincia || '',
+                dni: cliente.dni || ''
+            });
+        }
+    }
+
+    setupConditionalValidation() {
+        this.envioForm.get('metodo_id')?.valueChanges.subscribe(id => {
+            const isRetiro = this.isRetiro(id);
+            const addressFields = ['calle', 'altura', 'ciudad', 'provincia'];
+
+            addressFields.forEach(field => {
+                const control = this.datosForm.get(field);
+                if (isRetiro) {
+                    control?.clearValidators();
+                } else {
+                    control?.setValidators([Validators.required]);
+                }
+                control?.updateValueAndValidity();
+            });
+        });
+    }
+
+    isRetiro(id?: string): boolean {
+        const selectedId = id || this.envioForm.get('metodo_id')?.value;
+        const options = this.getOpcionesRetiro();
+        return options.some(opt => opt.id === selectedId);
+    }
+
+    getBaseTotal() {
+        const shipping = this.getSelectedShipping();
+        return this.total + (shipping ? shipping.costo : 0);
+    }
+
+    getDiscountedHeaderPrice(metodo: string) {
+        const base = this.getBaseTotal();
+        if (['transferencia', 'efectivo', 'efectivo_local'].includes(metodo)) {
+            return base * 0.85;
+        }
+        return base;
     }
 
     nextStep() {
@@ -113,16 +175,34 @@ export class CheckoutV2Component implements OnInit {
         window.scrollTo(0, 0);
     }
 
+    private isCalculatingShipping = false;
+
     calculateShipping() {
+        console.log('DEBUG: calculateShipping triggered');
+        if (this.isCalculatingShipping) return;
+
         const cp = this.datosForm.get('codigo_postal')?.value;
-        if (cp) {
+        if (cp && cp.length >= 4) {
             this.loading = true;
+            this.isCalculatingShipping = true;
             this.checkoutService.calcularEnvio(cp).subscribe({
                 next: (options) => {
-                    this.shippingOptions = options;
-                    this.loading = false;
+                    this.zone.run(() => {
+                        this.shippingOptions = options;
+                        this.loading = false;
+                        this.isCalculatingShipping = false;
+                        this.cdr.markForCheck();
+                        this.cdr.detectChanges();
+                    });
                 },
-                error: () => this.loading = false
+                error: (err) => {
+                    this.zone.run(() => {
+                        this.loading = false;
+                        this.isCalculatingShipping = false;
+                        console.error('Error calculando envío', err);
+                        this.cdr.detectChanges();
+                    });
+                }
             });
         }
     }
@@ -130,6 +210,22 @@ export class CheckoutV2Component implements OnInit {
     getSelectedShipping() {
         const id = this.envioForm.get('metodo_id')?.value;
         return this.shippingOptions.find(o => o.id === id);
+    }
+
+    getOpcionesDomicilio() {
+        return this.shippingOptions.filter(o => {
+            const name = o.nombre.toLowerCase();
+            const isHomeKeyword = name.includes('domicilio') || name.includes('estándar') || name.includes('envío') || name.includes('nube');
+            const isPickupKeyword = name.includes('sucursal') || name.includes('retiro') || name.includes('local');
+            return isHomeKeyword && !isPickupKeyword;
+        });
+    }
+
+    getOpcionesRetiro() {
+        return this.shippingOptions.filter(o => {
+            const name = o.nombre.toLowerCase();
+            return name.includes('sucursal') || name.includes('retiro') || name.includes('local');
+        });
     }
 
     getDiscountAmount() {
@@ -184,11 +280,13 @@ export class CheckoutV2Component implements OnInit {
                 this.couponSuccess = `¡Cupón ${code} aplicado exitosamente!`;
                 this.validatingCoupon = false;
                 this.couponForm.reset();
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 this.couponError = err.error?.error || 'Error al validar el cupón';
                 this.validatingCoupon = false;
                 this.appliedCoupon = null;
+                this.cdr.detectChanges();
             }
         });
     }
@@ -212,6 +310,7 @@ export class CheckoutV2Component implements OnInit {
             ciudad: datos.ciudad,
             provincia: datos.provincia,
             codigo_postal: datos.codigo_postal,
+            dni: datos.dni,
 
             metodo_envio: shipping?.nombre,
             costo_envio: shipping?.costo,

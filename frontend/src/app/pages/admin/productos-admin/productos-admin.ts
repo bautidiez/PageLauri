@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -68,7 +68,8 @@ export class ProductosAdminComponent implements OnInit {
     private apiService: ApiService,
     private authService: AuthService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
   ) { }
 
   ngOnInit() {
@@ -482,7 +483,10 @@ export class ProductosAdminComponent implements OnInit {
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = (e: any) => {
-        this.imagenesPreview.push(e.target.result);
+        this.zone.run(() => {
+          this.imagenesPreview.push(e.target.result);
+          this.cdr.detectChanges();
+        });
       };
       reader.readAsDataURL(file);
     });
