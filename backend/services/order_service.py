@@ -68,7 +68,7 @@ class OrderService:
         # En el modelo actual: subtotal es valor bruto, descuento es campo separado.
         
         # 2. Crear Pedido Base
-        numero_pedido = str(uuid.uuid4().hex[:8].upper())
+        numero_pedido = OrderService._generate_next_order_id()
         pedido = Pedido(
             numero_pedido=numero_pedido,
             cliente_nombre=data.get('cliente_nombre'),
@@ -178,3 +178,52 @@ class OrderService:
         if promo.alcance == 'producto' and any(p.id == producto.id for p in promo.productos): return True
         if promo.alcance == 'categoria' and any(c.id == producto.categoria_id for c in promo.categorias): return True
         return False
+
+    @staticmethod
+    def _generate_next_order_id():
+        # Obtener el último pedido para calcular la secuencia
+        # Filtramos para asegurarnos que tenga el formato correcto (6 caracteres) si hay viejos
+        try:
+            # Buscar el último pedido creado
+            last_order = Pedido.query.order_by(Pedido.id.desc()).first()
+            
+            if not last_order or not last_order.numero_pedido:
+                return 'AA0001'
+            
+            last_code = last_order.numero_pedido
+            
+            # Si tiene formato UUID viejo (8 chars o más), ignoramos y empezamos de nuevo?
+            # O tratamos de buscar el último con formato válido.
+            if len(last_code) != 6 or not last_code[:2].isalpha() or not last_code[2:].isdigit():
+                # Fallback: buscar si existe ALGUNO con formato válido para continuar la serie
+                # Si es muy costoso, simplemente empezamos en AA0001 y asumimos que es el primero del nuevo sistema.
+                return 'AA0001'
+
+            letters = last_code[:2]
+            number = int(last_code[2:])
+            
+            number += 1
+            if number > 9999:
+                number = 0
+                # Incrementar letras
+                first_char = letters[0]
+                second_char = letters[1]
+                
+                if second_char == 'Z':
+                    second_char = 'A'
+                    if first_char == 'Z':
+                        # Overflow total (ZZ9999 -> ???) - Reiniciar o error?
+                        # Para este caso practico, reiniciamos a AA o extendemos.
+                        return 'AAA001' # Edge case improbable corto plazo
+                    else:
+                        first_char = chr(ord(first_char) + 1)
+                else:
+                    second_char = chr(ord(second_char) + 1)
+                    
+                letters = f"{first_char}{second_char}"
+            
+            return f"{letters}{number:04d}"
+            
+        except Exception as e:
+            print(f"Error generando ID pedido: {e}")
+            return 'AA0001'

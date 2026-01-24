@@ -350,6 +350,7 @@ export class CheckoutV2Component implements OnInit {
                 this.cartService.clearCart();
                 this.currentStep = 4; // Success is now Step 4 (was 5)
                 this.loading = false;
+                this.cdr.detectChanges(); // Fix UI freeze
             },
             error: (err) => {
                 console.error("Error creating order:", err);
@@ -362,5 +363,21 @@ export class CheckoutV2Component implements OnInit {
 
     getFormattedImageUrl(url: string | null | undefined): string {
         return this.apiService.getFormattedImageUrl(url);
+    }
+
+    getWhatsAppUrl(order: any): string {
+        if (!order) return '';
+        const phone = '5493564639908'; // Default number
+        let msg = '';
+
+        if (order.metodo_pago === 'efectivo_local') {
+            msg = `Hola! Hice el pedido #${order.numero_pedido} y quiero confirmar que paso a retirar y abonar en efectivo. Total: $${order.total}. ¿Qué horarios tienen?`;
+        } else if (order.metodo_pago === 'efectivo') {
+            msg = `Hola! Hice el pedido #${order.numero_pedido}. Ya realicé el pago en Rapipago/Pago Fácil. Adjunto comprobante.`;
+        } else {
+            msg = `Hola! Hice el pedido #${order.numero_pedido}. Adjunto comprobante de pago.`;
+        }
+
+        return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
     }
 }

@@ -353,6 +353,7 @@
     border-bottom: none;
 }
 
+/* Payment Header logic for badge positioning */
 .payment-header {
     padding: 20px;
     display: flex;
@@ -363,27 +364,39 @@
     transition: background 0.2s;
 }
 
-.payment-header:hover {
-    background: #f9fafb;
-}
-
 .radio-wrapper {
     display: flex;
     align-items: center;
     gap: 15px;
+    flex: 1;
+    /* Allow it to take available space */
 }
 
-.radio-wrapper input {
-    width: 20px;
-    height: 20px;
-    accent-color: #000;
-}
+/* Badge Adjustment: If we want it left of description but right of radio? 
+   No, user said "left of price" or just "left". 
+   Let's assume: Radio - Badge - Name - Price? Or Radio - Name - Badge - Price?
+   User said: "fijate los que tiene 15%off esten a la ziquierda del precio" -> To the left of the price.
+   Current structure in HTML: RadioWrapper [Input + Span(Name)] + Badge + PriceInfo.
+   So Badge IS to the left of price logically in flex container.
+   Maybe they want it CLOSER to the name or right after the name?
+   Let's check HTML structure again.
+   
+   HTML:
+   <label class="payment-header">
+        <div class="radio-wrapper">
+            <input type="radio" ...>
+            <span>Transferencia</span>
+        </div>
+        <span class="badge">15% OFF</span>
+        <span class="price-info">Pagás ...</span>
+    </label>
 
-.radio-wrapper span {
-    font-weight: 600;
-    color: #2d3748;
-    font-size: 15px;
-}
+   It is already to the left of the price. Maybe user means "Immediately to the right of the name"?
+   Or "Left aligned together with payment method name"?
+   Let's try to put the badge INSIDE the radio-wrapper or just margin-right auto to push price to right?
+   
+   Let's adjust .radio-wrapper to include the badge visually or make Badge flex-grow 0 and margin-right auto.
+*/
 
 .badge {
     font-size: 11px;
@@ -393,6 +406,140 @@
     padding: 4px 8px;
     border-radius: 4px;
     text-transform: uppercase;
+    margin-right: 15px;
+    /* Spacing from price */
+    margin-left: 15px;
+    /* Spacing from name */
+}
+
+.price-info {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 14px;
+    margin-left: auto;
+    /* Push to right if badge flows */
+}
+
+/* New Confirmation Page Styles */
+.centered-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.order-id {
+    font-size: 18px;
+    margin-bottom: 30px;
+    color: #4a5568;
+}
+
+.next-steps-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.payment-instructions {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.payment-instructions h3 {
+    margin-top: 0;
+    font-size: 18px;
+    border-bottom: 2px solid #edf2f7;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.bank-details-card,
+.cvu-display {
+    background: #f7fafc;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    text-align: left;
+    border: 1px solid #edf2f7;
+}
+
+.cvu-display {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #2b6cb0;
+}
+
+.important-msg {
+    color: #c53030;
+    font-weight: 600;
+    margin: 20px 0;
+    padding: 10px;
+    background: #fff5f5;
+    border-radius: 6px;
+}
+
+.btn-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #25d366;
+    color: white;
+    font-weight: 700;
+    padding: 15px 30px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px rgba(37, 211, 102, 0.3);
+}
+
+.btn-whatsapp:hover {
+    background: #128c7e;
+    transform: translateY(-2px);
+}
+
+.whatsapp-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-whatsapp-outline {
+    border: 2px solid #25d366;
+    color: #25d366;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-whatsapp-outline:hover {
+    background: #25d366;
+    color: white;
+}
+
+.final-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.note-sm {
+    font-size: 12px;
+    color: #718096;
+    margin-top: 15px;
 }
 
 .price-info {

@@ -334,45 +334,86 @@
                 </div>
 
                 <!-- STEP 4: ÉXITO -->
-                <div *ngSwitchCase="4" class="success-screen">
+                <div *ngSwitchCase="4" class="success-screen centered-content">
                     <div class="success-icon">✅</div>
                     <h2>¡Gracias por tu compra, {{ orderCreated?.cliente_nombre }}!</h2>
-                    <p>Tu pedido <strong>#{{ orderCreated?.numero_pedido }}</strong> ha sido registrado.</p>
-                    <div class="next-steps">
-                        <div *ngIf="orderCreated?.metodo_pago === 'transferencia'">
-                            <p>Por favor realizá la transferencia por <strong>${{ orderCreated?.total | number:'1.0-0'
-                                    }}</strong> a la siguiente cuenta:</p>
+                    <p class="order-id">Tu pedido <strong>#{{ orderCreated?.numero_pedido }}</strong> ha sido
+                        registrado.</p>
 
-                            <div class="bank-details-card"
-                                style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left;">
-                                <p style="margin: 5px 0;"><strong>Mercado Pago</strong></p>
-                                <p style="margin: 5px 0;"><strong>Nombre:</strong> Tomas Cruseno</p>
-                                <p style="margin: 5px 0;"><strong>CVU:</strong> 0000003100068933152485</p>
-                                <p style="margin: 5px 0;"><strong>Alias:</strong> el.vestuario.r4</p>
-                            </div>
+                    <div class="next-steps-container">
 
-                            <p class="whatsapp-instruction" style="color: #d32f2f; font-weight: 500;">
-                                ⚠️ IMPORTANTE: Enviá el comprobante de transferencia por WhatsApp para confirmar tu
-                                pedido.
-                            </p>
+                        <!-- CASO 1: EFECTIVO EN EL LOCAL -->
+                        <div *ngIf="orderCreated?.metodo_pago === 'efectivo_local'" class="payment-instructions">
+                            <h3>Pasos a seguir:</h3>
+                            <p>Para confirmar tu pedido, por favor envianos un mensaje por WhatsApp indicando que
+                                abonarás en efectivo al retirar.</p>
+
+                            <a [href]="getWhatsAppUrl(orderCreated)" target="_blank" class="btn-whatsapp">
+                                <i class="fab fa-whatsapp"></i> Confirmar pedido por WhatsApp
+                            </a>
+
+                            <p class="note-sm">Si no nos contactás, nos comunicaremos con vos al teléfono o email
+                                registrado para coordinar.</p>
                         </div>
 
-                        <div *ngIf="orderCreated?.metodo_pago === 'efectivo'">
-                            <p>Acercate a cualquier sucursal de Pago Fácil / Rapipago.</p>
-                            <p><strong>Deberás indicar el siguiente CVU al cajero para ingresar dinero:</strong></p>
+                        <!-- CASO 2: TRANSFERENCIA -->
+                        <div *ngIf="orderCreated?.metodo_pago === 'transferencia'" class="payment-instructions">
+                            <h3>Datos para la transferencia:</h3>
+                            <div class="bank-details-card">
+                                <p><strong>Banco:</strong> Mercado Pago</p>
+                                <p><strong>Titular:</strong> Tomas Cruseno</p>
+                                <p><strong>CVU:</strong> 0000003100068933152485</p>
+                                <p><strong>Alias:</strong> el.vestuario.r4</p>
+                                <p><strong>Monto a transferir:</strong> ${{ orderCreated?.total | number:'1.0-2' }}</p>
+                            </div>
 
-                            <div class="cvu-display"
-                                style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 10px 0; text-align: center; font-size: 1.2em; font-weight: bold; user-select: all;">
+                            <p class="important-msg">⚠️ IMPORTANTE: Enviá el comprobante de transferencia por WhatsApp a
+                                cualquiera de nuestros números para confirmar tu pedido.</p>
+
+                            <div class="whatsapp-buttons">
+                                <a href="https://wa.me/5493564639908" target="_blank"
+                                    class="btn-whatsapp-outline">Enviar a Número 1 (3564-639908)</a>
+                                <a href="https://wa.me/5493564386992" target="_blank"
+                                    class="btn-whatsapp-outline">Enviar a Número 2 (3564-386992)</a>
+                            </div>
+                        </div>
+
+                        <!-- CASO 3: EFECTIVO (RAPIPAGO/PAGO FACIL) -->
+                        <div *ngIf="orderCreated?.metodo_pago === 'efectivo'" class="payment-instructions">
+                            <h3>Instrucciones de pago:</h3>
+                            <p>Acercate a cualquier sucursal de Pago Fácil o Rapipago e indicá el siguiente CVU para
+                                ingresar dinero:</p>
+
+                            <div class="cvu-display">
                                 0000003100068933152485
                             </div>
 
-                            <p class="whatsapp-instruction" style="color: #d32f2f; font-weight: 500; margin-top: 15px;">
-                                ⚠️ IMPORTANTE: Una vez realizado el depósito, enviá el comprobante por WhatsApp para
-                                confirmar tu pedido.
-                            </p>
+                            <p><strong>Monto a pagar:</strong> ${{ orderCreated?.total | number:'1.0-2' }}</p>
+
+                            <p class="important-msg">⚠️ IMPORTANTE: Una vez realizado el pago, enviá el comprobante por
+                                WhatsApp.</p>
+
+                            <a [href]="getWhatsAppUrl(orderCreated)" target="_blank" class="btn-whatsapp">
+                                <i class="fab fa-whatsapp"></i> Enviar comprobante
+                            </a>
                         </div>
-                        <button class="btn-primary" routerLink="/productos">Seguir Comprando</button>
-                        <button class="btn-secondary" routerLink="/mis-pedidos">Ver Mis Pedidos</button>
+
+                        <!-- CASO 4: TARJETA / MP (Check backend exact string, assumed 'mercadopago_card' or 'mercadopago') -->
+                        <div *ngIf="orderCreated?.metodo_pago.includes('mercadopago')" class="payment-instructions">
+                            <p>El pago se procesó correctamente.</p>
+                            <p>Por cualquier duda, podés enviarnos el comprobante o consultarnos a nuestros números:</p>
+                            <div class="whatsapp-buttons">
+                                <a href="https://wa.me/5493564639908" target="_blank"
+                                    class="btn-whatsapp-outline">Contacto 1</a>
+                                <a href="https://wa.me/5493564386992" target="_blank"
+                                    class="btn-whatsapp-outline">Contacto 2</a>
+                            </div>
+                        </div>
+
+                        <div class="final-actions">
+                            <button class="btn-primary" routerLink="/productos">Seguir Comprando</button>
+                            <button class="btn-secondary" routerLink="/mis-pedidos">Ver Mis Pedidos</button>
+                        </div>
                     </div>
                 </div>
 

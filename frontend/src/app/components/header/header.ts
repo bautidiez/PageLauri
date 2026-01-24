@@ -43,10 +43,8 @@ export class HeaderComponent implements OnInit {
 
     this.cartService.cart$.subscribe(items => {
       this.cartItemCount = items.reduce((sum, item) => sum + (item.cantidad || 0), 0);
-      this.cartTotal = items.reduce((sum, item) => {
-        const precio = item.producto.precio_descuento || item.producto.precio_base;
-        return sum + (precio * (item.cantidad || 0));
-      }, 0);
+      // Fix: Use central logic from service to account for all promotions (dynamic, 2x1, etc)
+      this.cartTotal = this.cartService.getTotal();
       console.log('🛒 Actualización Carrito:', this.cartItemCount, this.cartTotal);
     });
 
