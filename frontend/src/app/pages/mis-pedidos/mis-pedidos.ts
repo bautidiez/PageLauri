@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CheckoutService } from '../../services/checkout.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-mis-pedidos',
@@ -17,7 +18,13 @@ export class MisPedidosComponent {
     searched = false;
     pedidoDetalle: any = null;
 
-    constructor(private checkoutService: CheckoutService) { }
+    constructor(private checkoutService: CheckoutService, private authService: AuthService) {
+        const cliente = this.authService.getCliente();
+        if (cliente && cliente.email) {
+            this.email = cliente.email;
+            this.buscar(); // Auto search if logged in
+        }
+    }
 
     buscar() {
         if (!this.email) return;

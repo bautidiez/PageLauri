@@ -179,35 +179,35 @@ export class CheckoutV2Component implements OnInit {
 
     calculateShipping() {
         console.log('DEBUG: calculateShipping triggered');
-        if (this.isCalculatingShipping) return;
-
         const cp = this.datosForm.get('codigo_postal')?.value;
-        if (cp && cp.length >= 4) {
-            this.loading = true;
-            this.isCalculatingShipping = true;
-            this.checkoutService.calcularEnvio(cp).subscribe({
-                next: (options) => {
-                    this.zone.run(() => {
-                        this.shippingOptions = options;
-                        this.loading = false;
-                        this.isCalculatingShipping = false;
 
-                        // Force detection with a tick delay to ensure UI updates
-                        setTimeout(() => {
-                            this.cdr.detectChanges();
-                        }, 0);
-                    });
-                },
-                error: (err) => {
-                    this.zone.run(() => {
-                        this.loading = false;
-                        this.isCalculatingShipping = false;
-                        console.error('Error calculando envío', err);
-                        this.cdr.detectChanges();
-                    });
-                }
-            });
-        }
+        // Prevent re-calc if already calculating or invalid CP
+        if (this.isCalculatingShipping || !cp || cp.length < 4) return;
+
+        this.loading = true;
+        this.isCalculatingShipping = true;
+
+        this.checkoutService.calcularEnvio(cp).subscribe({
+            next: (options) => {
+                this.zone.run(() => {
+                    this.shippingOptions = options;
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (err) => {
+                this.zone.run(() => {
+                    console.error('Error calculando envío', err);
+                    this.shippingOptions = []; // Clear options on error
+                });
+            },
+            complete: () => {
+                this.zone.run(() => {
+                    this.loading = false;
+                    this.isCalculatingShipping = false;
+                    this.cdr.detectChanges();
+                });
+            }
+        });
     }
 
     getSelectedShipping() {
@@ -347,9 +347,9 @@ export class CheckoutV2Component implements OnInit {
         this.checkoutService.crearPedido(pedidoData).subscribe({
             next: (order) => {
                 this.orderCreated = order;
-                this.loading = false;
                 this.cartService.clearCart();
                 this.currentStep = 4; // Success is now Step 4 (was 5)
+                this.loading = false;
             },
             error: (err) => {
                 console.error("Error creating order:", err);

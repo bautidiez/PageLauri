@@ -9,6 +9,7 @@
           </ng-container>
           <ng-container *ngIf="isAdmin || isCliente">
             <span class="user-welcome" *ngIf="currentUser">Hola, {{ currentUser.username || currentUser.nombre }}</span>
+            <a routerLink="/mis-pedidos" class="header-link">Mis Pedidos</a>
             <a *ngIf="isAdmin" routerLink="/admin" class="header-link">Panel Admin</a>
             <a (click)="logout()" class="header-link" style="cursor: pointer;">Cerrar sesión</a>
           </ng-container>
@@ -128,7 +129,8 @@
     <a routerLink="/encargo-especial" routerLinkActive="active" (click)="menuOpen = false">Encargo personalizado</a>
     <a routerLink="/politica-cambio" routerLinkActive="active" (click)="menuOpen = false">Política de cambio</a>
     <a routerLink="/guia-talles" routerLinkActive="active" (click)="menuOpen = false">Guía de talles</a>
+    <a *ngIf="isCliente || isAdmin" routerLink="/mis-pedidos" (click)="menuOpen = false">Mis Pedidos</a>
     <a *ngIf="isAdmin" routerLink="/admin" (click)="menuOpen = false">Panel Admin</a>
-    <a *ngIf="isAdmin" (click)="logout(); menuOpen = false">Cerrar sesión</a>
+    <a *ngIf="isAdmin || isCliente" (click)="logout(); menuOpen = false">Cerrar sesión</a>
   </nav>
 </header>
