@@ -292,7 +292,31 @@
 .talles-grid {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  /* For scrollbar breathing room */
+  -webkit-overflow-scrolling: touch;
+  /* Smooth scrolling on iOS */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.talles-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.talles-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.talles-grid::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.talles-grid::-webkit-scrollbar-thumb:hover {
+  background: #999;
 }
 
 .talle-btn {
@@ -308,6 +332,9 @@
   flex-direction: column;
   align-items: center;
   gap: 5px;
+  flex-shrink: 0;
+  min-width: 100px;
+  /* Slight increase for better touch target */
 }
 
 .talle-btn:hover:not(.disabled) {
