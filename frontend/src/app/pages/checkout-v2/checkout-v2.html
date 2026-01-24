@@ -348,7 +348,9 @@
                     <div class="next-steps-container">
 
                         <!-- CASO 1: EFECTIVO EN EL LOCAL -->
-                        <div *ngIf="orderCreated?.metodo_pago === 'efectivo_local'" class="payment-instructions">
+                        <!-- Check both slug and name just in case, or standarize. -->
+                        <div *ngIf="isPaymentMethod(orderCreated, 'efectivo_local')"
+                            class="payment-instructions centered">
                             <h3>Pasos a seguir:</h3>
                             <p>Para confirmar tu pedido, por favor envianos un mensaje por WhatsApp indicando que
                                 abonarás en efectivo al retirar.</p>
@@ -362,7 +364,8 @@
                         </div>
 
                         <!-- CASO 2: TRANSFERENCIA -->
-                        <div *ngIf="orderCreated?.metodo_pago === 'transferencia'" class="payment-instructions">
+                        <div *ngIf="isPaymentMethod(orderCreated, 'transferencia')"
+                            class="payment-instructions centered">
                             <h3>Datos para la transferencia:</h3>
                             <div class="bank-details-card">
                                 <p><strong>Banco:</strong> Mercado Pago</p>
@@ -384,7 +387,7 @@
                         </div>
 
                         <!-- CASO 3: EFECTIVO (RAPIPAGO/PAGO FACIL) -->
-                        <div *ngIf="orderCreated?.metodo_pago === 'efectivo'" class="payment-instructions">
+                        <div *ngIf="isPaymentMethod(orderCreated, 'efectivo')" class="payment-instructions centered">
                             <h3>Instrucciones de pago:</h3>
                             <p>Acercate a cualquier sucursal de Pago Fácil o Rapipago e indicá el siguiente CVU para
                                 ingresar dinero:</p>
@@ -403,8 +406,8 @@
                             </a>
                         </div>
 
-                        <!-- CASO 4: TARJETA / MP (Check backend exact string, assumed 'mercadopago_card' or 'mercadopago') -->
-                        <div *ngIf="orderCreated?.metodo_pago.includes('mercadopago')" class="payment-instructions">
+                        <!-- CASO 4: TARJETA / MP -->
+                        <div *ngIf="isPaymentMethod(orderCreated, 'mercadopago')" class="payment-instructions centered">
                             <p>El pago se procesó correctamente.</p>
                             <p>Por cualquier duda, podés enviarnos el comprobante o consultarnos a nuestros números:</p>
                             <div class="whatsapp-buttons">

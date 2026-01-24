@@ -380,14 +380,34 @@ export class CheckoutV2Component implements OnInit {
         this.cdr.detectChanges();
     }
 
+    isPaymentMethod(order: any, methodKey: string): boolean {
+        if (!order || !order.metodo_pago_nombre) return false;
+        const name = order.metodo_pago_nombre.toLowerCase();
+
+        switch (methodKey) {
+            case 'efectivo_local':
+                return name.includes('local') || name.includes('retiro');
+            case 'transferencia':
+                return name.includes('transferencia');
+            case 'efectivo':
+                // Check for generic cash that is NOT local pickup
+                return (name.includes('efectivo') || name.includes('rapipago') || name.includes('facil')) && !name.includes('local');
+            case 'mercadopago':
+                return name.includes('mercado') || name.includes('mp') || name.includes('tarjeta');
+            default:
+                return false;
+        }
+    }
+
     getWhatsAppUrl(order: any): string {
         if (!order) return '';
         const phone = '5493564639908'; // Default number
         let msg = '';
+        const method = order.metodo_pago_nombre?.toLowerCase() || '';
 
-        if (order.metodo_pago === 'efectivo_local') {
+        if (this.isPaymentMethod(order, 'efectivo_local')) {
             msg = `Hola! Hice el pedido #${order.numero_pedido} y quiero confirmar que paso a retirar y abonar en efectivo. Total: $${order.total}. ¿Qué horarios tienen?`;
-        } else if (order.metodo_pago === 'efectivo') {
+        } else if (this.isPaymentMethod(order, 'efectivo')) {
             msg = `Hola! Hice el pedido #${order.numero_pedido}. Ya realicé el pago en Rapipago/Pago Fácil. Adjunto comprobante.`;
         } else {
             msg = `Hola! Hice el pedido #${order.numero_pedido}. Adjunto comprobante de pago.`;
