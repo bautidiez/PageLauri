@@ -187,8 +187,8 @@ export class CartService {
   }
 
   private notify() {
+    this.updateTotal(); // Calculate first
     this.cartSubject.next(this.cartItems);
-    this.updateTotal();
   }
 
   private updateTotal() {
