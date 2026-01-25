@@ -106,9 +106,9 @@ export class CartService {
           // Update product data (includes fresh promotions)
           this.cartItems[index].producto = freshProduct;
 
-          // Update base price criteria if needed, BUT preserve the logic:
-          // If product has static offer (precio_descuento), use it.
-          // Dynamic offers are handled in calculateTotal via item.producto.promociones
+          // Update base price criteria.
+          // IMPORTANT: If product has static offer (precio_descuento), use it.
+          // If not, use base. Dynamic promotions will be applied in calculateTotal()
 
           const precio = (freshProduct.precio_descuento && freshProduct.precio_descuento > 0)
             ? freshProduct.precio_descuento
@@ -116,13 +116,14 @@ export class CartService {
 
           this.cartItems[index].precio_unitario = precio;
 
-          // Filter XS if backend didn't (safety)
+          console.log(`DEBUG CART: Updated item ${item.producto.nombre}. Base/Offer Price: ${precio}. Promos:`, freshProduct.promociones?.length);
+
+          // Filter XS from product stock if backend returned it
           if (freshProduct.stock_talles) {
             this.cartItems[index].producto.stock_talles = freshProduct.stock_talles.filter((st: any) => st.talle_nombre !== 'XS');
           }
 
-          // Trigger save and notify only after last update? 
-          // Doing it per item is chatty can cause UI jitter but ensures eventual consistency.
+          // Trigger save to recalculate totals and notify subscribers
           this.saveCart();
         },
         error: (err) => {

@@ -33,7 +33,8 @@ export class HeaderComponent implements OnInit {
     private cartService: CartService,
     private authService: AuthService,
     private apiService: ApiService,
-    private el: ElementRef
+    private el: ElementRef,
+    private cdr: import('@angular/core').ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -43,9 +44,10 @@ export class HeaderComponent implements OnInit {
 
     this.cartService.cart$.subscribe(items => {
       this.cartItemCount = items.reduce((sum, item) => sum + (item.cantidad || 0), 0);
-      // Fix: Use central logic from service to account for all promotions (dynamic, 2x1, etc)
+      // Fix: Force recalculation via service and update UI
       this.cartTotal = this.cartService.getTotal();
-      console.log('🛒 Actualización Carrito:', this.cartItemCount, this.cartTotal);
+      console.log('🛒 Actualización Carrito Header:', this.cartItemCount, this.cartTotal);
+      this.cdr.detectChanges(); // Force UI update
     });
 
     // Suscribirse para cambios futuros
