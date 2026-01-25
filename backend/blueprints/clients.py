@@ -12,6 +12,30 @@ from datetime import timedelta
 logger = logging.getLogger(__name__)
 clients_bp = Blueprint('clients', __name__)
 
+def verify_recaptcha(token):
+    secret_key = current_app.config.get('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFyjTsGk5UW0R') # CLAVE SK PRUEBA
+    if not secret_key or not token:
+        # Si no hay key configurada, bypass (para dev) o error log
+        print("DEBUG RECAPTCHA: No secret key or token provided", flush=True)
+        return True # Fail open in dev if needed, or False
+        
+    try:
+        import requests
+        resp = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+                'secret': secret_key,
+                'response': token
+            },
+            timeout=5
+        )
+        result = resp.json()
+        print(f"DEBUG RECAPTCHA: Verify result: {result}", flush=True)
+        return result.get('success', False)
+    except Exception as e:
+        print(f"DEBUG RECAPTCHA: Error verifying: {e}", flush=True)
+        return False
+
 @clients_bp.route('/api/clientes', methods=['POST'])
 @limiter.limit("50 per hour")
 def registrar_cliente():
@@ -19,6 +43,14 @@ def registrar_cliente():
         data = request.json
         print(f"DEBUG CLIENTES: Recibida solicitud de registro para {data.get('email')}", flush=True)
         
+        # Validar captcha si viene en el payload (opcional por ahora para compatibilidad incremental)
+        captcha_token = data.get('recaptcha_token')
+        if captcha_token:
+            if not verify_recaptcha(captcha_token):
+               return jsonify({'error': 'Captcha inválido. Por favor intenta de nuevo.'}), 400
+        else:
+             print("DEBUG CLIENTES: Registro SIN captcha token (permitido temporalmente)", flush=True)
+
         if not data.get('nombre') or not data.get('email') or not data.get('password') or not data.get('metodo_verificacion'):
             return jsonify({'error': 'Faltan campos requeridos (incluyendo método de verificación)'}), 400
         
@@ -81,6 +113,13 @@ def registrar_cliente():
 @limiter.limit("10 per minute")
 def login_cliente():
     data = request.json
+    
+    # Validar captcha (opcional por ahora)
+    captcha_token = data.get('recaptcha_token')
+    if captcha_token:
+        if not verify_recaptcha(captcha_token):
+           return jsonify({'error': 'Captcha inválido'}), 400
+
     email = data.get('email')
     password = data.get('password')
     

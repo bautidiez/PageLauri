@@ -1,4 +1,5 @@
 import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
+import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -15,9 +16,9 @@ import { ApiService } from '../../services/api.service';
 })
 export class HeaderComponent implements OnInit {
   categorias: any[] = [];
-  categoriasTree: any[] = [];  // Jerarquía completa
+  categoriasTree: any[] = [];
   cartItemCount = 0;
-  cartTotal = 0;  // Total del carrito
+  cartTotal$: Observable<number>; // Observable version
   isAdmin = false;
   isCliente = false;
   currentUser: any = null;
@@ -30,27 +31,25 @@ export class HeaderComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private cartService: CartService,
+    public cartService: CartService, // Make public for template access if needed, or use property
     private authService: AuthService,
     private apiService: ApiService,
     private el: ElementRef,
     private cdr: import('@angular/core').ChangeDetectorRef
-  ) { }
+  ) {
+    this.cartTotal$ = this.cartService.total$;
+  }
 
   ngOnInit() {
     this.loadCategorias();
-    // Verificar autenticación de forma inmediata
     this.updateAuthState();
 
     this.cartService.cart$.subscribe(items => {
       this.cartItemCount = items.reduce((sum, item) => sum + (item.cantidad || 0), 0);
+      // We don't need to manually set cartTotal anymore, AsyncPipe handles total$
     });
 
-    this.cartService.total$.subscribe(total => {
-      this.cartTotal = total;
-      console.log('🛒 Header Total Updated:', total);
-      this.cdr.detectChanges();
-    });
+    // ... (rest of ngOnInit)
 
     // Suscribirse para cambios futuros
     this.authService.isAuthenticated$.subscribe(() => {

@@ -29,8 +29,8 @@ export class AuthService {
     );
   }
 
-  loginUnified(identifier: string, password: string): Observable<any> {
-    return this.apiService.loginUnified({ identifier, password }).pipe(
+  loginUnified(identifier: string, password: string, recaptcha_token?: string): Observable<any> {
+    return this.apiService.loginUnified({ identifier, password, recaptcha_token }).pipe(
       tap((response) => {
         this.setSession(response, response.user_type);
         this.resetInactivityTimer();

@@ -94,7 +94,7 @@
         <!-- Carrito con Badge -->
         <button class="cart-btn-simple" (click)="goToCart()">
           <span class="cart-icon"></span>
-          <span class="cart-total">{{ (cartTotal || 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
+          <span class="cart-total">{{ (cartTotal$ | async | currency:'ARS':'symbol-narrow':'1.2-2') || '$0' }}</span>
 
           <!-- BADGE de cantidad en esquina superior derecha -->
           <span class="cart-badge-count" *ngIf="cartItemCount > 0">{{ cartItemCount }}</span>

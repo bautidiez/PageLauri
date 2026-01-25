@@ -7,6 +7,12 @@ import { routes } from './app.routes';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withInterceptorsFromDi())
+    provideHttpClient(withInterceptorsFromDi()),
+    {
+      provide: 'RECAPTCHA_SETTINGS',
+      useValue: {
+        siteKey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI', // CLAVE DE PRUEBA (User needs to replace)
+      },
+    }
   ]
 };

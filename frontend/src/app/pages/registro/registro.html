@@ -52,6 +52,11 @@
 
 
                 <div class="form-checkbox">
+                    <re-captcha (resolved)="onCaptchaResolved($event)">
+                    </re-captcha>
+                </div>
+
+                <div class="form-checkbox">
                     <label>
                         <input type="checkbox" [(ngModel)]="cliente.acepta_newsletter" name="acepta_newsletter">
                         <span>Acepto recibir notificaciones semanales sobre nuevas ofertas y productos</span>
