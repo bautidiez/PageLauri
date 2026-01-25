@@ -1,0 +1,227 @@
+.subrayado {
+	text-decoration: underline;
+}
+
+.tachado {
+	text-decoration: line-through;
+}
+
+.itemConversacionLeft {
+	background: none repeat scroll 0 0 powderblue;
+	border-radius: 6px;
+	font-size: 15px;
+	padding-bottom: 1px;
+	padding-left: 12px;
+	padding-right: 12px;
+	padding-top: 6px;
+	margin: 2px;
+	margin-right: 10%;
+	border-bottom-left-radius: 20px;
+	border-bottom-right-radius: 10px;
+	border-top-left-radius: 0;
+	border-top-right-radius: 10px;
+}
+
+.itemConversacionRight {
+	background: none repeat scroll 0 0 lightgoldenrodyellow;
+	/*lightcyan;lemonchiffon*/
+	border-radius: 6px;
+	font-size: 15px;
+	padding: 3px;
+	margin: 2px;
+	margin-left: 10%;
+	margin-right: 20px;
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 20px;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 0;
+	margin-bottom: 2px;
+	margin-left: 10%;
+	margin-right: 24px;
+	margin-top: 2px;
+	padding-bottom: 1px;
+	padding-left: 20px;
+	padding-right: 12px;
+	padding-top: 8px;
+}
+
+[data-notify="progressbar"] {
+	margin-bottom: 0px;
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	width: 100%;
+	height: 5px;
+}
+
+.tour {
+	max-width: 376px;
+}
+
+div.popover-title {
+	font-weight: bold;
+	font-size: 16px;
+}
+
+.ui-helper-hidden-accessible {
+	display: none !important;
+}
+
+.box>.loading-img {
+	z-index: 1020;
+	background: url('/4/themes/AdminLTE-2/dist/img/32x32/Preloader_10/Preloader_10.gif') 50% 50%;
+	background-color: transparent;
+	background-repeat: no-repeat;
+}
+
+#dialogoEnlacesBases div.loading-img {
+	z-index: 1020;
+	background: url('/4/themes/AdminLTE-2/dist/img/32x32/Preloader_10/Preloader_10.gif') 50% 50%;
+	background-color: transparent;
+	background-repeat: no-repeat;
+}
+
+#timelinePrincipal  div.loading-img {
+	width: 32px;
+	height: 32px;
+	z-index: 1020;
+	background: url('/4/themes/AdminLTE-2/dist/img/32x32/Preloader_2/Preloader_2.gif') 50% 50%;
+	background-color: transparent;
+	background-repeat: no-repeat;	
+}
+
+.scrollable-menu {
+	height: auto;
+	max-height: 200px;
+	overflow-x: hidden;
+}
+
+.carousel-inner>.item>img, .carousel-inner>.item>a>img {
+	width: 70%;
+	margin: auto;
+}
+
+.carousel-indicators-numbers {
+	bottom: -6px;
+	left: 50%
+}
+
+.carousel-indicators-numbers li {
+	text-indent: 0;
+	margin: 0 2px;
+	width: 30px;
+	height: 30px;
+	border: none;
+	border-radius: 100%;
+	line-height: 30px;
+	color: #fff;
+	background-color: #999;
+	transition: all 0.25s ease;
+}
+
+.carousel-indicators-numbers li.active, .carousel-indicators-numbers li:hover
+	{
+	margin: 0 2px;
+	width: 30px;
+	height: 30px;
+	background-color: #337ab7;
+}
+
+.carousel-caption {
+	bottom: 20px;
+	color: #fff;
+	font-size: 18px;
+	left: 15%;
+	padding-bottom: 50px;
+	padding-top: 10px;
+	position: static;
+	right: 15%;
+	text-align: center;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+	z-index: 10;
+	background-color: #3c8dbc;
+}
+
+.animated {
+	-webkit-transition: height 0.2s;
+	-moz-transition: height 0.2s;
+	transition: height 0.2s;
+}
+
+.toggle.ios, .toggle-on.ios, .toggle-off.ios {
+	border-radius: 20px;
+}
+
+.toggle.ios .toggle-handle {
+	border-radius: 20px;
+}
+
+#contenedorCursos .box-header {
+	padding-bottom: 0px;
+}
+
+.backgroundRed {
+	background: #F00;
+}
+
+.blinker {
+	-webkit-transition: background 1.0s ease-in-out;
+	-ms-transition: background 1.0s ease-in-out;
+	transition: background 1.0s ease-in-out;
+}
+
+.zero {
+	height: 0;
+	line-height: 0;
+	font-size: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	border: none;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+#return-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgb(0, 0, 0);
+    background: rgba(0, 0, 0, 0.7);
+    width: 32px;
+    height: 32px;
+    display: block;
+    text-decoration: none;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    display: none;
+    -webkit-transition: all 0.3s linear;
+    -moz-transition: all 0.3s ease;
+    -ms-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    z-index:999;
+    border:0px;
+}
+#return-to-top i {
+    color: #fff;
+    margin: 0;
+    position: relative;
+    left: -1px;
+    top: 5px;
+    font-size: 19px;
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -ms-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    z-index:1000;
+    border:0px;
+}
+#return-to-top:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+#return-to-top:hover i {
+    color: #fff;
+    top: 5px;
+}

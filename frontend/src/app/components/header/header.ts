@@ -44,10 +44,12 @@ export class HeaderComponent implements OnInit {
 
     this.cartService.cart$.subscribe(items => {
       this.cartItemCount = items.reduce((sum, item) => sum + (item.cantidad || 0), 0);
-      // Fix: Force recalculation via service and update UI
-      this.cartTotal = this.cartService.getTotal();
-      console.log('🛒 Actualización Carrito Header:', this.cartItemCount, this.cartTotal);
-      this.cdr.detectChanges(); // Force UI update
+    });
+
+    this.cartService.total$.subscribe(total => {
+      this.cartTotal = total;
+      console.log('🛒 Header Total Updated:', total);
+      this.cdr.detectChanges();
     });
 
     // Suscribirse para cambios futuros

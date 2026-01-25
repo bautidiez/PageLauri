@@ -1,0 +1,48 @@
+function generarHTMLTribunales(oTribunal, parametros) {
+  var items = Array.isArray(parametros) ? parametros : [parametros];
+
+  function crearBoton(label, icon, clase, horario, horarioValor) {
+    return '<a href="javascript:void(0);" class="btn btn-default ' + clase + ' btnInscribirAExamen"' +
+      ' data-id=\'' + JSON.stringify({
+        materia: oTribunal.materia,
+        especialidad: oTribunal.especialidad,
+        plan: oTribunal.plan,
+        turno: horario.turno,
+        tribunal: horario.tribunal,
+        fecha: horario.fecha,
+        mesaEspecial: horario.mesaespecial,
+        horario: horarioValor.toString()
+      }) + '\'>' +
+      '<i class="fa ' + icon + '"></i> ' + label +
+      '</a>';
+  }
+
+  var html = '<div class="container"><div class="row">';
+
+  items.forEach(function(param) {
+    var data = {
+      turno: param.turno,
+      tribunal: param.tribunal,
+      fecha: param.fecha,
+      mesaespecial: param.mesaespecial
+    };
+
+    var botones = '';
+    if (param.mañana === 1) botones += crearBoton('Mañana', 'fa-coffee', 'bg-teal', data, 1);
+    if (param.tarde === 1) botones += crearBoton('Tarde', 'fa-sun', 'bg-orange', data, 2);
+    if (param.noche === 1) botones += crearBoton('Noche', 'fa-moon', 'bg-blue', data, 3);
+
+    var turnoLabel = param.turno === 0
+      ? '<strong>Mesa Especial</strong>'
+      : '<strong>Llamado ' + param.turno + '</strong>';
+
+    html += '<div class="col-6">' +
+              '<strong class="dikdor">&#8250;</strong>' +
+              ' (<strong>Tribunal ' + param.nombre + '</strong>) - (' + turnoLabel + ' . ' + param.fecha + ')' +
+            '</div>' +
+            '<div class="col-6">' + botones + '</div>';
+  });
+
+  html += '</div></div>';
+  return html;
+}

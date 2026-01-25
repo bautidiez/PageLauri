@@ -24,6 +24,9 @@ export class CartService {
   private cartSubject = new BehaviorSubject<CartItem[]>([]);
   public cart$ = this.cartSubject.asObservable();
 
+  private totalSubject = new BehaviorSubject<number>(0);
+  public total$ = this.totalSubject.asObservable();
+
   // Constantes de tiempo
   private readonly CART_EXPIRATION = 48 * 60 * 60 * 1000; // 48 horas según pedido
 
@@ -80,6 +83,8 @@ export class CartService {
           return;
         } else {
           this.cartItems = items;
+          // Calculate initial total
+          this.updateTotal();
           // Refresh data to get latest promotions/prices
           this.refreshCartData();
         }
@@ -89,7 +94,7 @@ export class CartService {
       }
     }
 
-    this.cartSubject.next(this.cartItems);
+    this.notify();
   }
 
   private refreshCartData() {
@@ -181,6 +186,16 @@ export class CartService {
     }
   }
 
+  private notify() {
+    this.cartSubject.next(this.cartItems);
+    this.updateTotal();
+  }
+
+  private updateTotal() {
+    const total = this.calculateTotal();
+    this.totalSubject.next(total);
+  }
+
   private saveCart(): void {
     const key = this.getCartKey();
     const storageData: CartStorage = {
@@ -188,7 +203,7 @@ export class CartService {
       lastUpdated: Date.now()
     };
     localStorage.setItem(key, JSON.stringify(storageData));
-    this.cartSubject.next(this.cartItems);
+    this.notify();
   }
 
   addItem(producto: any, talle: any, cantidad: number): void {
@@ -231,7 +246,7 @@ export class CartService {
     const key = this.getCartKey();
     localStorage.removeItem(key); // O guardar vacío: localStorage.setItem(key, JSON.stringify({items: [], lastUpdated: Date.now()}));
     // Remover item es más limpio para "no tener nada"
-    this.cartSubject.next(this.cartItems);
+    this.notify();
   }
 
   getItems(): CartItem[] {
@@ -239,7 +254,7 @@ export class CartService {
   }
 
   getTotal(): number {
-    return this.calculateTotal();
+    return this.totalSubject.getValue();
   }
 
   private calculateTotal(): number {
