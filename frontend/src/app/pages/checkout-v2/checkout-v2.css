@@ -371,9 +371,11 @@
 .payment-radio-group {
     display: flex;
     align-items: center;
-    gap: 15px;
+    justify-content: flex-start;
+    /* Ensure left align */
+    gap: 12px;
+    /* Reduce gap slightly */
     flex: 1;
-    /* Allow it to grow */
 }
 
 .payment-name {
@@ -381,7 +383,10 @@
     color: #1a202c;
     font-size: 15px;
     white-space: nowrap;
-    /* Prevent wrapping name */
+    text-align: left;
+    /* Ensure text aligns left */
+    margin: 0;
+    /* Remove potential margins */
 }
 
 /* Badge Adjustment: If we want it left of description but right of radio? 
