@@ -117,6 +117,3 @@ class CorreoArgentinoProvider(BaseShippingProvider):
             }
         ]
 
-class TiendaNubeProvider(BaseShippingProvider):
-    def calculate_rates(self, zip_code, weight=1.0, dimensions=None):
-        return []

@@ -1,4 +1,4 @@
-from .shipping_providers import AndreaniProvider, CorreoArgentinoProvider, TiendaNubeProvider
+from .shipping_providers import AndreaniProvider, CorreoArgentinoProvider
 import logging
 
 logger = logging.getLogger(__name__)

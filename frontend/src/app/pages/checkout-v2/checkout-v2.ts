@@ -221,7 +221,7 @@ export class CheckoutV2Component implements OnInit {
     getOpcionesDomicilio() {
         return this.shippingOptions.filter(o => {
             const name = o.nombre.toLowerCase();
-            const isHomeKeyword = name.includes('domicilio') || name.includes('estándar') || name.includes('envío') || name.includes('nube');
+            const isHomeKeyword = name.includes('domicilio') || name.includes('estándar') || name.includes('envío');
             const isPickupKeyword = name.includes('sucursal') || name.includes('retiro') || name.includes('local');
             return isHomeKeyword && !isPickupKeyword;
         });

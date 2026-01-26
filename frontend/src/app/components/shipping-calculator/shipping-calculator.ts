@@ -114,8 +114,7 @@ export class ShippingCalculatorComponent {
     private getNombreMetodo(id: string): string {
         const nombres: any = {
             'correo_argentino': 'Correo Argentino',
-            'andreani': 'Andreani',
-            'tienda_nube': 'Tienda Nube'
+            'andreani': 'Andreani'
         };
         return nombres[id] || id;
     }
@@ -140,7 +139,7 @@ export class ShippingCalculatorComponent {
     getOpcionesDomicilio() {
         return this.opcionesEnvio.filter(o => {
             const name = o.nombre.toLowerCase();
-            const isHomeKeyword = name.includes('domicilio') || name.includes('estándar') || name.includes('envío') || name.includes('nube');
+            const isHomeKeyword = name.includes('domicilio') || name.includes('estándar') || name.includes('envío');
             const isPickupKeyword = name.includes('sucursal') || name.includes('retiro') || name.includes('local');
             return isHomeKeyword && !isPickupKeyword;
         });
