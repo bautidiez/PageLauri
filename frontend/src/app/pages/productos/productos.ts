@@ -161,8 +161,27 @@ export class ProductosComponent implements OnInit, OnDestroy {
   }
 
   private getCategoryIdFromSlug(slug: string): number | null {
+    // 1. Try exact match (Primary strategy)
+    if (this.categorySlugMap[slug] !== undefined) {
+      return this.categorySlugMap[slug];
+    }
+
+    // 2. Try normalized match
     const normalizedSlug = this.normalizeSlug(slug);
-    return this.categorySlugMap[normalizedSlug] || null;
+    if (this.categorySlugMap[normalizedSlug] !== undefined) {
+      return this.categorySlugMap[normalizedSlug];
+    }
+
+    // 3. Try case-insensitive scan (Fallback)
+    const lowerSlug = slug.toLowerCase();
+    const keys = Object.keys(this.categorySlugMap);
+    for (const key of keys) {
+      if (key.toLowerCase() === lowerSlug) {
+        return this.categorySlugMap[key];
+      }
+    }
+
+    return null;
   }
 
   private getSubcategoryId(parentId: number, subcategorySlug: string): number | null {
@@ -221,7 +240,9 @@ export class ProductosComponent implements OnInit, OnDestroy {
     }
 
     // Si no se encuentra, usar PRODUCTOS por defecto
-    this.tituloActual = 'PRODUCTOS';
+    const slugParams = this.route.snapshot.params['slug'];
+    const mapSize = Object.keys(this.categorySlugMap).length;
+    this.tituloActual = `PRODUCTOS (ID:${categoriaId} Slug:${slugParams} Map:${mapSize})`;
   }
 
   loadProductos() {
