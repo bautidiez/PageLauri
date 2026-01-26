@@ -221,9 +221,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
     }
 
     // Si no se encuentra, usar PRODUCTOS por defecto
-    const slugParams = this.route.snapshot.params['slug'];
-    const mapSize = Object.keys(this.categorySlugMap).length;
-    this.tituloActual = `PRODUCTOS (ID:${categoriaId} Slug:${slugParams} Map:${mapSize})`;
+    this.tituloActual = 'PRODUCTOS';
   }
 
   loadProductos() {
@@ -370,6 +368,12 @@ export class ProductosComponent implements OnInit, OnDestroy {
           // Initialize/Reset subcategorias for our local tree building
           cat.subcategorias = [];
           categoryMap.set(cat.id, cat);
+
+          // ROBUST: Populate slug map directly from flat list
+          // This ensures we map EVERY category even if the tree structure fails
+          const slug = cat.slug ? cat.slug : this.normalizeSlug(cat.nombre);
+          this.categorySlugMap[slug] = cat.id;
+          this.categoryIdToSlug[cat.id] = slug;
         });
 
         // Assemble the tree from the flat mapping
@@ -398,8 +402,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
 
         this.categorias = roots.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-        // Build slug mapping (recursive)
-        this.buildSlugMap();
+        // Note: buildSlugMap removed as we map during iteration above
 
         // Actualizar el título y contexto
         this.actualizarTitulo();
