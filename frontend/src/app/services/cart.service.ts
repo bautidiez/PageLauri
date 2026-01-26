@@ -111,17 +111,11 @@ export class CartService {
           // Update product data (includes fresh promotions)
           this.cartItems[index].producto = freshProduct;
 
-          // Update base price criteria.
-          // IMPORTANT: If product has static offer (precio_descuento), use it.
-          // If not, use base. Dynamic promotions will be applied in calculateTotal()
+          // Always use precio_base as the reference unit price for the cart line.
+          // Discounts (static or dynamic) will be calculated in calculateTotal()
+          this.cartItems[index].precio_unitario = freshProduct.precio_base;
 
-          const precio = (freshProduct.precio_descuento && freshProduct.precio_descuento > 0)
-            ? freshProduct.precio_descuento
-            : (freshProduct.precio_actual || freshProduct.precio_base);
-
-          this.cartItems[index].precio_unitario = precio;
-
-          console.log(`DEBUG CART: Updated item ${item.producto.nombre}. Base/Offer Price: ${precio}. Promos:`, freshProduct.promociones?.length);
+          console.log(`DEBUG CART: Updated item ${item.producto.nombre}. Base Price: ${freshProduct.precio_base}. Promos:`, freshProduct.promociones?.length);
 
           // Filter XS from product stock if backend returned it
           if (freshProduct.stock_talles) {
@@ -207,10 +201,9 @@ export class CartService {
   }
 
   addItem(producto: any, talle: any, cantidad: number): void {
-    // Usar precio_descuento si existe (oferta estática), sino precio_actual o base
-    const precio = (producto.precio_descuento && producto.precio_descuento > 0)
-      ? producto.precio_descuento
-      : (producto.precio_actual || producto.precio_base);
+    // Always use precio_base as the reference unit price for the cart line.
+    // Discounts (static or dynamic) will be calculated in calculateTotal()
+    const precio = producto.precio_base;
     const existingIndex = this.cartItems.findIndex(
       item => item.producto.id === producto.id && item.talle.id === talle.id
     );
@@ -263,16 +256,14 @@ export class CartService {
     // Reset discounts first
     this.cartItems.forEach(item => item.descuento = 0);
 
-    // Agrupar items por tipo de promoción
+    // Group items by promotion
     const itemsPorPromocion: { [key: string]: CartItem[] } = {};
-    const itemsSinPromocion: CartItem[] = [];
+    const itemsSinPromocionDinamica: CartItem[] = [];
 
     this.cartItems.forEach(item => {
-      // Verificar si tiene promoción activa y válida
       if (item.producto.promociones && item.producto.promociones.length > 0) {
+        // En esta tienda, usualmente hay una promo principal por producto (ej: 2x1 o 15% OFF)
         const promo = item.producto.promociones[0];
-        // Usar ID o nombre de la promoción para agrupar
-        // FIX: Ensure promo.id is used if available to grouping by specific promo instance
         const key = promo.id ? `promo_${promo.id}` : `type_${promo.tipo_promocion_nombre}`;
 
         if (!itemsPorPromocion[key]) {
@@ -280,85 +271,77 @@ export class CartService {
         }
         itemsPorPromocion[key].push(item);
       } else {
-        itemsSinPromocion.push(item);
+        itemsSinPromocionDinamica.push(item);
       }
     });
 
-    // Calcular items sin promoción
-    itemsSinPromocion.forEach(item => {
-      total += (item.precio_unitario * item.cantidad);
+    // 1. Calcular items sin promoción DINÁMICA (solo checkear precio_descuento estático)
+    itemsSinPromocionDinamica.forEach(item => {
+      const basePrice = item.producto.precio_base || 0;
+      const staticPrice = item.producto.precio_descuento && item.producto.precio_descuento > 0
+        ? item.producto.precio_descuento
+        : basePrice;
+
+      item.descuento = (basePrice - staticPrice) * item.cantidad;
+      total += (staticPrice * item.cantidad);
     });
 
-    // Calcular items con promoción agrupada
+    // 2. Calcular items con promoción DINÁMICA agrupada
     Object.values(itemsPorPromocion).forEach(group => {
-      // Logic complexity: Mapping "flattened" prices back to specific items is tricky if mixed.
-      // But usually a group corresponds to one promotion type.
-
       const promo = group[0].producto.promociones[0];
-      const tipo = promo.tipo_promocion_nombre.toLowerCase();
+      const tipo = (promo.tipo_promocion_nombre || '').toLowerCase();
       const valor = promo.valor || 0;
 
-      // Handle simple per-item discounts (Percentage / Fixed) directly on the item
-      if (tipo.includes('porcentaje')) {
+      // Porcentaje o Fijo (se aplican por unidad, competimos con precio_descuento)
+      if (tipo.includes('porcentaje') || tipo.includes('fijo')) {
         group.forEach(item => {
-          const discountPerUnit = item.precio_unitario * (valor / 100);
-          item.descuento = discountPerUnit * item.cantidad;
-          total += (item.precio_unitario * item.cantidad) - item.descuento;
-        });
-      } else if (tipo.includes('fijo')) {
-        group.forEach(item => {
-          const discountPerUnit = Math.min(item.precio_unitario, valor); // Can't discount more than price
-          item.descuento = discountPerUnit * item.cantidad;
-          total += (item.precio_unitario * item.cantidad) - item.descuento;
+          const basePrice = item.producto.precio_base || 0;
+          const staticPrice = item.producto.precio_descuento && item.producto.precio_descuento > 0
+            ? item.producto.precio_descuento
+            : basePrice;
+
+          let dynamicPrice = basePrice;
+          if (tipo.includes('porcentaje')) {
+            dynamicPrice = basePrice * (1 - (valor / 100));
+          } else {
+            dynamicPrice = Math.max(0, basePrice - valor);
+          }
+
+          // Elegir el MEJOR precio (match lógica producto-detail)
+          const finalPrice = Math.min(staticPrice, dynamicPrice);
+          item.descuento = (basePrice - finalPrice) * item.cantidad;
+          total += (finalPrice * item.cantidad);
         });
       }
-      // Handle Quantity-based discounts (2x1, 3x2)
+      // Cantidad (2x1, 3x2) - Usualmente no se acumulan con precio_descuento, usamos basePrice
       else if (tipo.includes('2x1') || tipo.includes('3x2')) {
-        // Create a flattened list of "Slots" { price, parentItem }
         let slots: { price: number, parentItem: CartItem }[] = [];
-
         group.forEach(item => {
           for (let i = 0; i < item.cantidad; i++) {
-            slots.push({ price: item.precio_unitario, parentItem: item });
+            slots.push({ price: item.producto.precio_base, parentItem: item });
           }
         });
 
-        // Sort by price DESC (so we discount the cheapest ones usually? No, usually pay the most expensive)
-        // 2x1: Pay 1 (expensive), Free 1 (cheap)
+        // Ordenar por precio desc (pagas los más caros)
         slots.sort((a, b) => b.price - a.price);
+        const factor = tipo.includes('2x1') ? 2 : 3;
 
         let groupTotal = 0;
-
-        if (tipo.includes('2x1')) {
-          for (let i = 0; i < slots.length; i++) {
-            // Pay indices 0, 2, 4... Free indices 1, 3, 5...
-            if (i % 2 !== 0) {
-              // This is a free slot
-              const discountAmount = slots[i].price;
-              slots[i].parentItem.descuento = (slots[i].parentItem.descuento || 0) + discountAmount;
-            } else {
-              groupTotal += slots[i].price;
-            }
+        slots.forEach((slot, i) => {
+          if ((i + 1) % factor === 0) {
+            // Item gratis
+            slot.parentItem.descuento = (slot.parentItem.descuento || 0) + slot.price;
+          } else {
+            groupTotal += slot.price;
           }
-        } else if (tipo.includes('3x2')) {
-          for (let i = 0; i < slots.length; i++) {
-            // Pay 0, 1. Free 2. Pay 3, 4. Free 5.
-            if ((i + 1) % 3 === 0) {
-              // Free slot
-              const discountAmount = slots[i].price;
-              slots[i].parentItem.descuento = (slots[i].parentItem.descuento || 0) + discountAmount;
-            } else {
-              groupTotal += slots[i].price;
-            }
-          }
-        }
-
+        });
         total += groupTotal;
       }
       else {
-        // Fallback
+        // Fallback: usar precio_descuento o base
         group.forEach(item => {
-          total += item.precio_unitario * item.cantidad;
+          const finalPrice = item.producto.precio_descuento || item.producto.precio_base;
+          total += finalPrice * item.cantidad;
         });
       }
     });

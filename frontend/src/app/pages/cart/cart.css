@@ -106,9 +106,9 @@ app-shipping-calculator {
   font-weight: bold;
 }
 
-.final-price {
-  font-size: 18px;
-  font-weight: 700;
+.final-price-unit {
+  font-size: 16px;
+  font-weight: 600;
   color: #000;
 }
 
@@ -138,10 +138,22 @@ app-shipping-calculator {
   text-align: center;
 }
 
-.item-total p {
+.item-total {
+  text-align: right;
+}
+
+.item-total-final {
   font-size: 20px;
   font-weight: 700;
   color: #000;
+  margin: 0;
+}
+
+.item-total-original {
+  font-size: 14px;
+  color: #999;
+  text-decoration: line-through;
+  margin: 0;
 }
 
 .btn-remove {

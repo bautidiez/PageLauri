@@ -23,8 +23,8 @@
               <div class="discount-info" *ngIf="item.descuento && item.descuento > 0">
                 <span class="discount-badge">-{{ (item.descuento / (item.precio_unitario * item.cantidad)) * 100 |
                   number:'1.0-0' }}% OFF</span>
-                <p class="final-price">${{ (item.precio_unitario - (item.descuento / item.cantidad)) | number:'1.0-0' }}
-                </p>
+                <p class="final-price-unit">${{ (item.precio_unitario - (item.descuento / item.cantidad)) |
+                  number:'1.0-0' }} c/u</p>
               </div>
             </div>
           </div>
@@ -34,7 +34,11 @@
             <button (click)="updateQuantity(i, item.cantidad + 1)">+</button>
           </div>
           <div class="item-total">
-            <p>${{ (item.precio_unitario * item.cantidad) | number:'1.0-0' }}</p>
+            <p class="item-total-final">${{ (item.precio_unitario * item.cantidad) - (item.descuento || 0) |
+              number:'1.0-0' }}</p>
+            <p class="item-total-original" *ngIf="item.descuento && item.descuento > 0">
+              ${{ (item.precio_unitario * item.cantidad) | number:'1.0-0' }}
+            </p>
           </div>
           <div class="item-actions">
             <button class="btn-remove" (click)="removeItem(i)">✕</button>
