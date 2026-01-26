@@ -268,25 +268,15 @@
                                 <div class="payment-radio-group">
                                     <input type="radio" formControlName="metodo" value="mercadopago_card"
                                         (change)="updateDiscount()">
-                                    <span class="payment-name">Tarjeta de crédito o débito</span>
+                                    <span class="payment-name">Tarjeta de crédito o ábito</span>
                                     <span class="badge gray">Hasta 3 cuotas sin interés</span>
                                 </div>
                                 <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('mercadopago_card') |
                                     number:'1.2-2' }}</span>
                             </label>
                             <div class="payment-body" *ngIf="pagoForm.get('metodo')?.value === 'mercadopago_card'">
-                                <div class="form-grid">
-                                    <div class="field full"><input type="text" placeholder="Número de tarjeta"></div>
-                                    <div class="field full"><input type="text" placeholder="Nombre del titular"></div>
-                                    <div class="field"><input type="text" placeholder="Vencimiento (MM/AA)"></div>
-                                    <div class="field"><input type="text" placeholder="CVV"></div>
-                                    <div class="field full">
-                                        <select>
-                                            <option>DNI</option>
-                                        </select>
-                                    </div>
-                                    <div class="field full"><input type="text" placeholder="Número de documento"></div>
-                                </div>
+                                <p style="margin: 0;">Vas a ser redirigido a Mercado Pago para completar tu pago de
+                                    forma segura.</p>
                             </div>
                         </div>
 
@@ -338,128 +328,102 @@
                     </div>
                 </div>
 
-                <div *ngSwitchCase="4" class="success-screen">
-                    <div class="success-header">
-                        <div class="success-icon">✅</div>
-                        <h2>¡GRACIAS POR TU COMPRA, {{ orderCreated?.cliente_nombre | uppercase }}!</h2>
-                        <p class="order-id">Tu pedido <strong>#{{ orderCreated?.numero_pedido }}</strong> ha sido
-                            registrado.</p>
-                    </div>
+                <!-- STEP 4: SUCCESS SCREEN (REDESIGNED) -->
+                <div *ngSwitchCase="4" class="success-screen redesigned">
+                    <div class="success-two-col-layout">
+                        <!-- Left Panel: Success Message & Order Info -->
+                        <div class="success-left-panel">
+                            <div class="success-header-flex">
+                                <div class="success-icon-large">✅</div>
+                                <div class="success-text-group">
+                                    <h2>¡GRACIAS POR TU COMPRA, {{ orderCreated?.cliente_nombre | uppercase }}!</h2>
+                                    <p class="order-subtitle">Tu pedido ha sido registrado correctamente.</p>
+                                </div>
+                            </div>
 
-                    <div class="success-two-col">
-                        <!-- Left: Status/Thank you message area (Empty or brief) -->
-                        <div class="success-left">
-                            <i class="fas fa-shopping-bag main-bag-icon"></i>
-                            <p>¡Pronto nos pondremos en contacto con vos!</p>
+                            <div class="order-id-block">
+                                <span class="label">NÚMERO DE PEDIDO</span>
+                                <span class="value">#{{ orderCreated?.numero_pedido }}</span>
+                            </div>
+
+                            <div class="final-actions-left">
+                                <button class="btn-primary" routerLink="/productos">Seguir Comprando</button>
+                                <button class="btn-secondary" routerLink="/mis-pedidos">Ver Mis Pedidos</button>
+                            </div>
                         </div>
 
-                        <!-- Right: Instructions -->
-                        <div class="success-right">
-                            <div class="next-steps-container">
-
+                        <!-- Right Panel: Instructions -->
+                        <div class="success-right-panel">
+                            <div class="instructions-card">
                                 <!-- CASO 1: EFECTIVO EN EL LOCAL -->
-                                <!-- Check both slug and name just in case, or standarize. -->
-                                <div *ngIf="isPaymentMethod(orderCreated, 'efectivo_local')"
-                                    class="payment-instructions">
+                                <div *ngIf="isPaymentMethod(orderCreated, 'efectivo_local')">
                                     <h3>Pasos a seguir:</h3>
                                     <p>Para confirmar tu pedido, por favor hacé clic en el botón de abajo para enviarnos
                                         un WhatsApp con los detalles de tu compra.</p>
 
                                     <a [href]="getWhatsAppUrl(orderCreated)" target="_blank" class="btn-whatsapp">
-                                        <i class="fab fa-whatsapp"></i> ENVIAR MENSAJE PARA CONFIRMAR
+                                        <i class="fab fa-whatsapp"></i> ENVIAR MENSAJE
                                     </a>
-
-                                    <div class="msg-box">
-                                        <strong>Pedido:</strong> Retiro en el local y pago en efectivo<br>
-                                        <strong>Total:</strong> ${{ orderCreated?.total | number:'1.0-2' }}
-                                    </div>
                                 </div>
 
                                 <!-- CASO 2: TRANSFERENCIA -->
-                                <div *ngIf="isPaymentMethod(orderCreated, 'transferencia')"
-                                    class="payment-instructions centered">
+                                <div *ngIf="isPaymentMethod(orderCreated, 'transferencia')">
                                     <h3>Datos para la transferencia:</h3>
-                                    <div class="bank-details-card">
-                                        <p><strong>Banco:</strong> Mercado Pago</p>
-                                        <p><strong>Titular:</strong> Tomas Cruseno</p>
-                                        <p><strong>CVU:</strong> 0000003100068933152485</p>
-                                        <p><strong>Alias:</strong> el.vestuario.r4</p>
-                                        <p><strong>Monto a transferir:</strong> ${{ orderCreated?.total | number:'1.0-2'
-                                            }}</p>
+                                    <div class="bank-details-simple">
+                                        <div class="detail-row"><span>Banco:</span> <strong>Mercado Pago</strong></div>
+                                        <div class="detail-row"><span>Titular:</span> <strong>Tomas Cruseno</strong>
+                                        </div>
+                                        <div class="detail-row"><span>CVU:</span>
+                                            <strong>0000003100068933152485</strong></div>
+                                        <div class="detail-row"><span>Alias:</span> <strong>el.vestuario.r4</strong>
+                                        </div>
+                                        <div class="detail-row price"><span>Total:</span> <strong>${{
+                                                orderCreated?.total | number:'1.0-2' }}</strong></div>
                                     </div>
 
-                                    <p class="important-msg">⚠️ IMPORTANTE: Enviá el comprobante de transferencia por
-                                        WhatsApp a
-                                        cualquiera de nuestros números para confirmar tu pedido.</p>
+                                    <p class="important-note">⚠️ Enviá el comprobante por WhatsApp para confirmar.</p>
 
-                                    <div class="whatsapp-buttons">
-                                        <a href="https://wa.me/5493585164402" target="_blank"
-                                            class="btn-whatsapp-outline">Enviar a Número 1 (358-5164402)</a>
-                                        <a href="https://wa.me/5493584825640" target="_blank"
-                                            class="btn-whatsapp-outline">Enviar a Número 2 (358-4825640)</a>
+                                    <div class="whatsapp-group">
+                                        <a href="https://wa.me/5493585164402" target="_blank" class="btn-wa-sm">WhatsApp
+                                            1</a>
+                                        <a href="https://wa.me/5493584825640" target="_blank" class="btn-wa-sm">WhatsApp
+                                            2</a>
                                     </div>
                                 </div>
 
-                                <!-- CASO 3: EFECTIVO (RAPIPAGO/PAGO FACIL) -->
-                                <div *ngIf="isPaymentMethod(orderCreated, 'efectivo')" class="payment-instructions">
+                                <!-- CASO 3: EFECTIVO (RAPIPAGO) -->
+                                <div *ngIf="isPaymentMethod(orderCreated, 'efectivo')">
                                     <h3>Instrucciones de pago:</h3>
-                                    <p>Acercate a cualquier sucursal de <strong>Pago Fácil</strong> o
-                                        <strong>Rapipago</strong> e indicá el siguiente CVU para abonar:
-                                    </p>
+                                    <p>Pagá en <strong>Pago Fácil / Rapipago</strong> con este código:</p>
 
-                                    <div class="cvu-display-large">
-                                        <div class="cvu-segment">00000031</div>
-                                        <div class="cvu-segment">00068933</div>
-                                        <div class="cvu-segment">152485</div>
-                                    </div>
+                                    <div class="cvu-code-block">0000003100068933152485</div>
 
-                                    <div class="payment-details-summary">
-                                        <p><strong>Monto:</strong> ${{ orderCreated?.total | number:'1.0-2' }}</p>
-                                        <p><strong>Titular:</strong> Tomas Cruseno</p>
-                                    </div>
-
-                                    <p class="important-msg">⚠️ Una vez realizado el pago, envianos el comprobante por
-                                        WhatsApp.</p>
-
+                                    <p class="important-note">⚠️ Enviá el comprobante por WhatsApp al finalizar.</p>
                                     <a [href]="getWhatsAppUrl(orderCreated)" target="_blank" class="btn-whatsapp">
                                         <i class="fab fa-whatsapp"></i> ENVIAR COMPROBANTE
                                     </a>
                                 </div>
 
                                 <!-- CASO 4: TARJETA / MP -->
-                                <div *ngIf="isPaymentMethod(orderCreated, 'mercadopago')"
-                                    class="payment-instructions centered">
-                                    <h3>Ingresá al link, elegí cómo pagar, ¡y listo!</h3>
+                                <div *ngIf="isPaymentMethod(orderCreated, 'mercadopago')">
+                                    <h3>Completá tu pago</h3>
+                                    <p>Si no se abrió la pestaña de pago, usá el botón:</p>
 
-                                    <div style="margin: 25px 0;">
-                                        <a href="https://link.mercadopago.com.ar/elvestuarior4" target="_blank"
-                                            class="btn-whatsapp"
-                                            style="background: #009ee3; box-shadow: 0 4px 6px rgba(0, 158, 227, 0.3);">
-                                            IR A PAGAR AHORA
-                                        </a>
-                                    </div>
+                                    <a href="https://link.mercadopago.com.ar/elvestuarior4" target="_blank"
+                                        class="btn-mp-pay">
+                                        PAGAR AHORA CON MERCADO PAGO
+                                    </a>
 
-                                    <p class="important-msg"
-                                        style="background: #e6fffa; border-left: 4px solid #38b2ac; color: #2c7a7b;">
-                                        ⚠️ <strong>IMPORTANTE:</strong> Una vez que pagues con tarjeta, envianos el
-                                        comprobante a cualquiera de nuestros WhatsApp para confirmar el pedido.
-                                    </p>
-
-                                    <div class="whatsapp-buttons">
-                                        <a href="https://wa.me/5493585164402" target="_blank"
-                                            class="btn-whatsapp-outline">Enviar a Número 1 (358-5164402)</a>
-                                        <a href="https://wa.me/5493584825640" target="_blank"
-                                            class="btn-whatsapp-outline">Enviar a Número 2 (358-4825640)</a>
+                                    <p class="important-note">⚠️ Una vez pagado, enviá el comprobante por WhatsApp.</p>
+                                    <div class="whatsapp-group">
+                                        <a href="https://wa.me/5493585164402" target="_blank" class="btn-wa-sm">WhatsApp
+                                            1</a>
+                                        <a href="https://wa.me/5493584825640" target="_blank" class="btn-wa-sm">WhatsApp
+                                            2</a>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
-                    </div>
-
-                    <div class="final-actions-row">
-                        <button class="btn-primary" routerLink="/productos">Seguir Comprando</button>
-                        <button class="btn-secondary" routerLink="/mis-pedidos">Mis Pedidos</button>
                     </div>
                 </div>
 
