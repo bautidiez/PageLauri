@@ -384,10 +384,10 @@
                                         enviá el comprobante por WhatsApp para confirmar la compra.</p>
 
                                     <div class="whatsapp-group">
-                                        <a href="https://wa.me/5493585164402" target="_blank" class="btn-wa-sm">WhatsApp
-                                            1</a>
-                                        <a href="https://wa.me/5493584825640" target="_blank" class="btn-wa-sm">WhatsApp
-                                            2</a>
+                                        <a [href]="getWhatsAppUrl(orderCreated, 1)" target="_blank"
+                                            class="btn-wa-sm">WhatsApp 1</a>
+                                        <a [href]="getWhatsAppUrl(orderCreated, 2)" target="_blank"
+                                            class="btn-wa-sm">WhatsApp 2</a>
                                     </div>
                                 </div>
 
@@ -410,10 +410,10 @@
                                     <p class="important-note">⚠️ Enviá el comprobante por WhatsApp para confirmar.</p>
 
                                     <div class="whatsapp-group">
-                                        <a href="https://wa.me/5493585164402" target="_blank" class="btn-wa-sm">WhatsApp
-                                            1</a>
-                                        <a href="https://wa.me/5493584825640" target="_blank" class="btn-wa-sm">WhatsApp
-                                            2</a>
+                                        <a [href]="getWhatsAppUrl(orderCreated, 1)" target="_blank"
+                                            class="btn-wa-sm">WhatsApp 1</a>
+                                        <a [href]="getWhatsAppUrl(orderCreated, 2)" target="_blank"
+                                            class="btn-wa-sm">WhatsApp 2</a>
                                     </div>
                                 </div>
 
@@ -440,10 +440,10 @@
                                         WhatsApp.</p>
 
                                     <div class="whatsapp-group">
-                                        <a href="https://wa.me/5493585164402" target="_blank" class="btn-wa-sm">WhatsApp
-                                            1</a>
-                                        <a href="https://wa.me/5493584825640" target="_blank" class="btn-wa-sm">WhatsApp
-                                            2</a>
+                                        <a [href]="getWhatsAppUrl(orderCreated, 1)" target="_blank"
+                                            class="btn-wa-sm">WhatsApp 1</a>
+                                        <a [href]="getWhatsAppUrl(orderCreated, 2)" target="_blank"
+                                            class="btn-wa-sm">WhatsApp 2</a>
                                     </div>
                                 </div>
 
@@ -558,7 +558,7 @@
                     <!-- Version Marker -->
                     <div class="version-marker"
                         style="font-size: 10px; color: #ccc; text-align: right; margin-top: 10px;">
-                        v1.1 - Payment Fixes Applied
+                        v1.2 - Refined Messages & Flows
                     </div>
                 </div>
             </div>

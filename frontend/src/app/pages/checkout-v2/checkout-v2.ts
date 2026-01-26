@@ -410,17 +410,28 @@ export class CheckoutV2Component implements OnInit {
         }
     }
 
-    getWhatsAppUrl(order: any): string {
+    getWhatsAppUrl(order: any, numberIndex: 1 | 2 = 1): string {
         if (!order) return '';
-        const phone = '5493585164402'; // Updated to number 1
+        const phone = numberIndex === 1 ? '5493585164402' : '5493584825640';
         let msg = '';
-        const method = order.metodo_pago_nombre?.toLowerCase() || '';
 
         if (this.isPaymentMethod(order, 'efectivo_local')) {
-            msg = `Hola! Hice el pedido #${order.numero_pedido} con Retiro en el Local y pago en Efectivo. \nTotal: $${order.total}. \n¡Quiero confirmar mi pedido! ¿Qué horarios tienen?`;
+            // Requirement: Detalle de la compra, Medio de pago, Modo de envío, Total
+            const itemsList = order.items?.map((i: any) => `- ${i.producto_nombre} (${i.talle_nombre}) x${i.cantidad}`).join('\n') || '';
+            const envioMethod = order.envio?.transportista || 'Retiro en Local';
+
+            msg = `Hola! Hice el pedido #${order.numero_pedido}.\n\n*Detalle de la compra:*\n${itemsList}\n\n*Medio de pago:* Efectivo en el local\n*Modo de envío:* ${envioMethod}\n*Total:* $${order.total}\n\n¡Quiero confirmar mi pedido! ¿Qué horarios tienen?`;
         } else if (this.isPaymentMethod(order, 'efectivo')) {
-            msg = `Hola! Hice el pedido #${order.numero_pedido}. Ya realicé el pago en Rapipago/Pago Fácil. Adjunto comprobante. Total: $${order.total}`;
+            // Rapipago/Pago Facil
+            msg = `Hola! Hice el pedido #${order.numero_pedido}. Ya realicé el pago en Rapipago/Pago Fácil. Adjunto comprobante.\nTotal: $${order.total}`;
+        } else if (this.isPaymentMethod(order, 'mercadopago')) {
+            // Tarjeta / MP
+            msg = `Hola! Hice el pedido #${order.numero_pedido}. Ya realicé el pago con Tarjeta (Mercado Pago). Adjunto comprobante para confirmar.\nTotal: $${order.total}`;
+        } else if (this.isPaymentMethod(order, 'transferencia')) {
+            // Transferencia
+            msg = `Hola! Hice el pedido #${order.numero_pedido}. Ya realicé la transferencia. Adjunto comprobante.\nTotal: $${order.total}`;
         } else {
+            // Fallback
             msg = `Hola! Hice el pedido #${order.numero_pedido}. Adjunto comprobante de pago. Total: $${order.total}`;
         }
 
