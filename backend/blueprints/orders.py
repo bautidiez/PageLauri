@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import db, Pedido, ItemPedido, Producto, Shipment, TrackingUpdate
+from models import db, Pedido, ItemPedido, Producto, Shipment, TrackingUpdate, MetodoPago
 from datetime import datetime, timedelta
 import uuid
 
@@ -12,6 +12,27 @@ def create_order():
         # Generar número de pedido único
         numero_pedido = f"EV-{uuid.uuid4().hex[:8].upper()}"
         
+        # Resolver ID de método de pago
+        metodo_pago_str = data.get('metodo_pago')
+        metodo_pago_id = 1 # Default fallback (ideally should be a valid ID like Transferencia)
+        
+        if metodo_pago_str:
+            # Mapa de frontend keys a backend names
+            map_pago = {
+                'mercadopago_card': 'mercadopago',
+                'efectivo': 'efectivo', 
+                'efectivo_local': 'efectivo_local',
+                'transferencia': 'transferencia'
+            }
+            db_name = map_pago.get(metodo_pago_str, metodo_pago_str)
+            mp_obj = MetodoPago.query.filter(MetodoPago.nombre.ilike(db_name)).first()
+            if mp_obj:
+                metodo_pago_id = mp_obj.id
+            else:
+                # Try finding default 'transferencia' if not found
+                def_mp = MetodoPago.query.filter_by(nombre='transferencia').first()
+                if def_mp: metodo_pago_id = def_mp.id
+
         nuevo_pedido = Pedido(
             numero_pedido=numero_pedido,
             cliente_nombre=data['cliente_nombre'],
@@ -22,7 +43,7 @@ def create_order():
             cliente_localidad=data['ciudad'],
             cliente_provincia=data['provincia'],
             cliente_dni=data.get('dni'),
-            metodo_pago_id=data.get('metodo_pago_id', 1), # Default o mapeado
+            metodo_pago_id=metodo_pago_id, 
             metodo_envio=data.get('metodo_envio'),
             subtotal=data['subtotal'],
             descuento=data.get('descuento', 0),
