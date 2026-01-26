@@ -134,11 +134,13 @@ export class ProductosComponent implements OnInit, OnDestroy {
     // For now, getCategoryIdFromSlug returns the first match.
 
     if (slug) {
-      const categoryId = this.getCategoryIdFromSlug(slug);
+      const decodedSlug = decodeURIComponent(slug);
+      const categoryId = this.getCategoryIdFromSlug(decodedSlug);
+
       if (categoryId) {
         this.filtros.categoria_id = categoryId;
       } else {
-        console.warn('Slug not found:', slug);
+        console.warn('Slug not found:', slug, 'Decoded:', decodedSlug);
         // Optionally try to find by ID if slug is numeric (fallback)
         if (!isNaN(+slug)) {
           this.filtros.categoria_id = +slug;

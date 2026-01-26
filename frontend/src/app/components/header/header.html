@@ -61,7 +61,7 @@
                   <hr class="mega-divider">
                   <div *ngFor="let cat of categoriasTree" class="mega-item hierarchical-item"
                     [class.active]="activeCategory?.id === cat.id" (mouseenter)="setActiveCategory(cat)"
-                    [routerLink]="['/categoria', cat.slug]" (click)="closeProductsMenuNow()">
+                    [routerLink]="['/categoria', cat.slug || cat.id]" (click)="closeProductsMenuNow()">
                     {{ cat.nombre }}
                     <span class="arrow" *ngIf="cat.subcategorias && cat.subcategorias.length > 0">›</span>
                   </div>
@@ -70,7 +70,8 @@
                 <!-- Columna 2: Subcategorías (Dinámica) -->
                 <div class="mega-column sub-cats" *ngIf="activeCategory?.subcategorias?.length > 0">
                   <div *ngFor="let sub of activeCategory.subcategorias" class="mega-item sub-item"
-                    [routerLink]="['/categoria', activeCategory.slug, sub.slug]" (click)="closeProductsMenuNow()">
+                    [routerLink]="['/categoria', activeCategory.slug || activeCategory.id, sub.slug || sub.id]"
+                    (click)="closeProductsMenuNow()">
                     {{ sub.nombre }}
                   </div>
                 </div>
