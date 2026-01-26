@@ -7,70 +7,76 @@ class ShippingService:
     @staticmethod
     def calculate_cost(zip_code, items=None):
         """
-        Lógica para calcular costos de envío usando proveedores reales.
+        Lógica completa de cotización desde Río Cuarto (CP 5800).
         """
         try:
             zip_code_val = int(zip_code)
-        except ValueError:
+        except (ValueError, TypeError):
             logger.error(f"ZIP code inválido: {zip_code}")
             return []
 
+        # 1. Calcular peso y dimensiones agregadas
+        total_weight = 0
+        max_length = 0
+        max_width = 0
+        total_height = 0
+        
+        if not items:
+            # Fallback a un bulto standard si no hay items definidos
+            total_weight = 0.5
+            dimensions = {"length": 30, "width": 20, "height": 5}
+        else:
+            for item in items:
+                nombre = item.get('producto', {}).get('nombre', '').lower()
+                cantidad = item.get('cantidad', 1)
+                
+                # Criterio según requerimiento
+                if 'remera' in nombre:
+                    w = 0.30
+                    l, wd, h = 30, 20, 2 # cm
+                elif 'short' in nombre:
+                    w = 0.20
+                    l, wd, h = 25, 15, 2
+                else:
+                    w = 0.25
+                    l, wd, h = 25, 20, 2
+                
+                total_weight += (w * cantidad)
+                max_length = max(max_length, l)
+                max_width = max(max_width, wd)
+                total_height += (h * cantidad)
+            
+            # Margen mínimo de empaque
+            total_height = max(total_height, 2)
+            dimensions = {
+                "length": max_length,
+                "width": max_width,
+                "height": total_height
+            }
+
         results = []
         
-        # Proveedores
+        # 2. Consultar proveedores
         providers = [
             AndreaniProvider(),
-            CorreoArgentinoProvider(),
-            TiendaNubeProvider()
+            CorreoArgentinoProvider()
         ]
         
         for provider in providers:
             try:
-                rates = provider.calculate_rates(zip_code_val)
+                rates = provider.calculate_rates(zip_code_val, weight=total_weight, dimensions=dimensions)
                 results.extend(rates)
             except Exception as e:
                 logger.error(f"Error en provider {type(provider).__name__}: {str(e)}")
 
-        # Asegurar que siempre haya una opción de "Correo" y "Andreani" si las APIs no devolvieron nada real
-        has_andreani = any('andreani' in opt['id'] for opt in results)
-        has_correo = any('correo_argentino' in opt['id'] for opt in results)
+        # 3. Opción de Retiro en local (Río Cuarto)
+        # Siempre disponible si el CP es 5800 o si queremos ofrecerla siempre
+        results.append({
+            "id": "retiro_local",
+            "nombre": "Retiro en Local (Río Cuarto)",
+            "costo": 0,
+            "tiempo_estimado": "Inmediato - Te avisaremos por WhatsApp"
+        })
         
-        if not has_correo:
-            results.append({
-                "id": "correo_argentino_domicilio_fallback",
-                "nombre": "Correo Argentino (Envío a Domicilio)",
-                "costo": 5500 if zip_code_val < 2000 else 7500,
-                "tiempo_estimado": "5 a 8 días hábiles"
-            })
-            results.append({
-                "id": "correo_argentino_sucursal_fallback",
-                "nombre": "Correo Argentino (Retiro en Sucursal)",
-                "costo": 4800 if zip_code_val < 2000 else 6600,
-                "tiempo_estimado": "3 a 5 días hábiles"
-            })
-            
-        if not has_andreani:
-            results.append({
-                "id": "andreani_sucursal_fallback",
-                "nombre": "Andreani (Retiro en Sucursal)",
-                "costo": 5000 if zip_code_val < 2000 else 6900,
-                "tiempo_estimado": "2 a 4 días hábiles"
-            })
-            results.append({
-                "id": "andreani_domicilio_fallback",
-                "nombre": "Andreani (Envío a Domicilio)",
-                "costo": 5800 if zip_code_val < 2000 else 7900,
-                "tiempo_estimado": "3 a 5 días hábiles"
-            })
-
-        # Opción siempre presente: Retiro en local
-        if not any('retiro' in opt['id'] for opt in results):
-            results.append({
-                "id": "retiro_local",
-                "nombre": "Retiro en Local (Gratis)",
-                "costo": 0,
-                "tiempo_estimado": "Inmediato - Te avisaremos por WhatsApp"
-            })
-        
-        # Ordenar por costo para el cliente
+        # 4. Ordenar y devolver
         return sorted(results, key=lambda x: x['costo'])

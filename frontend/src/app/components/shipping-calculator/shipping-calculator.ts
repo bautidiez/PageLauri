@@ -13,6 +13,7 @@ import { PickupPointsModalComponent, PuntoRetiro } from '../pickup-points-modal/
 })
 export class ShippingCalculatorComponent {
     @Input() precioBase: number = 0;
+    @Input() items: any[] = [];
 
     codigoPostal: string = '';
     codigoPostalCalculado: string = ''; // CP actualmente calculado
@@ -60,7 +61,8 @@ export class ShippingCalculatorComponent {
         // Llamar a la API una sola vez para obtener todo
         this.apiService.calcularEnvio({
             codigo_postal: this.codigoPostal,
-            provincia: 'Buenos Aires'
+            provincia: '', // Opcional
+            items: this.items
         }).subscribe({
             next: (res) => {
                 const options = Array.isArray(res) ? res : [res];

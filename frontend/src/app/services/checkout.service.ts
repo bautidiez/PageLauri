@@ -22,8 +22,8 @@ export class CheckoutService {
     }
 
     // Cálculo de Envío
-    calcularEnvio(codigo_postal: string): Observable<any[]> {
-        return this.http.post<any[]>(`${this.apiUrl}/envios/calcular`, { codigo_postal });
+    calcularEnvio(codigo_postal: string, items: any[] = []): Observable<any[]> {
+        return this.http.post<any[]>(`${this.apiUrl}/envios/calcular`, { codigo_postal, items });
     }
 
     // Gestión de Pedidos

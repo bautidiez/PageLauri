@@ -188,7 +188,7 @@ export class CheckoutV2Component implements OnInit {
         this.loading = true;
         this.isCalculatingShipping = true;
 
-        this.checkoutService.calcularEnvio(cp).subscribe({
+        this.checkoutService.calcularEnvio(cp, this.items).subscribe({
             next: (options) => {
                 this.zone.run(() => {
                     this.shippingOptions = options;
