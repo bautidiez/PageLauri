@@ -221,7 +221,9 @@ export class ProductosComponent implements OnInit, OnDestroy {
     }
 
     // Si no se encuentra, usar PRODUCTOS por defecto
-    this.tituloActual = 'PRODUCTOS';
+    const slugParams = this.route.snapshot.params['slug'];
+    const mapSize = Object.keys(this.categorySlugMap).length;
+    this.tituloActual = `PRODUCTOS (ID:${categoriaId} Slug:${slugParams} Map:${mapSize})`;
   }
 
   loadProductos() {

@@ -53,7 +53,7 @@ def get_producto(id):
 # ==================== CATEGORÍAS ====================
 
 @store_public_bp.route('/api/categorias', methods=['GET'])
-@cached(ttl_seconds=3600)
+# @cached(ttl_seconds=3600)
 def get_categorias():
     include_subs = request.args.get('incluir_subcategorias', 'true') == 'true'
     padre_id = request.args.get('categoria_padre_id', type=int)
@@ -69,7 +69,7 @@ def get_categorias():
     return jsonify([c.to_dict(include_subcategorias=include_subs) for c in categorias]), 200
 
 @store_public_bp.route('/api/categorias/tree', methods=['GET'])
-@cached(ttl_seconds=3600)
+# @cached(ttl_seconds=1) # Disabled cache temporarily to debug
 def get_categorias_tree():
     try:
         categorias_raiz = Categoria.query.filter_by(categoria_padre_id=None).order_by(Categoria.orden).all()
