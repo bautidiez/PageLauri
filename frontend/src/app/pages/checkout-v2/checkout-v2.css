@@ -358,24 +358,23 @@
     padding: 20px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    /* Force left align for everything */
     gap: 15px;
     cursor: pointer;
     background: #fff;
     transition: background 0.2s;
     flex-wrap: nowrap;
-    /* Force single line */
 }
 
-/* Force radio group to take available space but keep content generic */
+/* Force radio group to take minimal space, just for radio and title */
 .payment-radio-group {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    /* Ensure left align */
     gap: 12px;
-    /* Reduce gap slightly */
-    flex: 1;
+    flex: 0 0 auto;
+    /* Don't grow indefinitely */
 }
 
 .payment-name {
@@ -384,9 +383,31 @@
     font-size: 15px;
     white-space: nowrap;
     text-align: left;
-    /* Ensure text aligns left */
     margin: 0;
-    /* Remove potential margins */
+}
+
+.price-info {
+    font-weight: 700;
+    color: #2d3748;
+    white-space: nowrap;
+    margin-left: 20px;
+    /* Small gap before price */
+    font-size: 16px;
+}
+
+.badge {
+    background: #e6fffa;
+    color: #38b2ac;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border: 1px solid #b2f5ea;
+    white-space: nowrap;
+    margin-left: 5px;
+    /* Spacing from title or price */
 }
 
 /* Badge Adjustment: If we want it left of description but right of radio? 

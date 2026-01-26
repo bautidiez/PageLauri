@@ -244,7 +244,8 @@
                 <div *ngSwitchCase="3" class="step-content" [formGroup]="pagoForm">
                     <h3 class="section-title">MEDIO DE PAGO</h3>
                     <div class="payment-accordion">
-                        <!-- Efectivo en el local (MOVED TO TOP) -->
+
+                        <!-- Efectivo en el local -->
                         <div class="payment-item">
                             <label class="payment-header">
                                 <div class="payment-radio-group">
@@ -268,7 +269,7 @@
                                 <div class="payment-radio-group">
                                     <input type="radio" formControlName="metodo" value="mercadopago_card"
                                         (change)="updateDiscount()">
-                                    <span class="payment-name">Tarjeta de crédito o ábito</span>
+                                    <span class="payment-name">Tarjeta de crédito o débito</span>
                                     <span class="badge gray">Hasta 3 cuotas sin interés</span>
                                 </div>
                                 <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('mercadopago_card') |
@@ -355,18 +356,42 @@
                         <!-- Right Panel: Instructions -->
                         <div class="success-right-panel">
                             <div class="instructions-card">
+
                                 <!-- CASO 1: EFECTIVO EN EL LOCAL -->
                                 <div *ngIf="isPaymentMethod(orderCreated, 'efectivo_local')">
-                                    <h3>Pasos a seguir:</h3>
-                                    <p>Para confirmar tu pedido, por favor hacé clic en el botón de abajo para enviarnos
-                                        un WhatsApp con los detalles de tu compra.</p>
+                                    <h3>Pago en efectivo en el local</h3>
+                                    <p class="important-note"
+                                        style="border-left: 4px solid #48bb78; background: #f0fff4; color: #276749;">
+                                        Presentate en nuestro local para abonar y retirar tu pedido.
+                                    </p>
 
                                     <a [href]="getWhatsAppUrl(orderCreated)" target="_blank" class="btn-whatsapp">
-                                        <i class="fab fa-whatsapp"></i> ENVIAR MENSAJE
+                                        <i class="fab fa-whatsapp"></i> ENVIAR MENSAJE POR WHATSAPP
                                     </a>
                                 </div>
 
-                                <!-- CASO 2: TRANSFERENCIA -->
+                                <!-- CASO 2: TARJETA / MP -->
+                                <div *ngIf="isPaymentMethod(orderCreated, 'mercadopago')">
+                                    <h3>Pagá con Mercado Pago</h3>
+                                    <p>Si todavía no pagaste, hacé click acá:</p>
+
+                                    <a href="https://link.mercadopago.com.ar/elvestuarior4" target="_blank"
+                                        class="btn-mp-pay">
+                                        IR A PAGAR AHORA
+                                    </a>
+
+                                    <p class="important-note">⚠️ <strong>IMPORTANTE:</strong> Una vez realizado el pago,
+                                        enviá el comprobante por WhatsApp para confirmar la compra.</p>
+
+                                    <div class="whatsapp-group">
+                                        <a href="https://wa.me/5493585164402" target="_blank" class="btn-wa-sm">WhatsApp
+                                            1</a>
+                                        <a href="https://wa.me/5493584825640" target="_blank" class="btn-wa-sm">WhatsApp
+                                            2</a>
+                                    </div>
+                                </div>
+
+                                <!-- CASO 3: TRANSFERENCIA -->
                                 <div *ngIf="isPaymentMethod(orderCreated, 'transferencia')">
                                     <h3>Datos para la transferencia:</h3>
                                     <div class="bank-details-simple">
@@ -391,31 +416,28 @@
                                     </div>
                                 </div>
 
-                                <!-- CASO 3: EFECTIVO (RAPIPAGO) -->
+                                <!-- CASO 4: EFECTIVO (RAPIPAGO) -->
                                 <div *ngIf="isPaymentMethod(orderCreated, 'efectivo')">
-                                    <h3>CVU para Rapipago / Pago Fácil:</h3>
+                                    <h3 style="font-size: 16px; margin-bottom: 10px; color: #718096;">CVU para Rapipago
+                                        / Pago Fácil:</h3>
 
-                                    <div class="cvu-code-block">0000003100068933152485</div>
-                                    <p style="text-align: center; color: #718096; margin-bottom: 20px;">Dictale este
-                                        número al cajero para realizar el pago.</p>
+                                    <div class="cvu-code-block" style="font-size: 28px; margin: 15px 0;">
+                                        0000003100068933152485</div>
+                                    <p
+                                        style="text-align: center; color: #4a5568; margin-bottom: 25px; font-weight: 600;">
+                                        ⚠️ Dictale este número al cajero para realizar el pago.</p>
 
-                                    <p class="important-note">⚠️ Enviá el comprobante por WhatsApp al finalizar.</p>
-                                    <a [href]="getWhatsAppUrl(orderCreated)" target="_blank" class="btn-whatsapp">
-                                        <i class="fab fa-whatsapp"></i> ENVIAR COMPROBANTE
-                                    </a>
-                                </div>
+                                    <table style="width: 100%; margin-bottom: 20px; font-size: 16px;">
+                                        <tr>
+                                            <td style="color: #718096;">Monto Total:</td>
+                                            <td style="text-align: right; font-weight: 800; font-size: 20px;">${{
+                                                orderCreated?.total | number:'1.0-2' }}</td>
+                                        </tr>
+                                    </table>
 
-                                <!-- CASO 4: TARJETA / MP -->
-                                <div *ngIf="isPaymentMethod(orderCreated, 'mercadopago')">
-                                    <h3>Completá tu pago</h3>
-                                    <p>Si no se abrió la pestaña de pago, usá el botón:</p>
+                                    <p class="important-note">Una vez realizado el pago, enviá el comprobante por
+                                        WhatsApp.</p>
 
-                                    <a href="https://link.mercadopago.com.ar/elvestuarior4" target="_blank"
-                                        class="btn-mp-pay">
-                                        PAGAR AHORA CON MERCADO PAGO
-                                    </a>
-
-                                    <p class="important-note">⚠️ Una vez pagado, enviá el comprobante por WhatsApp.</p>
                                     <div class="whatsapp-group">
                                         <a href="https://wa.me/5493585164402" target="_blank" class="btn-wa-sm">WhatsApp
                                             1</a>
@@ -423,6 +445,7 @@
                                             2</a>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -530,6 +553,11 @@
                             </span>
                         </div>
                         <button class="remove-coupon" (click)="appliedCoupon = null; couponSuccess = ''">✕</button>
+                    </div>
+                    <!-- Version Marker -->
+                    <div class="version-marker"
+                        style="font-size: 10px; color: #ccc; text-align: right; margin-top: 10px;">
+                        v1.0.9 - UI Refinements
                     </div>
                 </div>
             </div>
