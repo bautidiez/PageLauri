@@ -405,7 +405,7 @@ export class CheckoutV2Component implements OnInit {
 
     getWhatsAppUrl(order: any): string {
         if (!order) return '';
-        const phone = '5493564639908'; // Default number
+        const phone = '5493585164402'; // Updated to number 1
         let msg = '';
         const method = order.metodo_pago_nombre?.toLowerCase() || '';
 
