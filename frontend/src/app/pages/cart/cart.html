@@ -34,8 +34,10 @@
             <button (click)="updateQuantity(i, item.cantidad + 1)">+</button>
           </div>
           <div class="item-total">
-            <p class="item-total-final">${{ (item.precio_unitario * item.cantidad) - (item.descuento || 0) |
-              number:'1.0-0' }}</p>
+            <!-- Debug: v1.0.8 -->
+            <p class="item-total-final" [attr.data-discount]="item.descuento">
+              ${{ (item.precio_unitario * item.cantidad) - (item.descuento || 0) | number:'1.0-0' }}
+            </p>
             <p class="item-total-original" *ngIf="item.descuento && item.descuento > 0">
               ${{ (item.precio_unitario * item.cantidad) | number:'1.0-0' }}
             </p>
@@ -66,9 +68,8 @@
           <span class="promo-label">O con transferencia/efectivo: <strong>¡15% OFF!</strong></span>
           <span class="transfer-val">${{ getPrecioConTransferencia() | number:'1.2-2' }}</span>
         </div>
-        <!-- Version Marker -->
         <div class="version-marker" style="font-size: 10px; color: #ccc; text-align: right; margin-top: 10px;">
-          v1.0.5 - 15% Discount Active
+          v1.0.8 - Debugging Line Totals
         </div>
         <div id="login-required-msg" *ngIf="showLoginError" class="login-error-msg">
           <p>⚠️ Para finalizar tu compra, por favor <strong>inicia sesión</strong> o <strong>crea una cuenta</strong>.

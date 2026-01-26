@@ -446,7 +446,8 @@
                         <img [src]="getFormattedImageUrl(item.producto.imagenes[0]?.url)">
                         <div class="mini-details">
                             <span>{{ item.producto.nombre }} x {{ item.cantidad }}</span>
-                            <strong>${{ (item.precio_unitario * item.cantidad) | number:'1.0-0' }}</strong>
+                            <strong>${{ (item.precio_unitario * item.cantidad) - (item.descuento || 0) | number:'1.0-0'
+                                }}</strong>
                         </div>
                     </div>
                 </div>
@@ -537,8 +538,8 @@
                     </div>
                     <!-- Version Marker -->
                     <div class="version-marker"
-                        style="font-size: 10px; color: #ccc; text-align: right; margin-top: 15px;">
-                        v1.0.6 - 15% Discount Active
+                        style="font-size: 10px; color: #ccc; text-align: right; margin-top: 10px;">
+                        v1.0.7 - Total Formula Fixed
                     </div>
                 </div>
             </div>
