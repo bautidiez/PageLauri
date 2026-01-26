@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -35,7 +35,7 @@ export class HeaderComponent implements OnInit {
     private authService: AuthService,
     private apiService: ApiService,
     private el: ElementRef,
-    private cdr: import('@angular/core').ChangeDetectorRef
+    private cdr: ChangeDetectorRef
   ) {
     this.cartTotal$ = this.cartService.total$;
   }

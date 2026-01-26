@@ -37,10 +37,11 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/auth/login`, { username, password });
   }
 
-  loginUnified(credenciales: { identifier: string, password: string }): Observable<any> {
+  loginUnified(credenciales: { identifier: string, password: string, recaptcha_token?: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/login-unified`, {
       identifier: credenciales.identifier,
-      password: credenciales.password
+      password: credenciales.password,
+      recaptcha_token: credenciales.recaptcha_token
     });
   }
 
