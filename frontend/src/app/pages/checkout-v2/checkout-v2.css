@@ -358,24 +358,30 @@
     padding: 20px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 15px;
     cursor: pointer;
     background: #fff;
     transition: background 0.2s;
-    flex-wrap: wrap;
-    /* Para mobile */
+    flex-wrap: nowrap;
+    /* Force single line */
 }
 
+/* Force radio group to take available space but keep content generic */
 .payment-radio-group {
     display: flex;
     align-items: center;
     gap: 15px;
+    flex: 1;
+    /* Allow it to grow */
 }
 
 .payment-name {
     font-weight: 600;
     color: #1a202c;
     font-size: 15px;
+    white-space: nowrap;
+    /* Prevent wrapping name */
 }
 
 /* Badge Adjustment: If we want it left of description but right of radio? 
@@ -384,8 +390,9 @@
    User said: "fijate los que tiene 15%off esten a la ziquierda del precio" -> To the left of the price.
    Current structure in HTML: RadioWrapper [Input + Span(Name)] + Badge + PriceInfo.
    So Badge IS to the left of price logically in flex container.
-   Maybe they want it CLOSER to the name or right after the name?
-   Let's check HTML structure again.
+   Maybe they want it IMMEDIATELY to the right of the name?
+   Or "Left aligned together with payment method name"?
+   Let's try to put the badge INSIDE the radio-wrapper or just margin-right auto to push price to right?
    
    HTML:
    <label class="payment-header">
@@ -400,8 +407,6 @@
    It is already to the left of the price. Maybe user means "Immediately to the right of the name"?
    Or "Left aligned together with payment method name"?
    Let's try to put the badge INSIDE the radio-wrapper or just margin-right auto to push price to right?
-   
-   Let's adjust .radio-wrapper to include the badge visually or make Badge flex-grow 0 and margin-right auto.
 */
 
 .badge {
@@ -426,6 +431,20 @@
     font-size: 14px;
     margin-left: auto;
     white-space: nowrap;
+}
+
+/* Postal Code Link */
+.cp-help-link {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #3182ce;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.cp-help-link:hover {
+    color: #2b6cb0;
 }
 
 /* New Confirmation Page Styles */

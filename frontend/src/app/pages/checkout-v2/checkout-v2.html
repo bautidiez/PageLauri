@@ -89,6 +89,8 @@
                                         {{ loading ? '...' : 'Calcular' }}
                                     </button>
                                 </div>
+                                <a href="https://www.correoargentino.com.ar/formularios/cpa" target="_blank"
+                                    class="cp-help-link">No sé mi código postal</a>
                                 <div class="shipping-loading-message" *ngIf="loading">
                                     <i class="fas fa-spinner fa-spin"></i> Calculando opciones de envío...
                                 </div>
@@ -322,18 +324,6 @@
                             </div>
                         </div>
 
-                        <!-- MP -->
-                        <div class="payment-item">
-                            <label class="payment-header">
-                                <div class="payment-radio-group">
-                                    <input type="radio" formControlName="metodo" value="mercadopago"
-                                        (change)="updateDiscount()">
-                                    <span class="payment-name">Mercado Pago</span>
-                                </div>
-                                <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('mercadopago') |
-                                    number:'1.2-2' }}</span>
-                            </label>
-                        </div>
                     </div>
 
                     <div class="actions">
@@ -436,14 +426,27 @@
                                 <!-- CASO 4: TARJETA / MP -->
                                 <div *ngIf="isPaymentMethod(orderCreated, 'mercadopago')"
                                     class="payment-instructions centered">
-                                    <p>El pago se procesó correctamente.</p>
-                                    <p>Por cualquier duda, podés enviarnos el comprobante o consultarnos a nuestros
-                                        números:</p>
+                                    <h3>Ingresá al link, elegí cómo pagar, ¡y listo!</h3>
+
+                                    <div style="margin: 25px 0;">
+                                        <a href="https://link.mercadopago.com.ar/elvestuarior4" target="_blank"
+                                            class="btn-whatsapp"
+                                            style="background: #009ee3; box-shadow: 0 4px 6px rgba(0, 158, 227, 0.3);">
+                                            IR A PAGAR AHORA
+                                        </a>
+                                    </div>
+
+                                    <p class="important-msg"
+                                        style="background: #e6fffa; border-left: 4px solid #38b2ac; color: #2c7a7b;">
+                                        ⚠️ <strong>IMPORTANTE:</strong> Una vez que pagues con tarjeta, envianos el
+                                        comprobante a cualquiera de nuestros WhatsApp para confirmar el pedido.
+                                    </p>
+
                                     <div class="whatsapp-buttons">
                                         <a href="https://wa.me/5493585164402" target="_blank"
-                                            class="btn-whatsapp-outline">Contacto 1</a>
+                                            class="btn-whatsapp-outline">Enviar a Número 1 (358-5164402)</a>
                                         <a href="https://wa.me/5493584825640" target="_blank"
-                                            class="btn-whatsapp-outline">Contacto 2</a>
+                                            class="btn-whatsapp-outline">Enviar a Número 2 (358-4825640)</a>
                                     </div>
                                 </div>
 

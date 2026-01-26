@@ -356,6 +356,13 @@ export class CheckoutV2Component implements OnInit {
                 this.zone.run(() => {
                     this.orderCreated = order;
                     this.cartService.clearCart();
+
+                    // Auto-open MP link if card payment
+                    if (pedidoData.metodo_pago === 'mercadopago_card') {
+                        const mpLink = 'https://link.mercadopago.com.ar/elvestuarior4';
+                        window.open(mpLink, '_blank');
+                    }
+
                     this.currentStep = 4;
                     this.loading = false;
                     // Force full application check
