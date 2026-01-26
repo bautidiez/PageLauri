@@ -393,10 +393,11 @@
 
                                 <!-- CASO 3: EFECTIVO (RAPIPAGO) -->
                                 <div *ngIf="isPaymentMethod(orderCreated, 'efectivo')">
-                                    <h3>Instrucciones de pago:</h3>
-                                    <p>Pagá en <strong>Pago Fácil / Rapipago</strong> con este código:</p>
+                                    <h3>CVU para Rapipago / Pago Fácil:</h3>
 
                                     <div class="cvu-code-block">0000003100068933152485</div>
+                                    <p style="text-align: center; color: #718096; margin-bottom: 20px;">Dictale este
+                                        número al cajero para realizar el pago.</p>
 
                                     <p class="important-note">⚠️ Enviá el comprobante por WhatsApp al finalizar.</p>
                                     <a [href]="getWhatsAppUrl(orderCreated)" target="_blank" class="btn-whatsapp">
@@ -529,11 +530,6 @@
                             </span>
                         </div>
                         <button class="remove-coupon" (click)="appliedCoupon = null; couponSuccess = ''">✕</button>
-                    </div>
-                    <!-- Version Marker -->
-                    <div class="version-marker"
-                        style="font-size: 10px; color: #ccc; text-align: right; margin-top: 10px;">
-                        v1.0.7 - Total Formula Fixed
                     </div>
                 </div>
             </div>

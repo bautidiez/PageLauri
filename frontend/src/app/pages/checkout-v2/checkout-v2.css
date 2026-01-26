@@ -458,6 +458,11 @@
     overflow: hidden;
     background: #fff;
     border: 1px solid #e2e8f0;
+    /* Center the card itself in the container */
+    max-width: 900px;
+    margin: 50px auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    /* Stronger shadow for popout effect */
 }
 
 .success-two-col-layout {
@@ -468,15 +473,17 @@
 @media (min-width: 768px) {
     .success-two-col-layout {
         flex-direction: row;
-        min-height: 500px;
+        min-height: 550px;
+        /* Slightly taller */
     }
 }
 
 /* Left Panel */
 .success-left-panel {
-    flex: 1;
+    flex: 0.8;
+    /* Make left smaller relative to right */
     background: #f8fafc;
-    padding: 40px;
+    padding: 50px 40px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -552,14 +559,24 @@
 /* Right Panel */
 .success-right-panel {
     flex: 1.2;
-    padding: 40px;
+    padding: 50px;
+    /* More padding */
     background: #fff;
+    display: flex;
+    align-items: center;
+    /* Center content vertically */
+}
+
+.instructions-card {
+    width: 100%;
 }
 
 .instructions-card h3 {
-    margin: 0 0 20px 0;
-    font-size: 18px;
-    font-weight: 700;
+    margin: 0 0 30px 0;
+    font-size: 20px;
+    /* Larger title */
+    font-weight: 800;
+    text-transform: uppercase;
     color: #2d3748;
     padding-bottom: 15px;
     border-bottom: 2px solid #edf2f7;
@@ -567,81 +584,102 @@
 
 .bank-details-simple {
     background: #f7fafc;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+    padding: 30px;
+    /* More padding */
+    border-radius: 12px;
+    margin-bottom: 30px;
 }
 
 .detail-row {
     display: flex;
     justify-content: space-between;
-    padding: 8px 0;
+    padding: 12px 0;
+    /* More spacing */
     border-bottom: 1px solid #edf2f7;
-    font-size: 14px;
+    font-size: 15px;
     color: #4a5568;
+    align-items: center;
+    /* Align text properly */
 }
 
 .detail-row:last-child {
     border-bottom: none;
 }
 
+.detail-row span {
+    font-size: 14px;
+    color: #718096;
+    font-weight: 500;
+}
+
 .detail-row strong {
     color: #1a202c;
     text-align: right;
+    font-size: 16px;
+    /* Larger details */
+    font-weight: 700;
 }
 
 .detail-row.price {
-    margin-top: 10px;
-    padding-top: 15px;
+    margin-top: 15px;
+    padding-top: 20px;
     border-top: 2px dashed #cbd5e0;
-    font-size: 16px;
+}
+
+.detail-row.price strong {
+    font-size: 22px;
+    /* Much larger total */
+    color: #000;
 }
 
 .cvu-code-block {
     background: #ebf8ff;
     color: #2b6cb0;
     font-family: monospace;
-    font-size: 18px;
-    padding: 15px;
+    font-size: 24px;
+    /* Larger CVU code */
+    padding: 20px;
     text-align: center;
     border-radius: 8px;
     border: 1px dashed #bee3f8;
-    margin: 20px 0;
+    margin: 25px 0;
     font-weight: 700;
+    letter-spacing: 2px;
 }
 
 .important-note {
     background: #fff5f5;
     color: #c53030;
-    padding: 12px;
+    padding: 15px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    margin-bottom: 20px;
-    border-left: 3px solid #fc8181;
+    margin-bottom: 25px;
+    border-left: 4px solid #fc8181;
 }
 
 .whatsapp-group {
     display: flex;
-    gap: 10px;
+    gap: 15px;
 }
 
 .btn-wa-sm {
     flex: 1;
     text-align: center;
-    padding: 10px;
+    padding: 12px;
     border: 1px solid #25d366;
     color: #25d366;
-    border-radius: 6px;
+    border-radius: 8px;
     text-decoration: none;
-    font-weight: 600;
-    font-size: 13px;
+    font-weight: 700;
+    font-size: 14px;
     transition: all 0.2s;
 }
 
 .btn-wa-sm:hover {
     background: #25d366;
     color: #fff;
+    transform: translateY(-1px);
 }
 
 .btn-mp-pay {
@@ -649,12 +687,13 @@
     background: #009ee3;
     color: white;
     text-align: center;
-    padding: 16px;
+    padding: 18px;
     border-radius: 8px;
     font-weight: 700;
     text-decoration: none;
     box-shadow: 0 4px 6px rgba(0, 158, 227, 0.3);
-    margin: 20px 0;
+    margin: 25px 0;
+    font-size: 16px;
     transition: transform 0.2s;
 }
 
