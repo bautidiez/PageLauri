@@ -58,7 +58,8 @@ export class CheckoutV2Component implements OnInit {
             ciudad: ['', [Validators.required]],
             // provincia: Eliminado duplicado si existía
             provincia: ['', [Validators.required]],
-            dni: ['', [Validators.required, Validators.minLength(7)]]
+            dni: ['', [Validators.required, Validators.minLength(7)]],
+            observaciones: ['']
         });
 
         this.envioForm = this.fb.group({
@@ -111,7 +112,8 @@ export class CheckoutV2Component implements OnInit {
                 piso: cliente.piso || '',
                 ciudad: cliente.ciudad || '',
                 provincia: cliente.provincia || '',
-                dni: cliente.dni || ''
+                dni: cliente.dni || '',
+                observaciones: ''
             });
         }
     }
@@ -329,6 +331,7 @@ export class CheckoutV2Component implements OnInit {
             provincia: datos.provincia,
             codigo_postal: datos.codigo_postal,
             dni: datos.dni,
+            observaciones: datos.observaciones,
 
             metodo_envio: shipping?.nombre,
             costo_envio: shipping?.costo,

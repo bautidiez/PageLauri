@@ -358,10 +358,12 @@
     padding: 20px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 15px;
     cursor: pointer;
     background: #fff;
     transition: background 0.2s;
+    flex-wrap: wrap;
+    /* Para mobile */
 }
 
 .radio-wrapper {
@@ -399,25 +401,22 @@
 */
 
 .badge {
-    font-size: 11px;
+    font-size: 10px;
     background: #ebf8ff;
     color: #2b6cb0;
     font-weight: 700;
-    padding: 4px 8px;
+    padding: 2px 8px;
     border-radius: 4px;
     text-transform: uppercase;
-    margin-right: 15px;
-    /* Spacing from price */
-    margin-left: 15px;
-    /* Spacing from name */
+    white-space: nowrap;
 }
 
 .price-info {
     font-weight: 700;
-    color: #2d3748;
+    color: #000;
     font-size: 14px;
     margin-left: auto;
-    /* Push to right if badge flows */
+    white-space: nowrap;
 }
 
 /* New Confirmation Page Styles */

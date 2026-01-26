@@ -69,8 +69,25 @@ class ShippingService:
             except Exception as e:
                 logger.error(f"Error en provider {type(provider).__name__}: {str(e)}")
 
-        # 3. Opción de Retiro en local (Río Cuarto)
-        # Siempre disponible si el CP es 5800 o si queremos ofrecerla siempre
+        # 3. Fallbacks (si las APIs fallan o no están configuradas)
+        has_andreani = any('andreani' in opt['id'] for opt in results)
+        
+        if not has_andreani:
+            # Fallback a sucursal si no hay nada
+            results.append({
+                "id": "andreani_sucursal_fallback",
+                "nombre": "Andreani (Retiro en Sucursal)",
+                "costo": 5200 if zip_code_val < 3000 else 6800,
+                "tiempo_estimado": "2 a 4 días hábiles"
+            })
+            results.append({
+                "id": "andreani_domicilio_fallback",
+                "nombre": "Andreani (Envío a Domicilio)",
+                "costo": 6200 if zip_code_val < 3000 else 7900,
+                "tiempo_estimado": "3 a 5 días hábiles"
+            })
+
+        # 4. Opción de Retiro en local (Río Cuarto)
         results.append({
             "id": "retiro_local",
             "nombre": "Retiro en Local (Río Cuarto)",
@@ -78,5 +95,5 @@ class ShippingService:
             "tiempo_estimado": "Inmediato - Te avisaremos por WhatsApp"
         })
         
-        # 4. Ordenar y devolver
+        # 5. Ordenar y devolver
         return sorted(results, key=lambda x: x['costo'])
