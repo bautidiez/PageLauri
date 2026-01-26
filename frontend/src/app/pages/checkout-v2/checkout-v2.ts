@@ -48,7 +48,7 @@ export class CheckoutV2Component implements OnInit {
     ) {
         this.datosForm = this.fb.group({
             email: ['', [Validators.required, Validators.email]],
-            codigo_postal: ['', [Validators.required, Validators.minLength(4)]],
+            codigo_postal: ['', [Validators.required, Validators.minLength(4), Validators.pattern('^[0-9]*$')]],
             nombre: ['', [Validators.required, Validators.minLength(2)]],
             apellido: ['', [Validators.required, Validators.minLength(2)]],
             telefono: ['', [Validators.required]],

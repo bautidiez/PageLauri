@@ -95,8 +95,11 @@
                                     <i class="fas fa-spinner fa-spin"></i> Calculando opciones de envío...
                                 </div>
                                 <div class="error-msg"
-                                    *ngIf="datosForm.get('codigo_postal')?.invalid && datosForm.get('codigo_postal')?.touched">
+                                    *ngIf="datosForm.get('codigo_postal')?.hasError('required') && datosForm.get('codigo_postal')?.touched">
                                     Este campo es requerido</div>
+                                <div class="error-msg"
+                                    *ngIf="datosForm.get('codigo_postal')?.hasError('pattern') && datosForm.get('codigo_postal')?.touched">
+                                    Solo se permiten números</div>
                             </div>
                         </div>
 
