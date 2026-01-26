@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
-import { Observable, Subject, of } from 'rxjs';
+import { Observable, Subject, of, merge } from 'rxjs';
 import { takeUntil, map, catchError } from 'rxjs/operators';
 
 @Component({
@@ -86,11 +86,12 @@ export class ProductosComponent implements OnInit, OnDestroy {
       // ✅ FIX: Call handleRouteParams IMMEDIATELY on initial load
       this.handleRouteParams();
 
-      // Then subscribe to route changes ONCE with proper cleanup
-      this.route.params
+      // Then subscribe to route changes (params AND queryParams)
+      // This is crucial for switching between /productos and /productos?ofertas=true
+      merge(this.route.params, this.route.queryParams)
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
-          console.log('🔄 [ProductosComponent] route.params CAMBIÓ');
+          console.log('🔄 [ProductosComponent] Route (params/queryParams) CHANGE');
           this.handleRouteParams();
         });
     });
