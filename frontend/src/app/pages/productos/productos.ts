@@ -418,7 +418,10 @@ export class ProductosComponent implements OnInit, OnDestroy {
   private buildSlugMap() {
     const mapRecursive = (list: any[]) => {
       list.forEach(cat => {
-        const slug = this.normalizeSlug(cat.nombre);
+        // Use the slug from the DB if available, otherwise normalize the name
+        // This is CRITICAL because the router links use cat.slug
+        const slug = cat.slug ? cat.slug : this.normalizeSlug(cat.nombre);
+
         this.categorySlugMap[slug] = cat.id;
         this.categoryIdToSlug[cat.id] = slug;
 
