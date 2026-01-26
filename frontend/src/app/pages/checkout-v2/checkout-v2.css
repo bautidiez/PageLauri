@@ -366,12 +366,16 @@
     /* Para mobile */
 }
 
-.radio-wrapper {
+.payment-radio-group {
     display: flex;
     align-items: center;
     gap: 15px;
-    flex: 1;
-    /* Allow it to take available space */
+}
+
+.payment-name {
+    font-weight: 600;
+    color: #1a202c;
+    font-size: 15px;
 }
 
 /* Badge Adjustment: If we want it left of description but right of radio? 
@@ -411,6 +415,11 @@
     white-space: nowrap;
 }
 
+.badge.gray {
+    background: #f7fafc;
+    color: #4a5568;
+}
+
 .price-info {
     font-weight: 700;
     color: #000;
@@ -420,13 +429,99 @@
 }
 
 /* New Confirmation Page Styles */
-.centered-content {
+.success-screen {
+    background: #fff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+}
+
+.success-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.success-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 40px;
+    align-items: start;
+}
+
+.success-left {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     text-align: center;
-    max-width: 800px;
-    margin: 0 auto;
+    padding: 40px;
+    background: #f8fafc;
+    border-radius: 16px;
+    height: 100%;
+}
+
+.main-bag-icon {
+    font-size: 80px;
+    color: #e2e8f0;
+    margin-bottom: 20px;
+}
+
+.success-right {
+    flex: 1;
+}
+
+.cvu-display-large {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.cvu-segment {
+    background: #f0f4f8;
+    padding: 15px 10px;
+    border-radius: 8px;
+    font-size: 22px;
+    font-weight: 800;
+    color: #2d3748;
+    letter-spacing: 2px;
+    border: 1px solid #d1d5db;
+    min-width: 120px;
+    text-align: center;
+}
+
+.msg-box {
+    margin-top: 20px;
+    padding: 15px;
+    background: #fffaf0;
+    border-left: 4px solid #ed8936;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.payment-details-summary {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px dashed #cbd5e0;
+    margin-bottom: 20px;
+}
+
+.payment-details-summary p {
+    margin: 5px 0;
+    font-size: 15px;
+}
+
+.final-actions-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #edf2f7;
 }
 
 .order-id {

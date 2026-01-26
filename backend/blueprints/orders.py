@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models import db, Pedido, ItemPedido, Producto, Shipment, TrackingUpdate
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 
 orders_bp = Blueprint('orders', __name__)
@@ -17,10 +17,11 @@ def create_order():
             cliente_nombre=data['cliente_nombre'],
             cliente_email=data['cliente_email'],
             cliente_telefono=data.get('cliente_telefono'),
-            cliente_direccion=f"{data['calle']} {data['altura']} {data.get('piso', '')}",
+            cliente_direccion=f"{data['calle']} {data['altura']} {data.get('piso', '')} {data.get('depto', '')}".strip(),
             cliente_codigo_postal=data['codigo_postal'],
             cliente_localidad=data['ciudad'],
             cliente_provincia=data['provincia'],
+            cliente_dni=data.get('dni'),
             metodo_pago_id=data.get('metodo_pago_id', 1), # Default o mapeado
             metodo_envio=data.get('metodo_envio'),
             subtotal=data['subtotal'],
@@ -29,6 +30,7 @@ def create_order():
             total=data['total'],
             estado='pendiente_aprobacion',
             aprobado=False,
+            notas=data.get('observaciones'),
             fecha_expiracion=datetime.utcnow() + timedelta(days=5),
             codigo_pago_unico=uuid.uuid4().hex[:6].upper() if data.get('metodo_pago') == 'transferencia' else None
         )

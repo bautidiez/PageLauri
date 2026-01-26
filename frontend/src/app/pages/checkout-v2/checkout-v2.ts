@@ -55,6 +55,7 @@ export class CheckoutV2Component implements OnInit {
             calle: ['', [Validators.required]],
             altura: ['', [Validators.required]],
             piso: [''],
+            depto: [''],
             ciudad: ['', [Validators.required]],
             // provincia: Eliminado duplicado si existía
             provincia: ['', [Validators.required]],
@@ -110,6 +111,7 @@ export class CheckoutV2Component implements OnInit {
                 calle: cliente.calle || '',
                 altura: cliente.altura || '',
                 piso: cliente.piso || '',
+                depto: '',
                 ciudad: cliente.ciudad || '',
                 provincia: cliente.provincia || '',
                 dni: cliente.dni || '',
@@ -327,6 +329,7 @@ export class CheckoutV2Component implements OnInit {
             calle: datos.calle,
             altura: datos.altura,
             piso: datos.piso,
+            depto: datos.depto,
             ciudad: datos.ciudad,
             provincia: datos.provincia,
             codigo_postal: datos.codigo_postal,
@@ -407,11 +410,11 @@ export class CheckoutV2Component implements OnInit {
         const method = order.metodo_pago_nombre?.toLowerCase() || '';
 
         if (this.isPaymentMethod(order, 'efectivo_local')) {
-            msg = `Hola! Hice el pedido #${order.numero_pedido} y quiero confirmar que paso a retirar y abonar en efectivo. Total: $${order.total}. ¿Qué horarios tienen?`;
+            msg = `Hola! Hice el pedido #${order.numero_pedido} con Retiro en el Local y pago en Efectivo. \nTotal: $${order.total}. \n¡Quiero confirmar mi pedido! ¿Qué horarios tienen?`;
         } else if (this.isPaymentMethod(order, 'efectivo')) {
-            msg = `Hola! Hice el pedido #${order.numero_pedido}. Ya realicé el pago en Rapipago/Pago Fácil. Adjunto comprobante.`;
+            msg = `Hola! Hice el pedido #${order.numero_pedido}. Ya realicé el pago en Rapipago/Pago Fácil. Adjunto comprobante. Total: $${order.total}`;
         } else {
-            msg = `Hola! Hice el pedido #${order.numero_pedido}. Adjunto comprobante de pago.`;
+            msg = `Hola! Hice el pedido #${order.numero_pedido}. Adjunto comprobante de pago. Total: $${order.total}`;
         }
 
         return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;

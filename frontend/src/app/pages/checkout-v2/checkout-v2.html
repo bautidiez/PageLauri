@@ -176,7 +176,10 @@
                                     <input type="text" formControlName="altura" placeholder="Número">
                                 </div>
                                 <div class="field">
-                                    <input type="text" formControlName="piso" placeholder="Piso / Depto (Opcional)">
+                                    <input type="text" formControlName="piso" placeholder="Piso">
+                                </div>
+                                <div class="field">
+                                    <input type="text" formControlName="depto" placeholder="Depto">
                                 </div>
                                 <div class="field full">
                                     <input type="text" formControlName="ciudad" placeholder="Ciudad / Localidad"
@@ -239,12 +242,12 @@
                         <!-- Efectivo en el local (MOVED TO TOP) -->
                         <div class="payment-item">
                             <label class="payment-header">
-                                <div class="radio-wrapper">
+                                <div class="payment-radio-group">
                                     <input type="radio" formControlName="metodo" value="efectivo_local"
                                         (change)="updateDiscount()">
-                                    <span>Efectivo en el local</span>
+                                    <span class="payment-name">Efectivo en el local</span>
+                                    <span class="badge" *ngIf="true">15% OFF</span>
                                 </div>
-                                <span class="badge">15% OFF</span>
                                 <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('efectivo_local') |
                                     number:'1.2-2' }}</span>
                             </label>
@@ -257,12 +260,12 @@
                         <!-- Card -->
                         <div class="payment-item">
                             <label class="payment-header">
-                                <div class="radio-wrapper">
+                                <div class="payment-radio-group">
                                     <input type="radio" formControlName="metodo" value="mercadopago_card"
                                         (change)="updateDiscount()">
-                                    <span>Tarjeta de crédito o débito</span>
+                                    <span class="payment-name">Tarjeta de crédito o débito</span>
+                                    <span class="badge gray">Hasta 3 cuotas sin interés</span>
                                 </div>
-                                <span class="badge">Hasta 3 cuotas sin interés</span>
                                 <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('mercadopago_card') |
                                     number:'1.2-2' }}</span>
                             </label>
@@ -285,12 +288,12 @@
                         <!-- Transferencia -->
                         <div class="payment-item">
                             <label class="payment-header">
-                                <div class="radio-wrapper">
+                                <div class="payment-radio-group">
                                     <input type="radio" formControlName="metodo" value="transferencia"
                                         (change)="updateDiscount()">
-                                    <span>Transferencia</span>
+                                    <span class="payment-name">Transferencia</span>
+                                    <span class="badge">15% OFF</span>
                                 </div>
-                                <span class="badge">15% OFF</span>
                                 <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('transferencia') |
                                     number:'1.2-2' }}</span>
                             </label>
@@ -304,12 +307,12 @@
                         <!-- Efectivo (Rapipago) -->
                         <div class="payment-item">
                             <label class="payment-header">
-                                <div class="radio-wrapper">
+                                <div class="payment-radio-group">
                                     <input type="radio" formControlName="metodo" value="efectivo"
                                         (change)="updateDiscount()">
-                                    <span>Efectivo (Pago Fácil / Rapipago)</span>
+                                    <span class="payment-name">Efectivo (Pago Fácil / Rapipago)</span>
+                                    <span class="badge">15% OFF</span>
                                 </div>
-                                <span class="badge">15% OFF</span>
                                 <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('efectivo') | number:'1.2-2'
                                     }}</span>
                             </label>
@@ -322,10 +325,10 @@
                         <!-- MP -->
                         <div class="payment-item">
                             <label class="payment-header">
-                                <div class="radio-wrapper">
+                                <div class="payment-radio-group">
                                     <input type="radio" formControlName="metodo" value="mercadopago"
                                         (change)="updateDiscount()">
-                                    <span>Mercado Pago</span>
+                                    <span class="payment-name">Mercado Pago</span>
                                 </div>
                                 <span class="price-info">Pagás ${{ getDiscountedHeaderPrice('mercadopago') |
                                     number:'1.2-2' }}</span>
@@ -342,99 +345,115 @@
                     </div>
                 </div>
 
-                <!-- STEP 4: ÉXITO -->
-                <div *ngSwitchCase="4" class="success-screen centered-content">
-                    <div class="success-icon">✅</div>
-                    <h2>¡Gracias por tu compra, {{ orderCreated?.cliente_nombre }}!</h2>
-                    <p class="order-id">Tu pedido <strong>#{{ orderCreated?.numero_pedido }}</strong> ha sido
-                        registrado.</p>
+                <div *ngSwitchCase="4" class="success-screen">
+                    <div class="success-header">
+                        <div class="success-icon">✅</div>
+                        <h2>¡GRACIAS POR TU COMPRA, {{ orderCreated?.cliente_nombre | uppercase }}!</h2>
+                        <p class="order-id">Tu pedido <strong>#{{ orderCreated?.numero_pedido }}</strong> ha sido
+                            registrado.</p>
+                    </div>
 
-                    <div class="next-steps-container">
-
-                        <!-- CASO 1: EFECTIVO EN EL LOCAL -->
-                        <!-- Check both slug and name just in case, or standarize. -->
-                        <div *ngIf="isPaymentMethod(orderCreated, 'efectivo_local')"
-                            class="payment-instructions centered">
-                            <h3>Pasos a seguir:</h3>
-                            <p>Para confirmar tu pedido, por favor envianos un mensaje por WhatsApp indicando que
-                                abonarás en efectivo al retirar.</p>
-
-                            <a [href]="getWhatsAppUrl(orderCreated)" target="_blank" class="btn-whatsapp">
-                                <i class="fab fa-whatsapp"></i> Confirmar pedido por WhatsApp
-                            </a>
-
-                            <p class="note-sm">Si no nos contactás, nos comunicaremos con vos al teléfono o email
-                                registrado para coordinar.</p>
+                    <div class="success-two-col">
+                        <!-- Left: Status/Thank you message area (Empty or brief) -->
+                        <div class="success-left">
+                            <i class="fas fa-shopping-bag main-bag-icon"></i>
+                            <p>¡Pronto nos pondremos en contacto con vos!</p>
                         </div>
 
-                        <!-- CASO 2: TRANSFERENCIA -->
-                        <div *ngIf="isPaymentMethod(orderCreated, 'transferencia')"
-                            class="payment-instructions centered">
-                            <h3>Datos para la transferencia:</h3>
-                            <div class="bank-details-card">
-                                <p><strong>Banco:</strong> Mercado Pago</p>
-                                <p><strong>Titular:</strong> Tomas Cruseno</p>
-                                <p><strong>CVU:</strong> 0000003100068933152485</p>
-                                <p><strong>Alias:</strong> el.vestuario.r4</p>
-                                <p><strong>Monto a transferir:</strong> ${{ orderCreated?.total | number:'1.0-2' }}</p>
+                        <!-- Right: Instructions -->
+                        <div class="success-right">
+                            <div class="next-steps-container">
+
+                                <!-- CASO 1: EFECTIVO EN EL LOCAL -->
+                                <!-- Check both slug and name just in case, or standarize. -->
+                                <div *ngIf="isPaymentMethod(orderCreated, 'efectivo_local')"
+                                    class="payment-instructions">
+                                    <h3>Pasos a seguir:</h3>
+                                    <p>Para confirmar tu pedido, por favor hacé clic en el botón de abajo para enviarnos
+                                        un WhatsApp con los detalles de tu compra.</p>
+
+                                    <a [href]="getWhatsAppUrl(orderCreated)" target="_blank" class="btn-whatsapp">
+                                        <i class="fab fa-whatsapp"></i> ENVIAR MENSAJE PARA CONFIRMAR
+                                    </a>
+
+                                    <div class="msg-box">
+                                        <strong>Pedido:</strong> Retiro en el local y pago en efectivo<br>
+                                        <strong>Total:</strong> ${{ orderCreated?.total | number:'1.0-2' }}
+                                    </div>
+                                </div>
+
+                                <!-- CASO 2: TRANSFERENCIA -->
+                                <div *ngIf="isPaymentMethod(orderCreated, 'transferencia')"
+                                    class="payment-instructions centered">
+                                    <h3>Datos para la transferencia:</h3>
+                                    <div class="bank-details-card">
+                                        <p><strong>Banco:</strong> Mercado Pago</p>
+                                        <p><strong>Titular:</strong> Tomas Cruseno</p>
+                                        <p><strong>CVU:</strong> 0000003100068933152485</p>
+                                        <p><strong>Alias:</strong> el.vestuario.r4</p>
+                                        <p><strong>Monto a transferir:</strong> ${{ orderCreated?.total | number:'1.0-2'
+                                            }}</p>
+                                    </div>
+
+                                    <p class="important-msg">⚠️ IMPORTANTE: Enviá el comprobante de transferencia por
+                                        WhatsApp a
+                                        cualquiera de nuestros números para confirmar tu pedido.</p>
+
+                                    <div class="whatsapp-buttons">
+                                        <a href="https://wa.me/5493564639908" target="_blank"
+                                            class="btn-whatsapp-outline">Enviar a Número 1 (3564-639908)</a>
+                                        <a href="https://wa.me/5493564386992" target="_blank"
+                                            class="btn-whatsapp-outline">Enviar a Número 2 (3564-386992)</a>
+                                    </div>
+                                </div>
+
+                                <!-- CASO 3: EFECTIVO (RAPIPAGO/PAGO FACIL) -->
+                                <div *ngIf="isPaymentMethod(orderCreated, 'efectivo')" class="payment-instructions">
+                                    <h3>Instrucciones de pago:</h3>
+                                    <p>Acercate a cualquier sucursal de <strong>Pago Fácil</strong> o
+                                        <strong>Rapipago</strong> e indicá el siguiente CVU para abonar:</p>
+
+                                    <div class="cvu-display-large">
+                                        <div class="cvu-segment">00000031</div>
+                                        <div class="cvu-segment">00068933</div>
+                                        <div class="cvu-segment">152485</div>
+                                    </div>
+
+                                    <div class="payment-details-summary">
+                                        <p><strong>Monto:</strong> ${{ orderCreated?.total | number:'1.0-2' }}</p>
+                                        <p><strong>Titular:</strong> Tomas Cruseno</p>
+                                    </div>
+
+                                    <p class="important-msg">⚠️ Una vez realizado el pago, envianos el comprobante por
+                                        WhatsApp.</p>
+
+                                    <a [href]="getWhatsAppUrl(orderCreated)" target="_blank" class="btn-whatsapp">
+                                        <i class="fab fa-whatsapp"></i> ENVIAR COMPROBANTE
+                                    </a>
+                                </div>
+
+                                <!-- CASO 4: TARJETA / MP -->
+                                <div *ngIf="isPaymentMethod(orderCreated, 'mercadopago')"
+                                    class="payment-instructions centered">
+                                    <p>El pago se procesó correctamente.</p>
+                                    <p>Por cualquier duda, podés enviarnos el comprobante o consultarnos a nuestros
+                                        números:</p>
+                                    <div class="whatsapp-buttons">
+                                        <a href="https://wa.me/5493564639908" target="_blank"
+                                            class="btn-whatsapp-outline">Contacto 1</a>
+                                        <a href="https://wa.me/5493564386992" target="_blank"
+                                            class="btn-whatsapp-outline">Contacto 2</a>
+                                    </div>
+                                </div>
+
                             </div>
-
-                            <p class="important-msg">⚠️ IMPORTANTE: Enviá el comprobante de transferencia por WhatsApp a
-                                cualquiera de nuestros números para confirmar tu pedido.</p>
-
-                            <div class="whatsapp-buttons">
-                                <a href="https://wa.me/5493564639908" target="_blank"
-                                    class="btn-whatsapp-outline">Enviar a Número 1 (3564-639908)</a>
-                                <a href="https://wa.me/5493564386992" target="_blank"
-                                    class="btn-whatsapp-outline">Enviar a Número 2 (3564-386992)</a>
-                            </div>
-                        </div>
-
-                        <!-- CASO 3: EFECTIVO (RAPIPAGO/PAGO FACIL) -->
-                        <div *ngIf="isPaymentMethod(orderCreated, 'efectivo')" class="payment-instructions centered">
-                            <h3>Instrucciones de pago:</h3>
-                            <p>Acercate a cualquier sucursal de Pago Fácil o Rapipago e indicá el siguiente CVU para
-                                ingresar dinero:</p>
-
-                            <div class="cvu-display">
-                                0000003100068933152485
-                            </div>
-
-                            <p><strong>Monto a pagar:</strong> ${{ orderCreated?.total | number:'1.0-2' }}</p>
-
-                            <p class="important-msg">⚠️ IMPORTANTE: Una vez realizado el pago, enviá el comprobante por
-                                WhatsApp.</p>
-
-                            <a [href]="getWhatsAppUrl(orderCreated)" target="_blank" class="btn-whatsapp">
-                                <i class="fab fa-whatsapp"></i> Enviar comprobante
-                            </a>
-                        </div>
-
-                        <!-- CASO 4: TARJETA / MP -->
-                        <div *ngIf="isPaymentMethod(orderCreated, 'mercadopago')" class="payment-instructions centered">
-                            <p>El pago se procesó correctamente.</p>
-                            <p>Por cualquier duda, podés enviarnos el comprobante o consultarnos a nuestros números:</p>
-                            <div class="whatsapp-buttons">
-                                <a href="https://wa.me/5493564639908" target="_blank"
-                                    class="btn-whatsapp-outline">Contacto 1</a>
-                                <a href="https://wa.me/5493564386992" target="_blank"
-                                    class="btn-whatsapp-outline">Contacto 2</a>
-                            </div>
-                        </div>
-
-                        <div class="final-actions">
-                            <button class="btn-primary" routerLink="/productos">Seguir Comprando</button>
-                            <button class="btn-secondary" routerLink="/mis-pedidos">Ver Mis Pedidos</button>
                         </div>
                     </div>
 
-                    <!-- DEBUG INFO (Temporary) -->
-                    <div style="margin-top: 50px; opacity: 0.5; font-size: 10px;">
-                        <p>Debug ID: {{ orderCreated?.metodo_pago_id }}</p>
-                        <p>Debug Method Name: {{ orderCreated?.metodo_pago_nombre }}</p>
-                        <p>Raw Method: {{ orderCreated?.metodo_pago }}</p>
+                    <div class="final-actions-row">
+                        <button class="btn-primary" routerLink="/productos">Seguir Comprando</button>
+                        <button class="btn-secondary" routerLink="/mis-pedidos">Mis Pedidos</button>
                     </div>
-
                 </div>
 
             </div>
