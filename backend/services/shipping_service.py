@@ -76,7 +76,7 @@ class ShippingService:
                         else:
                             p_id = prod_data # Assume it's the ID itself if not dict
                     
-                    qty = item.get('cantidad', 1)
+                    qty = int(item.get('cantidad', 1))
                     
                     if not p_id:
                         logger.warning(f"Skipping item with no ID: {item}")
