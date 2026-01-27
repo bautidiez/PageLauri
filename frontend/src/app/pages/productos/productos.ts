@@ -344,10 +344,12 @@ export class ProductosComponent implements OnInit, OnDestroy {
         this.hasMoreProducts = this.productos.length < this.totalProducts;
         this.extraerOpcionesFiltros();
         this.loadingMore = false;
+        this.cdr.detectChanges(); // Force UI update
       },
       error: (error) => {
         console.error('Error cargando más productos:', error);
         this.loadingMore = false;
+        this.cdr.detectChanges(); // Force UI update
       }
     });
   }
