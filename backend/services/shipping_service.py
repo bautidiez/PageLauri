@@ -106,8 +106,16 @@ class ShippingService:
                         if not has_free:
                             all_items_free_shipping = False
                     else:
-                        # Si no se encuentra producto, asumir que no es gratis
-                        logger.warning(f"Product not found in DB: {p_id}")
+                        # Si no se encuentra producto en DB, usar el precio enviado por el frontend como fallback
+                        # Esto previene que el total sea 0 si hay desincronización
+                        logger.warning(f"Product not found in DB: {p_id}. Using payload price.")
+                        fallback_price = float(item.get('precio_unitario', 0))
+                        if fallback_price > 0:
+                             item_total = fallback_price * qty
+                             total_cart_value += item_total
+                             print(f"DEBUG SHIPPING: Item {p_id} (Not in DB) Fallback Price ${fallback_price} x {qty} = ${item_total} (Subtotal: {total_cart_value})", flush=True)
+                        
+                        # Si no está en BD, no podemos verificar promo envio gratis, asumimos False
                         all_items_free_shipping = False
                 except Exception as e:
                     logger.error(f"Error checking free shipping for item: {e}")
