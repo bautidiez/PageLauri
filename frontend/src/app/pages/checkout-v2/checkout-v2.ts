@@ -354,16 +354,26 @@ export class CheckoutV2Component implements OnInit {
         this.checkoutService.crearPedido(pedidoData).subscribe({
             next: (order) => {
                 this.zone.run(() => {
+                    this.loading = false;
                     this.orderCreated = order;
-                    this.cartService.clearCart();
 
+                    // CRITICAL FIX: Override payment method string with what user actually selected
+                    // This ensures UI shows the correct flow even if backend maps it to default ID 1 (Transferencia)
+                    const selectedMethod = this.pagoForm.get('metodo')?.value;
+                    if (selectedMethod) {
+                        console.log('Frontend Payment Override:', selectedMethod);
+                        this.orderCreated.metodo_pago_frontend_key = selectedMethod;
+                    }
+
+                    this.currentStep = 4;
+                    this.cartService.clearCart();
+                    window.scrollTo(0, 0);
                     // Auto-open MP link if card payment
                     if (pedidoData.metodo_pago === 'mercadopago_card') {
                         const mpLink = 'https://link.mercadopago.com.ar/elvestuarior4';
                         window.open(mpLink, '_blank');
                     }
 
-                    this.currentStep = 4;
                     this.loading = false;
                     // Force full application check
                     this.appRef.tick();
@@ -392,22 +402,29 @@ export class CheckoutV2Component implements OnInit {
     }
 
     isPaymentMethod(order: any, methodKey: string): boolean {
-        if (!order || !order.metodo_pago_nombre) return false;
-        const name = order.metodo_pago_nombre.toLowerCase();
+        if (!order) return false;
 
-        switch (methodKey) {
-            case 'efectivo_local':
-                return name.includes('local') || name.includes('retiro');
-            case 'transferencia':
-                return name.includes('transferencia');
-            case 'efectivo':
-                // Check for generic cash that is NOT local pickup
-                return (name.includes('efectivo') || name.includes('rapipago') || name.includes('facil')) && !name.includes('local');
-            case 'mercadopago':
-                return name.includes('mercado') || name.includes('mp') || name.includes('tarjeta');
-            default:
-                return false;
+        // 1. Check Frontend Override first (Most reliable)
+        if (order.metodo_pago_frontend_key) {
+            return order.metodo_pago_frontend_key === methodKey;
         }
+
+        // 2. Fallback to Backend Name (Legacy)
+        if (order.metodo_pago_nombre) {
+            const name = order.metodo_pago_nombre.toLowerCase();
+            switch (methodKey) {
+                case 'efectivo_local':
+                    return name.includes('local') || name.includes('retiro');
+                case 'transferencia':
+                    return name.includes('transferencia');
+                case 'efectivo':
+                    return (name.includes('efectivo') || name.includes('rapipago') || name.includes('facil')) && !name.includes('local');
+                case 'mercadopago':
+                    return name.includes('mercado') || name.includes('mp') || name.includes('tarjeta');
+            }
+        }
+
+        return false;
     }
 
     getWhatsAppUrl(order: any, numberIndex: 1 | 2 = 1): string {
