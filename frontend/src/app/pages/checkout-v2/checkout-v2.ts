@@ -64,7 +64,8 @@ export class CheckoutV2Component implements OnInit {
         });
 
         this.envioForm = this.fb.group({
-            metodo_id: ['', Validators.required]
+            metodo_id: ['', Validators.required],
+            sucursal_info: [''] // New field for branch details
         });
 
         this.pagoForm = this.fb.group({
@@ -242,6 +243,26 @@ export class CheckoutV2Component implements OnInit {
         });
     }
 
+    isSucursalSelected(): boolean {
+        const shipping = this.getSelectedShipping();
+        if (!shipping) return false;
+        const name = shipping.nombre.toLowerCase();
+        // Exclude "Retiro en Local" (our local store) usually, but user asked for courier branches.
+        // "Retiro en Local (Río Cuarto)" doesn't need external links, but maybe needs specifying who picks up?
+        // User specifically asked for Andreani/Correo links.
+        return name.includes('sucursal') && !name.includes('río cuarto');
+    }
+
+    isAndreaniSelected(): boolean {
+        const shipping = this.getSelectedShipping();
+        return shipping ? shipping.nombre.toLowerCase().includes('andreani') : false;
+    }
+
+    isCorreoArgentinoSelected(): boolean {
+        const shipping = this.getSelectedShipping();
+        return shipping ? shipping.nombre.toLowerCase().includes('correo') : false;
+    }
+
     // Helper to get total of products BEFORE any discount
     getSubtotalBruto(): number {
         return this.items.reduce((sum, item) => {
@@ -358,7 +379,8 @@ export class CheckoutV2Component implements OnInit {
             provincia: datos.provincia,
             codigo_postal: datos.codigo_postal,
             dni: datos.dni,
-            observaciones: datos.observaciones,
+            dni: datos.dni,
+            observaciones: datos.observaciones + (this.envioForm.get('sucursal_info')?.value ? `\n\n[Sucursal: ${this.envioForm.get('sucursal_info')?.value}]` : ''),
 
             metodo_envio: shipping?.nombre,
             costo_envio: shipping?.costo,
