@@ -62,6 +62,10 @@ class ShippingService:
         # Necesitamos importar los modelos aquí para evitar ciclos
         from models import Producto
 
+        # DEBUG: Log raw items received
+        print(f"DEBUG SHIPPING: RAW ITEMS RECEIVED: {items}", flush=True)
+        print(f"DEBUG SHIPPING: Items count: {len(items) if items else 0}", flush=True)
+
         # Analizar items para calcular total y verificar banderas de envío gratis
         if items:
             for item in items:
