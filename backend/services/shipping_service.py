@@ -85,6 +85,8 @@ class ShippingService:
                 except Exception as e:
                     logger.error(f"Error checking free shipping for item: {e}")
                     all_items_free_shipping = False
+        
+        print(f"DEBUG SHIPPING: Total Value {total_cart_value}, All Free? {all_items_free_shipping}, Items Count: {len(items) if items else 0}", flush=True)
 
         # Regla: Gratis si Supera $150.000 O si TODOS los productos tienen envío gratis
         is_free_shipping = False

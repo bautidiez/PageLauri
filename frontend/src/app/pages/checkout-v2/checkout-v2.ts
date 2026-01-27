@@ -397,19 +397,30 @@ export class CheckoutV2Component implements OnInit {
     }
 
     updateDiscount() {
-        console.log('Payment method changed:', this.pagoForm.get('metodo')?.value);
+        const selected = this.pagoForm.get('metodo')?.value;
+        console.log('Payment method changed:', selected);
+        if (selected) {
+            localStorage.setItem('checkout_last_payment_method', selected);
+        }
         this.cdr.detectChanges();
     }
 
     isPaymentMethod(order: any, methodKey: string): boolean {
-        if (!order) return false;
-
-        // 1. Check Frontend Override first (Most reliable)
-        if (order.metodo_pago_frontend_key) {
+        // 1. Check Frontend Override (Memory)
+        if (order && order.metodo_pago_frontend_key) {
             return order.metodo_pago_frontend_key === methodKey;
         }
 
-        // 2. Fallback to Backend Name (Legacy)
+        // 2. Check LocalStorage Overlay (Most robust across reloads/mismatches)
+        const storedMethod = localStorage.getItem('checkout_last_payment_method');
+        // Only verify against stored method if we are in the success step to avoid false positives elsewhere
+        if (this.currentStep === 4 && storedMethod) {
+            return storedMethod === methodKey;
+        }
+
+        if (!order) return false;
+
+        // 3. Fallback to Backend Name (Legacy)
         if (order.metodo_pago_nombre) {
             const name = order.metodo_pago_nombre.toLowerCase();
             switch (methodKey) {
