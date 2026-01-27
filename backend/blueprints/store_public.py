@@ -72,7 +72,14 @@ def get_categorias():
 # @cached(ttl_seconds=1) # Disabled cache temporarily to debug
 def get_categorias_tree():
     try:
-        categorias_raiz = Categoria.query.filter_by(categoria_padre_id=None).order_by(Categoria.orden).all()
+        try:
+            # Intentar obtener con ordenamiento (puede fallar si falta la columna o migración)
+            categorias_raiz = Categoria.query.filter_by(categoria_padre_id=None).order_by(Categoria.orden).all()
+        except Exception as e_sort:
+            logger.warning(f"Error ordenando categorías (posible falta de columna orden): {e_sort}")
+            # Fallback sin ordenamiento
+            categorias_raiz = Categoria.query.filter_by(categoria_padre_id=None).all()
+            
         return jsonify([c.get_arbol_completo() for c in categorias_raiz]), 200
     except Exception as e:
         logger.error(f"Error en Categorias Tree: {str(e)}")
