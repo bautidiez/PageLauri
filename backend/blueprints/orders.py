@@ -14,7 +14,8 @@ def create_order():
         
         # Resolver ID de método de pago
         metodo_pago_str = data.get('metodo_pago')
-        metodo_pago_id = 1 # Default fallback (ideally should be a valid ID like Transferencia)
+        metodo_pago_id = 1 # Initial Default
+        print(f"DEBUG ORDER: Creating order for {data.get('cliente_email')}", flush=True)
         
         if metodo_pago_str:
             # Mapa de frontend keys a backend names
@@ -26,26 +27,38 @@ def create_order():
             }
             db_name = map_pago.get(metodo_pago_str, metodo_pago_str)
             
+            print(f"DEBUG PAYMENT: Received {metodo_pago_str}, Mapped to {db_name}", flush=True)
+
             # Intentar buscar insensitivo
             mp_obj = MetodoPago.query.filter(MetodoPago.nombre.ilike(db_name)).first()
             
             # Si no existe, crearlo dinÃ¡micamente (Fix para Prod DB desincronizada)
             if not mp_obj:
                 try:
+                    print(f"DEBUG PAYMENT: Creating new payment method {db_name}", flush=True)
                     mp_obj = MetodoPago(nombre=db_name, descripcion=f"Auto-generated for {db_name}", activo=True)
                     db.session.add(mp_obj)
                     db.session.commit()
                 except Exception as e:
                     db.session.rollback()
+                    print(f"DEBUG PAYMENT: Error creating {db_name}: {e}", flush=True)
                     # Fallback intento recuperar si fue creado en paralelo
                     mp_obj = MetodoPago.query.filter(MetodoPago.nombre.ilike(db_name)).first()
 
             if mp_obj:
                 metodo_pago_id = mp_obj.id
+                print(f"DEBUG PAYMENT: Resolved ID {metodo_pago_id} for {db_name}", flush=True)
             else:
                 # Try finding default 'transferencia' if not found
-                def_mp = MetodoPago.query.filter_by(nombre='transferencia').first()
-                if def_mp: metodo_pago_id = def_mp.id
+                print(f"DEBUG PAYMENT: FAILED to resolve {db_name}, falling back to Transferencia", flush=True)
+                def_mp = MetodoPago.query.filter(MetodoPago.nombre.ilike('transferencia')).first()
+                if def_mp: 
+                    metodo_pago_id = def_mp.id
+                    print(f"DEBUG PAYMENT: Fallback ID used: {metodo_pago_id}", flush=True)
+        else:
+            print("DEBUG PAYMENT: No metodo_pago in payload, falling back to Transferencia", flush=True)
+            def_mp = MetodoPago.query.filter(MetodoPago.nombre.ilike('transferencia')).first()
+            if def_mp: metodo_pago_id = def_mp.id
 
         nuevo_pedido = Pedido(
             numero_pedido=numero_pedido,
