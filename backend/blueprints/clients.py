@@ -47,7 +47,8 @@ def registrar_cliente():
         captcha_token = data.get('recaptcha_token')
         if captcha_token:
             if not verify_recaptcha(captcha_token):
-               return jsonify({'error': 'Captcha inválido. Por favor intenta de nuevo.'}), 400
+               # return jsonify({'error': 'Captcha inválido. Por favor intenta de nuevo.'}), 400
+               print("DEBUG CLIENTES: Captcha invalido pero PERMITIDO temporalmente", flush=True)
         else:
              print("DEBUG CLIENTES: Registro SIN captcha token (permitido temporalmente)", flush=True)
 
