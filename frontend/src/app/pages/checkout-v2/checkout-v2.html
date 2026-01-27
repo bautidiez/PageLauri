@@ -1,4 +1,4 @@
-<div class="checkout-v2-container">
+<div class="checkout-v2-container" [class.success-mode]="currentStep === 4">
     <!-- Header Stepper -->
     <div class="stepper-header" *ngIf="currentStep < 4">
         <div class="step" [class.active]="currentStep >= 1">

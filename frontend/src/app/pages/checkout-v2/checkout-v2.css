@@ -469,13 +469,18 @@
     cursor: pointer;
 }
 
-.cp-help-link:hover {
-    color: #2b6cb0;
+/* Success Mode Root Overrides */
+.checkout-v2-container.success-mode {
+    margin-top: 20px !important;
+    /* Move higher up */
+    max-width: 1000px;
+    /* Slightly narrower for focus */
 }
 
-.checkout-content.success-layout {
-    grid-template-columns: 1fr;
-    display: block;
+/* Force Block Layout in Success Mode */
+.checkout-v2-container.success-mode .checkout-content {
+    display: block !important;
+    grid-template-columns: none !important;
 }
 
 /* REDESIGNED SUCCESS SCREEN */
@@ -485,12 +490,13 @@
     background: #fff;
     border: 1px solid #e2e8f0;
     /* Center the card itself in the container */
-    max-width: 900px;
-    margin: 10px auto 50px;
-    /* Reduced top margin from 50px to 10px */
+    max-width: 850px;
+    margin: 0 auto;
+    /* Centered horizontally */
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    /* Stronger shadow for popout effect */
 }
+
+
 
 .success-two-col-layout {
     display: flex;
