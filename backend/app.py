@@ -101,6 +101,7 @@ from blueprints.auth import auth_bp
 from blueprints.store_public import store_public_bp
 from blueprints.store_admin import store_admin_bp
 from blueprints.clients import clients_bp
+from blueprints.payments import payments_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(store_public_bp)
