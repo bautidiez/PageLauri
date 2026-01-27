@@ -25,7 +25,21 @@ def create_order():
                 'transferencia': 'transferencia'
             }
             db_name = map_pago.get(metodo_pago_str, metodo_pago_str)
+            
+            # Intentar buscar insensitivo
             mp_obj = MetodoPago.query.filter(MetodoPago.nombre.ilike(db_name)).first()
+            
+            # Si no existe, crearlo dinÃ¡micamente (Fix para Prod DB desincronizada)
+            if not mp_obj:
+                try:
+                    mp_obj = MetodoPago(nombre=db_name, descripcion=f"Auto-generated for {db_name}", activo=True)
+                    db.session.add(mp_obj)
+                    db.session.commit()
+                except Exception as e:
+                    db.session.rollback()
+                    # Fallback intento recuperar si fue creado en paralelo
+                    mp_obj = MetodoPago.query.filter(MetodoPago.nombre.ilike(db_name)).first()
+
             if mp_obj:
                 metodo_pago_id = mp_obj.id
             else:
