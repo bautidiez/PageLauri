@@ -54,9 +54,52 @@ class ShippingService:
                 "height": total_height
             }
 
+        # 2. Lógica de Envío Gratis
+        total_cart_value = 0
+        all_items_free_shipping = True
+        
+        # Necesitamos importar los modelos aquí para evitar ciclos
+        from models import Producto
+
+        # Analizar items para calcular total y verificar banderas de envío gratis
+        if items:
+            for item in items:
+                try:
+                    p_id = item.get('producto', {}).get('id')
+                    qty = item.get('cantidad', 1)
+                    
+                    # Buscar producto real en DB para precio y promos
+                    prod_db = Producto.query.get(p_id)
+                    if prod_db:
+                        price = prod_db.get_precio_actual()
+                        total_cart_value += (price * qty)
+                        
+                        # Verificar si tiene promo de envío gratis activa
+                        promos = prod_db.get_promociones_activas()
+                        has_free = any(p.envio_gratis for p in promos)
+                        if not has_free:
+                            all_items_free_shipping = False
+                    else:
+                        # Si no se encuentra producto, asumir que no es gratis
+                        all_items_free_shipping = False
+                except Exception as e:
+                    logger.error(f"Error checking free shipping for item: {e}")
+                    all_items_free_shipping = False
+
+        # Regla: Gratis si Supera $150.000 O si TODOS los productos tienen envío gratis
+        is_free_shipping = False
+        if total_cart_value > 150000:
+            is_free_shipping = True
+            logger.info(f"Shipping Checks: FREE (Total {total_cart_value} > 150k)")
+        elif items and all_items_free_shipping:
+            is_free_shipping = True
+            logger.info(f"Shipping Checks: FREE (All items have active free shipping promo)")
+        else:
+            logger.info(f"Shipping Checks: PAID (Total {total_cart_value}, Mixed/No-Free Items)")
+
         results = []
         
-        # 2. Consultar proveedores
+        # 3. Consultar proveedores
         providers = [
             AndreaniProvider(),
             CorreoArgentinoProvider()
@@ -65,29 +108,40 @@ class ShippingService:
         for provider in providers:
             try:
                 rates = provider.calculate_rates(zip_code_val, weight=total_weight, dimensions=dimensions)
+                
+                # APLICAR GRATUIDAD
+                if is_free_shipping:
+                    for r in rates:
+                        # Hacemos gratis solo los envíos a domicilio/sucursal estándar?
+                        # Requisito no especifica, asumimos TODO envío es gratis si cumple condición.
+                        r['costo'] = 0
+                        r['nombre'] = f"{r['nombre']} (¡Envío Gratis!)"
+                
                 results.extend(rates)
             except Exception as e:
                 logger.error(f"Error en provider {type(provider).__name__}: {str(e)}")
 
-        # 3. Fallbacks (si las APIs fallan o no están configuradas)
+        # 4. Fallbacks (si las APIs fallan o no están configuradas)
         has_andreani = any('andreani' in opt['id'] for opt in results)
         
         if not has_andreani:
-            # Fallback a sucursal si no hay nada
+            cost_sucursal = 0 if is_free_shipping else (5200 if zip_code_val < 3000 else 6800)
+            cost_domicilio = 0 if is_free_shipping else (6200 if zip_code_val < 3000 else 7900)
+            
             results.append({
                 "id": "andreani_sucursal_fallback",
-                "nombre": "Andreani (Retiro en Sucursal)",
-                "costo": 5200 if zip_code_val < 3000 else 6800,
+                "nombre": "Andreani (Retiro en Sucursal)" + (" (¡Envío Gratis!)" if is_free_shipping else ""),
+                "costo": cost_sucursal,
                 "tiempo_estimado": "2 a 4 días hábiles"
             })
             results.append({
                 "id": "andreani_domicilio_fallback",
-                "nombre": "Andreani (Envío a Domicilio)",
-                "costo": 6200 if zip_code_val < 3000 else 7900,
+                "nombre": "Andreani (Envío a Domicilio)" + (" (¡Envío Gratis!)" if is_free_shipping else ""),
+                "costo": cost_domicilio,
                 "tiempo_estimado": "3 a 5 días hábiles"
             })
 
-        # 4. Opción de Retiro en local (Río Cuarto)
+        # 5. Opción de Retiro en local (Río Cuarto)
         results.append({
             "id": "retiro_local",
             "nombre": "Retiro en Local (Río Cuarto)",
@@ -95,5 +149,5 @@ class ShippingService:
             "tiempo_estimado": "Inmediato - Te avisaremos por WhatsApp"
         })
         
-        # 5. Ordenar y devolver
+        # 6. Ordenar y devolver
         return sorted(results, key=lambda x: x['costo'])

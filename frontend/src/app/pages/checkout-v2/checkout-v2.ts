@@ -412,29 +412,34 @@ export class CheckoutV2Component implements OnInit {
 
     getWhatsAppUrl(order: any, numberIndex: 1 | 2 = 1): string {
         if (!order) return '';
-        const phone = numberIndex === 1 ? '5493585164402' : '5493584825640';
+        const phoneNumber = numberIndex === 1 ? '5493585164402' : '5493584825640';
         let msg = '';
 
         if (this.isPaymentMethod(order, 'efectivo_local')) {
-            // Requirement: Detalle de la compra, Medio de pago, Modo de envío, Total
+            // 1. Efectivo en el local
+            // Requisito: Detalle de la compra, Medio de pago: Efectivo en el local, Modo de envío, Total a pagar
             const itemsList = order.items?.map((i: any) => `- ${i.producto_nombre} (${i.talle_nombre}) x${i.cantidad}`).join('\n') || '';
             const envioMethod = order.envio?.transportista || 'Retiro en Local';
 
-            msg = `Hola! Hice el pedido #${order.numero_pedido}.\n\n*Detalle de la compra:*\n${itemsList}\n\n*Medio de pago:* Efectivo en el local\n*Modo de envío:* ${envioMethod}\n*Total:* $${order.total}\n\n¡Quiero confirmar mi pedido! ¿Qué horarios tienen?`;
-        } else if (this.isPaymentMethod(order, 'efectivo')) {
-            // Rapipago/Pago Facil
-            msg = `Hola! Hice el pedido #${order.numero_pedido}. Ya realicé el pago en Rapipago/Pago Fácil. Adjunto comprobante.\nTotal: $${order.total}`;
+            msg = `*NUEVO PEDIDO #${order.numero_pedido}*\n\n*Detalle de la compra:*\n${itemsList}\n\n*Medio de pago:* Efectivo en el local\n*Modo de envío:* ${envioMethod}\n*Total a pagar:* $${order.total}\n\nHola! Quiero confirmar mi pedido.`;
+
         } else if (this.isPaymentMethod(order, 'mercadopago')) {
-            // Tarjeta / MP
-            msg = `Hola! Hice el pedido #${order.numero_pedido}. Ya realicé el pago con Tarjeta (Mercado Pago). Adjunto comprobante para confirmar.\nTotal: $${order.total}`;
+            // 2. Tarjeta / MP
+            // Requisito: "Una vez realizado el pago, enviá el comprobante..." context
+            msg = `Hola! Hice el pedido #${order.numero_pedido} pagando con Tarjeta/Mercado Pago.\nAdjunto el comprobante de pago para confirmar la compra.\n*Total:* $${order.total}`;
+
         } else if (this.isPaymentMethod(order, 'transferencia')) {
-            // Transferencia
-            msg = `Hola! Hice el pedido #${order.numero_pedido}. Ya realicé la transferencia. Adjunto comprobante.\nTotal: $${order.total}`;
+            // 3. Transferencia
+            msg = `Hola! Hice el pedido #${order.numero_pedido} via Transferencia.\nAdjunto el comprobante de pago.\n*Total:* $${order.total}`;
+
+        } else if (this.isPaymentMethod(order, 'efectivo')) {
+            // 4. Rapipago/Pago Facil
+            msg = `Hola! Hice el pedido #${order.numero_pedido} y ya realicé el pago en Rapipago/Pago Fácil.\nAdjunto el comprobante.\n*Total:* $${order.total}`;
+
         } else {
-            // Fallback
-            msg = `Hola! Hice el pedido #${order.numero_pedido}. Adjunto comprobante de pago. Total: $${order.total}`;
+            msg = `Hola! Hice el pedido #${order.numero_pedido}. Adjunto comprobante. Total: $${order.total}`;
         }
 
-        return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+        return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(msg)}`;
     }
 }
