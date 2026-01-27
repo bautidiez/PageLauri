@@ -92,11 +92,12 @@ class ShippingService:
                     prod_db = Producto.query.get(p_id)
                     if prod_db:
                         # Use precio_base explicitly for Free Shipping threshold as per user request
-                        # (Ignore specific product discounts or payment method discounts)
-                        price = prod_db.precio_base
+                        # Fallback to current price if base is missing/0 to avoid logic errors
+                        price = prod_db.precio_base if prod_db.precio_base and prod_db.precio_base > 0 else prod_db.get_precio_actual()
+                        
                         item_total = price * qty
                         total_cart_value += item_total
-                        print(f"DEBUG SHIPPING: Item {p_id} Base Price ${price} x {qty} = ${item_total} (Subtotal: {total_cart_value})", flush=True)
+                        print(f"DEBUG SHIPPING: Item {p_id} ({prod_db.nombre}) Price ${price} x {qty} = ${item_total} (Subtotal: {total_cart_value})", flush=True)
                         
                         # Verificar si tiene promo de envío gratis activa
                         promos = prod_db.get_promociones_activas()
