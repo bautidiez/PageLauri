@@ -205,12 +205,25 @@ export class CartService {
   }
 
   addItem(producto: any, talle: any, cantidad: number): void {
-    // Always use precio_base as the reference unit price for the cart line.
-    // Discounts (static or dynamic) will be calculated in calculateTotal()
-    const precio = producto.precio_base;
+    // Validar Stock
+    const stockDisponible = producto.stock_talles?.find((s: any) => s.talle_id === talle.id)?.cantidad || 0;
+
+    // Calcular cantidad actual en carrito
     const existingIndex = this.cartItems.findIndex(
       item => item.producto.id === producto.id && item.talle.id === talle.id
     );
+
+    const currentQty = existingIndex >= 0 ? this.cartItems[existingIndex].cantidad : 0;
+    const newTotal = currentQty + cantidad;
+
+    if (newTotal > stockDisponible) {
+      alert(`No hay suficiente stock. Disponibles: ${stockDisponible}, en tu carrito: ${currentQty}.`);
+      return;
+    }
+
+    // Always use precio_base as the reference unit price for the cart line.
+    // Discounts (static or dynamic) will be calculated in calculateTotal()
+    const precio = producto.precio_base;
 
     if (existingIndex >= 0) {
       this.cartItems[existingIndex].cantidad += cantidad;

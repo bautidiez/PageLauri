@@ -265,14 +265,15 @@
             </div>
           </div>
 
-          <!-- Botón Cargar Más -->
-          <div class="load-more-container" *ngIf="!loading && productos.length > 0 && hasMoreProducts">
-            <button class="btn-load-more" (click)="loadMoreProductos()" [disabled]="loadingMore">
-              {{ loadingMore ? 'Cargando...' : 'Cargar más productos' }}
-            </button>
-            <p class="load-more-info">Mostrando {{ productos.length }} de {{ totalProducts }} productos</p>
-          </div>
-        </div> <!-- end main-content -->
+        </div> <!-- end products-grid -->
+
+        <!-- Botón Cargar Más (Moved outside grid) -->
+        <div class="load-more-container" *ngIf="!loading && productos.length > 0 && hasMoreProducts">
+          <button class="btn-load-more" (click)="loadMoreProductos()" [disabled]="loadingMore">
+            {{ loadingMore ? 'Cargando...' : 'Cargar más productos' }}
+          </button>
+          <p class="load-more-info">Mostrando {{ productos.length }} de {{ totalProducts }} productos</p>
+        </div>
       </div> <!-- end sidebar-content-layout -->
     </div>
   </div>
