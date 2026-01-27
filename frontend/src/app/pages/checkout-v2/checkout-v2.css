@@ -473,6 +473,11 @@
     color: #2b6cb0;
 }
 
+.checkout-content.success-layout {
+    grid-template-columns: 1fr;
+    display: block;
+}
+
 /* REDESIGNED SUCCESS SCREEN */
 .success-screen.redesigned {
     padding: 0;
@@ -481,7 +486,8 @@
     border: 1px solid #e2e8f0;
     /* Center the card itself in the container */
     max-width: 900px;
-    margin: 50px auto;
+    margin: 10px auto 50px;
+    /* Reduced top margin from 50px to 10px */
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
     /* Stronger shadow for popout effect */
 }

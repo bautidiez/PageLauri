@@ -17,7 +17,7 @@
         </div>
     </div>
 
-    <div class="checkout-content">
+    <div class="checkout-content" [class.success-layout]="currentStep === 4">
         <div class="main-form">
             <div [ngSwitch]="currentStep">
 
