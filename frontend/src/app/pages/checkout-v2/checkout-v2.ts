@@ -184,25 +184,35 @@ export class CheckoutV2Component implements OnInit {
     private isCalculatingShipping = false;
 
     calculateShipping() {
-        console.log('DEBUG: calculateShipping triggered');
+        console.log('=== DEBUG SHIPPING CALC START ===');
+        console.log('DEBUG: Items BEFORE sync:', this.items);
 
         // CRITICAL: Always sync items from cart service first
         this.items = this.cartService.getCartItems();
-        console.log('DEBUG: Current Items after sync:', this.items);
+        console.log('DEBUG: Items AFTER sync:', this.items);
+        console.log('DEBUG: Items length:', this.items?.length || 0);
+        console.log('DEBUG: Items JSON:', JSON.stringify(this.items));
 
         const cp = this.datosForm.get('codigo_postal')?.value;
+        console.log('DEBUG: Codigo Postal:', cp);
 
         // Prevent re-calc if already calculating or invalid CP
-        if (this.isCalculatingShipping || !cp || cp.length < 4) return;
+        if (this.isCalculatingShipping || !cp || cp.length < 4) {
+            console.log('DEBUG: Aborting - already calculating or invalid CP');
+            return;
+        }
 
         // Double check items are present
         if (!this.items || this.items.length === 0) {
             console.error('CRITICAL: No items in cart! Cannot calculate shipping.');
+            console.error('Cart Service value:', this.cartService.getCartItems());
             return;
         }
 
         this.loading = true;
         this.isCalculatingShipping = true;
+
+        console.log('DEBUG: Calling checkoutService.calcularEnvio with:', { cp, items: this.items });
 
         this.checkoutService.calcularEnvio(cp, this.items).subscribe({
             next: (options) => {
