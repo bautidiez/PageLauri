@@ -272,19 +272,37 @@ export class CheckoutV2Component implements OnInit {
         const metodoPago = this.pagoForm.get('metodo')?.value;
         let total = this.total + (shipping ? shipping.costo : 0);
 
-        // Descuento del 15%
+        // Apply shipping discount (Free Shipping > 150k)
+        if (shipping && shipping.descuento) {
+            total -= shipping.descuento;
+        }
+
+        // Descuento del 15% (Apply AFTER shipping subtraction or BEFORE? Usually 15% off products or total?
+        // Logic says: Transfer/Cash usually applies to products total or final total.
+        // Current logic applies to "total" (which includes shipping).
+        // If shipping is free (discounted), total is effectively products only.
+        // If shipping is paid, total is products + shipping.
+        // Let's assume 15% applies to the resulting payable amount.
+
         if (['efectivo_local', 'transferencia', 'efectivo'].includes(metodoPago)) {
-            return total * 0.85;
+            // Apply 15% OFF to the payable amount
+            // Wait, usually shipping is NOT discounted (it's a service).
+            // But previous code applied to `total * 0.85`.
+            // Let's keep consistency: Discount applies to final payable.
+            return Math.max(0, total * 0.85);
         }
 
         // Aplicar cupón si existe (si no se aplicó el de transferencia)
         if (this.appliedCoupon) {
             if (this.appliedCoupon.envio_gratis) {
                 // Si es envío gratis, restar costo de envío (si hay)
-                if (shipping) {
+                // If backend already gave free shipping via `descuento`, this shouldn't double dip.
+                // We should check if shipping was already discounted by backend.
+                if (shipping && !shipping.descuento) { // Only apply coupon free shipping if not already free
                     total -= shipping.costo;
                 }
             } else if (this.appliedCoupon.tipo_promocion_nombre === 'descuento_porcentaje') {
+                // Apply coupon to products total (this.total) usually
                 total -= (this.total * this.appliedCoupon.valor / 100);
             } else if (this.appliedCoupon.tipo_promocion_nombre === 'descuento_fijo') {
                 total -= this.appliedCoupon.valor;

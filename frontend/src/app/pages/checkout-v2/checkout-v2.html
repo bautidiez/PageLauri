@@ -120,7 +120,15 @@
                                         <span class="ship-time">{{ opt.tiempo_estimado }}</span>
                                     </div>
                                     <div class="ship-price">
-                                        {{ opt.costo === 0 ? 'Gratis' : '$' + (opt.costo | number:'1.0-0') }}
+                                        <ng-container *ngIf="opt.descuento">
+                                            <span
+                                                style="text-decoration: line-through; color: #94a3b8; margin-right: 5px;">${{
+                                                opt.costo | number:'1.0-0' }}</span>
+                                            <span style="color: #10b981; font-weight: bold;">Gratis</span>
+                                        </ng-container>
+                                        <ng-container *ngIf="!opt.descuento">
+                                            {{ opt.costo === 0 ? 'Gratis' : '$' + (opt.costo | number:'1.0-0') }}
+                                        </ng-container>
                                     </div>
                                 </label>
                             </div>
@@ -136,7 +144,15 @@
                                         <span class="ship-time">{{ opt.tiempo_estimado }}</span>
                                     </div>
                                     <div class="ship-price">
-                                        {{ opt.costo === 0 ? 'Gratis' : '$' + (opt.costo | number:'1.0-0') }}
+                                        <ng-container *ngIf="opt.descuento">
+                                            <span
+                                                style="text-decoration: line-through; color: #94a3b8; margin-right: 5px;">${{
+                                                opt.costo | number:'1.0-0' }}</span>
+                                            <span style="color: #10b981; font-weight: bold;">Gratis</span>
+                                        </ng-container>
+                                        <ng-container *ngIf="!opt.descuento">
+                                            {{ opt.costo === 0 ? 'Gratis' : '$' + (opt.costo | number:'1.0-0') }}
+                                        </ng-container>
                                     </div>
                                 </label>
                             </div>
@@ -494,6 +510,12 @@
                 <div class="summary-row" *ngIf="getSelectedShipping()">
                     <span>Envío ({{ getSelectedShipping().nombre }})</span>
                     <span>${{ getSelectedShipping().costo | number:'1.0-0' }}</span>
+                </div>
+
+                <!-- Shipping Discount (NEW) -->
+                <div class="summary-row" *ngIf="getSelectedShipping()?.descuento" style="color: #10b981;">
+                    <span>Descuento Envío</span>
+                    <span>-${{ getSelectedShipping().descuento | number:'1.0-0' }}</span>
                 </div>
 
                 <!-- Payment Method Discount (15%) -->

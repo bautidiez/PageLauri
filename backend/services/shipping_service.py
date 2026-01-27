@@ -137,10 +137,13 @@ class ShippingService:
                 # APLICAR GRATUIDAD
                 if is_free_shipping:
                     for r in rates:
-                        # Hacemos gratis solo los envíos a domicilio/sucursal estándar?
-                        # Requisito no especifica, asumimos TODO envío es gratis si cumple condición.
-                        r['costo'] = 0
-                        r['nombre'] = f"{r['nombre']} (¡Envío Gratis!)"
+                        r['descuento'] = r['costo']  # Guardamos el descuento
+                        r['costo_original'] = r['costo'] # Opcional, para referencia
+                        # NO ponemos costo a 0 aquí, lo manejamos en el frontend o enviamos costo 0 pero con flag?
+                        # User wants: "Show discount of shipping and discount the value".
+                        # If we send cost > 0, frontend adds it.
+                        # So we send cost > 0 AND discount > 0.
+                        r['nombre'] = f"{r['nombre']} (¡Envío Gratis!)" # Mantenemos etiqueta
                 
                 results.extend(rates)
             except Exception as e:
@@ -150,21 +153,31 @@ class ShippingService:
         has_andreani = any('andreani' in opt['id'] for opt in results)
         
         if not has_andreani:
-            cost_sucursal = 0 if is_free_shipping else (5200 if zip_code_val < 3000 else 6800)
-            cost_domicilio = 0 if is_free_shipping else (6200 if zip_code_val < 3000 else 7900)
+            # Send FULL cost here, discount applied later if needed
+            cost_sucursal = 5200 if zip_code_val < 3000 else 6800
+            cost_domicilio = 6200 if zip_code_val < 3000 else 7900
             
-            results.append({
+            res_suc = {
                 "id": "andreani_sucursal_fallback",
-                "nombre": "Andreani (Retiro en Sucursal)" + (" (¡Envío Gratis!)" if is_free_shipping else ""),
+                "nombre": "Andreani (Retiro en Sucursal)",
                 "costo": cost_sucursal,
                 "tiempo_estimado": "2 a 4 días hábiles"
-            })
-            results.append({
+            }
+            res_dom = {
                 "id": "andreani_domicilio_fallback",
-                "nombre": "Andreani (Envío a Domicilio)" + (" (¡Envío Gratis!)" if is_free_shipping else ""),
+                "nombre": "Andreani (Envío a Domicilio)",
                 "costo": cost_domicilio,
                 "tiempo_estimado": "3 a 5 días hábiles"
-            })
+            }
+
+            if is_free_shipping:
+                res_suc['descuento'] = cost_sucursal
+                res_suc['nombre'] += " (¡Envío Gratis!)"
+                res_dom['descuento'] = cost_domicilio
+                res_dom['nombre'] += " (¡Envío Gratis!)"
+
+            results.append(res_suc)
+            results.append(res_dom)
 
         # 5. Opción de Retiro en local (Río Cuarto)
         results.append({
@@ -175,15 +188,4 @@ class ShippingService:
         })
         
         # 6. Ordenar y devolver
-        # 6. Ordenar y devolver
-        results = sorted(results, key=lambda x: x['costo'])
-        
-        # DEBUG SUCIO (TEMPORAL): Agregar opción falsa para ver el total calculado
-        results.append({
-            "id": "debug_info",
-            "nombre": f"DEBUG: Total Backend ${total_cart_value} (Free? {is_free_shipping})",
-            "costo": 999999,
-            "tiempo_estimado": "Info de depuración"
-        })
-        
-        return results
+        return sorted(results, key=lambda x: x['costo'])
