@@ -113,9 +113,9 @@ class ShippingService:
 
         # Regla: Gratis si Supera $150.000 O si TODOS los productos tienen envío gratis
         is_free_shipping = False
-        if total_cart_value > 150000:
+        if total_cart_value >= 150000:
             is_free_shipping = True
-            print(f"DEBUG SHIPPING: FREE by VALUE ({total_cart_value} > 150000)", flush=True)
+            print(f"DEBUG SHIPPING: FREE by VALUE ({total_cart_value} >= 150000)", flush=True)
         elif items and all_items_free_shipping:
             is_free_shipping = True
             print(f"DEBUG SHIPPING: FREE by PROMO (All items free)", flush=True)
