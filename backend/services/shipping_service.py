@@ -91,10 +91,12 @@ class ShippingService:
                     # Buscar producto real en DB para precio y promos
                     prod_db = Producto.query.get(p_id)
                     if prod_db:
-                        price = prod_db.get_precio_actual()
+                        # Use precio_base explicitly for Free Shipping threshold as per user request
+                        # (Ignore specific product discounts or payment method discounts)
+                        price = prod_db.precio_base
                         item_total = price * qty
                         total_cart_value += item_total
-                        print(f"DEBUG SHIPPING: Item {p_id} Price ${price} x {qty} = ${item_total} (Subtotal: {total_cart_value})", flush=True)
+                        print(f"DEBUG SHIPPING: Item {p_id} Base Price ${price} x {qty} = ${item_total} (Subtotal: {total_cart_value})", flush=True)
                         
                         # Verificar si tiene promo de envío gratis activa
                         promos = prod_db.get_promociones_activas()
