@@ -57,11 +57,11 @@
                         <span class="metodo-nombre">{{ opcion.nombre }}</span>
                         <span class="metodo-tiempo">{{ opcion.tiempo }}</span>
                         <a *ngIf="opcion.nombre.toLowerCase().includes('correo') && !opcion.nombre.toLowerCase().includes('local')"
-                            href="javascript:void(0)" class="ver-direcciones-link"
-                            (click)="verPuntosRetiro('correo_argentino')">📍 Ver direcciones</a>
+                            href="https://www.correoargentino.com.ar/formularios/sucursales" target="_blank"
+                            class="ver-direcciones-link">📍 Ver direcciones</a>
                         <a *ngIf="opcion.nombre.toLowerCase().includes('andreani') && !opcion.nombre.toLowerCase().includes('local')"
-                            href="javascript:void(0)" class="ver-direcciones-link"
-                            (click)="verPuntosRetiro('andreani')">📍 Ver direcciones</a>
+                            href="https://www.andreani.com/buscar-sucursal" target="_blank"
+                            class="ver-direcciones-link">📍 Ver direcciones</a>
                     </div>
                     <div class="item-price">
                         <span class="price-val" *ngIf="opcion.costo > 0">${{ opcion.costo | number:'1.0-0' }}</span>
@@ -76,18 +76,7 @@
             {{ mostrarTodasOpciones ? 'Ver menos opciones de envío' : 'Ver más opciones de envío' }}
         </button>
 
-        <div class="total-updated" *ngIf="precioBase > 0">
-            <div class="total-row main-total">
-                <span>Total con envío:</span>
-                <span class="total-val">${{ (precioBase + opcionesEnvio[0]?.costo || 0) | number:'1.0-0' }}</span>
-            </div>
-            <div class="total-row promo-total">
-                <span class="promo-label">Precio con transferencia o efectivo:</span>
-                <span class="promo-val">${{ getPrecioConTransferencia(opcionesEnvio[0]?.costo || 0) | number:'1.2-2'
-                    }}</span>
-                <span class="promo-badge">¡15% OFF!</span>
-            </div>
-        </div>
+
     </div>
 
     <!-- Modal de puntos de retiro -->

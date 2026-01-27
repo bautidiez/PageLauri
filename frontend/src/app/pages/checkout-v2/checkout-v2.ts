@@ -384,7 +384,6 @@ export class CheckoutV2Component implements OnInit {
             provincia: datos.provincia,
             codigo_postal: datos.codigo_postal,
             dni: datos.dni,
-            dni: datos.dni,
             observaciones: datos.observaciones + (this.envioForm.get('sucursal_info')?.value ? `\n\n[Sucursal: ${this.envioForm.get('sucursal_info')?.value}]` : ''),
 
             metodo_envio: shipping?.nombre,
