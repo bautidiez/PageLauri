@@ -527,14 +527,18 @@
                 <div class="summary-divider"></div>
 
                 <!-- Total Highlight with Discount -->
-                <div class="summary-row promo-highlight" *ngIf="getDiscountAmount() > 0">
-                    <span class="promo-title">Total con 15% OFF:</span>
+                <div class="summary-row promo-highlight"
+                    *ngIf="getDiscountAmount() > 0 || getSelectedShipping()?.descuento">
+                    <span class="promo-title">Total con Descuentos:</span>
                     <span class="promo-value">${{ getFinalTotal() | number:'1.2-2' }}</span>
                 </div>
 
                 <!-- Standard Total Row (Struckthrough if discounted) -->
-                <div class="summary-row total" [class.strikethrough]="getDiscountAmount() > 0" *ngIf="!loading">
-                    <span>{{ getDiscountAmount() > 0 ? 'Total sin desc.' : 'Total' }}</span>
+                <div class="summary-row total"
+                    [class.strikethrough]="getDiscountAmount() > 0 || getSelectedShipping()?.descuento"
+                    *ngIf="!loading">
+                    <span>{{ (getDiscountAmount() > 0 || getSelectedShipping()?.descuento) ? 'Total sin desc.' : 'Total'
+                        }}</span>
                     <span>${{ (total + (getSelectedShipping()?.costo || 0)) | number:'1.2-2' }}</span>
                 </div>
 
