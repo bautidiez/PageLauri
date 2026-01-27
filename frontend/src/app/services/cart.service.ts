@@ -55,6 +55,10 @@ export class CartService {
     return 'cart_guest';
   }
 
+  public getCartItems() {
+    return this.cartSubject.value;
+  }
+
   private loadCart(): void {
     const key = this.getCartKey();
     const saved = localStorage.getItem(key);

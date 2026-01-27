@@ -184,10 +184,16 @@ export class CheckoutV2Component implements OnInit {
 
     calculateShipping() {
         console.log('DEBUG: calculateShipping triggered');
+        console.log('DEBUG: Current Items:', this.items);
         const cp = this.datosForm.get('codigo_postal')?.value;
 
         // Prevent re-calc if already calculating or invalid CP
         if (this.isCalculatingShipping || !cp || cp.length < 4) return;
+
+        if (!this.items || this.items.length === 0) {
+            console.warn('DEBUG: Items empty in checkout calculation! Reloading from Service...');
+            this.items = this.cartService.getCartItems(); // Direct sync fetch attempt
+        }
 
         this.loading = true;
         this.isCalculatingShipping = true;
