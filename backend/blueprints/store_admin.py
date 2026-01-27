@@ -510,7 +510,8 @@ def get_all_pedidos():
     """Lista todos los pedidos con filtros opcionales"""
     try:
         page = request.args.get('page', 1, type=int)
-        page_size = request.args.get('page_size', 50, type=int)
+        # Default changed to 20 as per user request
+        page_size = request.args.get('page_size', 20, type=int)
         estado = request.args.get('estado')
         aprobado = request.args.get('aprobado')
         
@@ -523,6 +524,16 @@ def get_all_pedidos():
             # Convertir string a boolean
             aprobado_bool = aprobado.lower() == 'true'
             query = query.filter_by(aprobado=aprobado_bool)
+            
+        # Búsqueda textual (NUEVO)
+        q = request.args.get('q')
+        if q:
+            search = f"%{q}%"
+            query = query.filter(
+                (Pedido.cliente_nombre.ilike(search)) |
+                (Pedido.cliente_email.ilike(search)) |
+                (Pedido.numero_pedido.ilike(search))
+            )
         
         # Ordenar por más recientes primero
         query = query.order_by(Pedido.created_at.desc())

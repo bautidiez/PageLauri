@@ -352,9 +352,10 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/pedidos`, pedido);
   }
 
-  getPedidos(estado?: string): Observable<any> {
-    let url = `${this.apiUrl}/admin/pedidos`;
-    if (estado) url += `?estado=${estado}`;
+  getPedidos(estado?: string, page: number = 1, pageSize: number = 20, search?: string): Observable<any> {
+    let url = `${this.apiUrl}/admin/pedidos?page=${page}&page_size=${pageSize}`;
+    if (estado) url += `&estado=${estado}`;
+    if (search) url += `&q=${encodeURIComponent(search)}`; // If backend supports search (not yet fully implemented in get_all_pedidos but good to have)
     return this.http.get(url, { headers: this.getHeaders() });
   }
 

@@ -354,29 +354,30 @@ def delete_my_order(pedido_id):
              is_owner = True
 
     if not is_owner:
+        print(f"DEBUG DELETE: ID {pedido_id} - Forbidden (User {cliente.id} vs Order Owner)", flush=True)
         return jsonify({'error': 'No tienes permiso para eliminar este pedido'}), 403
 
     try:
         # HARD DELETE as requested "que no aparezca"
-        # Manually delete dependencies if cascades aren't set up, though they usually are.
-        # Assuming cascade delete is configured in models or DB level.
+        print(f"DEBUG DELETE: Attempting to delete order {pedido_id}...", flush=True)
         
-        # Restore stock if order wasn't cancelled/deleted? 
-        # Actually user says "para probar", usually means "I made a fake order, I want to wipe it".
-        # If it was already confirmed/approved, deleting it might mess up stock. 
-        # But if it's "pendiente", it reserved no stock (usually stock is reserved on creation or approval?).
-        # In this system, verify 'aprobar_pedido' reduces stock. So if it's not approved, stock is untouched (except maybe temporary hold?).
-        # If approved, we should probably restore stock.
-        
-        if pedido.aprobado and pedido.estado not in ['cancelado', 'rechazado']:
-             # Restore stock logic (simplified copy-paste or strict)
-             # For now, simplistic delete. If user wants to delete TEST orders, they are likely not approved or just junk.
-             pass
+        # 1. Manually delete NotaPedido items if any (ORM cascade missing)
+        from models import NotaPedido
+        try:
+            NotaPedido.query.filter_by(pedido_id=pedido.id).delete()
+        except Exception as e:
+            print(f"DEBUG DELETE: Error deleting notes: {e}", flush=True)
 
+        # 2. Check other non-cascaded relationships?
+        # Items and Entvio have cascade='all, delete-orphan' in Pedido model.
+        
         db.session.delete(pedido)
         db.session.commit()
+        print(f"DEBUG DELETE: Success {pedido_id}", flush=True)
         return jsonify({'message': 'Pedido eliminado correctamente'}), 200
     except Exception as e:
         db.session.rollback()
+        import traceback
+        traceback.print_exc()
         logger.error(f"Error deleting order {pedido_id}: {e}")
-        return jsonify({'error': 'Error al eliminar el pedido'}), 500
+        return jsonify({'error': f'Error al eliminar el pedido: {str(e)}'}), 500

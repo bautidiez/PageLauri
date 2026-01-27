@@ -64,6 +64,13 @@ export class PedidosAdminComponent implements OnInit {
   nuevaNota = '';
   loadingNotas = false;
 
+  // Paginación
+  currentPage = 1;
+  pageSize = 20;
+  totalPages = 1;
+  totalOrders = 0;
+  pagesArray: number[] = [];
+
   constructor(
     private apiService: ApiService,
     private authService: AuthService,
@@ -77,20 +84,26 @@ export class PedidosAdminComponent implements OnInit {
       this.router.navigate(['/admin/login']);
       return;
     }
+    this.currentPage = 1;
     this.loadPedidos();
   }
 
   loadPedidos() {
-    if (this.pedidos.length === 0) {
-      this.loading = true;
-    }
-    this.apiService.getPedidos(this.filtroEstado || undefined).subscribe({
+    this.loading = true;
+    this.apiService.getPedidos(this.filtroEstado || undefined, this.currentPage, this.pageSize, this.busquedaCliente || undefined).subscribe({
       next: (response: any) => {
-        // Si viene paginado
+        // Handle paginated response
         if (response.items) {
           this.pedidos = response.items;
+          this.totalOrders = response.total;
+          this.totalPages = response.pages;
+          this.currentPage = response.page;
+          this.generatePagesArray();
         } else {
+          // Fallback if backend implementation varies
           this.pedidos = response;
+          this.totalOrders = response.length;
+          this.totalPages = 1;
         }
         this.loading = false;
         this.cdr.detectChanges();
@@ -103,25 +116,60 @@ export class PedidosAdminComponent implements OnInit {
     });
   }
 
-  get pedidosFiltrados(): Pedido[] {
-    if (!this.busquedaCliente.trim()) {
-      return this.pedidos;
+  generatePagesArray() {
+    this.pagesArray = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - 2);
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+
+    if (end - start < maxVisible - 1) {
+      start = Math.max(1, end - maxVisible + 1);
     }
-    const termino = this.busquedaCliente.toLowerCase();
-    return this.pedidos.filter(p =>
-      p.cliente_nombre.toLowerCase().includes(termino) ||
-      p.numero_pedido.toLowerCase().includes(termino) ||
-      p.cliente_email.toLowerCase().includes(termino)
-    );
+
+    for (let i = start; i <= end; i++) {
+      this.pagesArray.push(i);
+    }
+  }
+
+  cambiarPagina(page: number) {
+    if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+    this.currentPage = page;
+    this.loadPedidos();
+  }
+
+  siguientePagina() {
+    if (this.currentPage < this.totalPages) {
+      this.cambiarPagina(this.currentPage + 1);
+    } else {
+      alert('No hay más páginas');
+    }
+  }
+
+  anteriorPagina() {
+    if (this.currentPage > 1) {
+      this.cambiarPagina(this.currentPage - 1);
+    }
+  }
+
+  // Removed pedidosFiltrados getter in favor of server-side filtering
+  get pedidosFiltrados(): Pedido[] {
+    return this.pedidos;
   }
 
   filtrarPorEstado() {
+    this.currentPage = 1;
+    this.loadPedidos();
+  }
+
+  buscar() {
+    this.currentPage = 1;
     this.loadPedidos();
   }
 
   limpiarFiltros() {
     this.filtroEstado = '';
     this.busquedaCliente = '';
+    this.currentPage = 1;
     this.loadPedidos();
   }
 

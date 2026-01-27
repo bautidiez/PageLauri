@@ -81,12 +81,20 @@ class ShippingService:
                     if not p_id:
                         logger.warning(f"Skipping item with no ID: {item}")
                         continue
+                    
+                    # Ensure ID is int
+                    try:
+                        p_id = int(p_id)
+                    except:
+                        pass
 
                     # Buscar producto real en DB para precio y promos
                     prod_db = Producto.query.get(p_id)
                     if prod_db:
                         price = prod_db.get_precio_actual()
-                        total_cart_value += (price * qty)
+                        item_total = price * qty
+                        total_cart_value += item_total
+                        print(f"DEBUG SHIPPING: Item {p_id} Price ${price} x {qty} = ${item_total} (Subtotal: {total_cart_value})", flush=True)
                         
                         # Verificar si tiene promo de envío gratis activa
                         promos = prod_db.get_promociones_activas()
@@ -101,18 +109,18 @@ class ShippingService:
                     logger.error(f"Error checking free shipping for item: {e}")
                     all_items_free_shipping = False
         
-        print(f"DEBUG SHIPPING: Total Value {total_cart_value}, All Free? {all_items_free_shipping}, Items Count: {len(items) if items else 0}", flush=True)
+        print(f"DEBUG SHIPPING: Final Total Value {total_cart_value}, All Free? {all_items_free_shipping}", flush=True)
 
         # Regla: Gratis si Supera $150.000 O si TODOS los productos tienen envío gratis
         is_free_shipping = False
         if total_cart_value > 150000:
             is_free_shipping = True
-            logger.info(f"Shipping Checks: FREE (Total {total_cart_value} > 150k)")
+            print(f"DEBUG SHIPPING: FREE by VALUE ({total_cart_value} > 150000)", flush=True)
         elif items and all_items_free_shipping:
             is_free_shipping = True
-            logger.info(f"Shipping Checks: FREE (All items have active free shipping promo)")
+            print(f"DEBUG SHIPPING: FREE by PROMO (All items free)", flush=True)
         else:
-            logger.info(f"Shipping Checks: PAID (Total {total_cart_value}, Mixed/No-Free Items)")
+            print(f"DEBUG SHIPPING: PAID (Total {total_cart_value} <= 150000 and not all free)", flush=True)
 
         results = []
         

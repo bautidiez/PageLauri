@@ -7,8 +7,9 @@
       <h1>📋 Gestión de Pedidos</h1>
     </div>
     <div class="actions">
-      <input type="text" [(ngModel)]="busquedaCliente" placeholder="🔍 Buscar por cliente, N° pedido..."
-        class="search-input">
+      <input type="text" [(ngModel)]="busquedaCliente" (keyup.enter)="buscar()"
+        placeholder="🔍 Buscar por cliente, N° pedido (Enter)" class="search-input">
+      <button class="btn-icon" (click)="buscar()" title="Buscar">🔍</button>
       <select [(ngModel)]="filtroEstado" (change)="filtrarPorEstado()" class="filter-select">
         <option value="">Todos los estados</option>
         <option *ngFor="let estado of estados" [value]="estado">{{ getEstadoLabel(estado) }}</option>
@@ -80,6 +81,36 @@
         </tr>
       </tbody>
     </table>
+    </table>
+  </div>
+
+  <!-- PAGINACIÓN -->
+  <div class="pagination-container" *ngIf="!loading && pedidos.length > 0">
+    <div class="pagination-info">
+      <span>Página <strong>{{ currentPage }}</strong> de <strong>{{ totalPages }}</strong></span>
+      <span class="total-count">(Total: {{ totalOrders }} pedidos)</span>
+    </div>
+    <div class="pagination-controls">
+      <button class="btn-page" (click)="anteriorPagina()" [disabled]="currentPage === 1">
+        « Anterior
+      </button>
+
+      <ng-container *ngFor="let p of pagesArray">
+        <button class="btn-page-number" [class.active]="p === currentPage" (click)="cambiarPagina(p)">
+          {{ p }}
+        </button>
+      </ng-container>
+
+      <button class="btn-page" (click)="siguientePagina()" [disabled]="currentPage === totalPages">
+        Siguiente »
+      </button>
+    </div>
+  </div>
+
+  <div class="pagination-goto" *ngIf="totalPages > 5">
+    <small>Ir a pág:</small>
+    <input type="number" min="1" [max]="totalPages" [(ngModel)]="currentPage" (change)="loadPedidos()"
+      style="width: 60px; text-align: center;">
   </div>
 
   <!-- DETALLE DEL PEDIDO (MODAL) -->
