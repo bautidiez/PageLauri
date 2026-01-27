@@ -175,4 +175,15 @@ class ShippingService:
         })
         
         # 6. Ordenar y devolver
-        return sorted(results, key=lambda x: x['costo'])
+        # 6. Ordenar y devolver
+        results = sorted(results, key=lambda x: x['costo'])
+        
+        # DEBUG SUCIO (TEMPORAL): Agregar opción falsa para ver el total calculado
+        results.append({
+            "id": "debug_info",
+            "nombre": f"DEBUG: Total Backend ${total_cart_value} (Free? {is_free_shipping})",
+            "costo": 999999,
+            "tiempo_estimado": "Info de depuración"
+        })
+        
+        return results
