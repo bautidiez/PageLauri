@@ -108,7 +108,7 @@ app.register_blueprint(store_admin_bp)
 app.register_blueprint(clients_bp)
 # app.register_blueprint(shipping_bp) # Deprecated or migrated?
 # app.register_blueprint(orders_bp) # Migrated to public store
-app.register_blueprint(payments_bp)
+app.register_blueprint(payments_bp, url_prefix='/api/payments')
 
 # ==================== BACKGROUND SCHEDULER ====================
 # Configurar tareas programadas (auto-limpieza de pedidos expirados)
