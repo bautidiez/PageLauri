@@ -510,8 +510,8 @@ def get_all_pedidos():
     """Lista todos los pedidos con filtros opcionales"""
     try:
         page = request.args.get('page', 1, type=int)
-        # Default changed to 20 as per user request
-        page_size = request.args.get('page_size', 20, type=int)
+        # Default changed to 40 as per user request
+        page_size = request.args.get('page_size', 40, type=int)
         estado = request.args.get('estado')
         aprobado = request.args.get('aprobado')
         

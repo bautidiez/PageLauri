@@ -66,7 +66,7 @@ export class PedidosAdminComponent implements OnInit {
 
   // Paginación
   currentPage = 1;
-  pageSize = 20;
+  pageSize = 40;
   totalPages = 1;
   totalOrders = 0;
   pagesArray: number[] = [];
