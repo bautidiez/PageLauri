@@ -65,9 +65,23 @@ class ShippingService:
         if items:
             for item in items:
                 try:
-                    p_id = item.get('producto', {}).get('id')
+                    # Robust ID extraction
+                    p_id = None
+                    if 'producto_id' in item:
+                        p_id = item['producto_id']
+                    elif 'producto' in item:
+                        prod_data = item['producto']
+                        if isinstance(prod_data, dict):
+                            p_id = prod_data.get('id')
+                        else:
+                            p_id = prod_data # Assume it's the ID itself if not dict
+                    
                     qty = item.get('cantidad', 1)
                     
+                    if not p_id:
+                        logger.warning(f"Skipping item with no ID: {item}")
+                        continue
+
                     # Buscar producto real en DB para precio y promos
                     prod_db = Producto.query.get(p_id)
                     if prod_db:
@@ -81,6 +95,7 @@ class ShippingService:
                             all_items_free_shipping = False
                     else:
                         # Si no se encuentra producto, asumir que no es gratis
+                        logger.warning(f"Product not found in DB: {p_id}")
                         all_items_free_shipping = False
                 except Exception as e:
                     logger.error(f"Error checking free shipping for item: {e}")

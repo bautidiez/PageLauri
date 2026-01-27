@@ -224,6 +224,74 @@ export class MisPedidosComponent implements OnInit {
         this.pedidoDetalle = null;
     }
 
+    deleteOrder(pedido: any) {
+        if (confirm(`¿Estás seguro de que querés eliminar el pedido #${pedido.numero_pedido}? Esta acción no se puede deshacer.`)) {
+            // Optimistic Update or Wait? Wait is safer.
+            this.checkoutService.deleteOrder(pedido.id).subscribe({
+                next: () => {
+                    alert('Pedido eliminado correctamente.');
+                    this.pedidos = this.pedidos.filter(p => p.id !== pedido.id);
+                    if (this.pedidoDetalle && this.pedidoDetalle.id === pedido.id) {
+                        this.cerrarDetalle();
+                    }
+                    this.cd.detectChanges();
+                },
+                error: (err) => {
+                    console.error('Error deleting order:', err);
+                    alert(err.error?.error || 'Error al eliminar el pedido.');
+                    this.cd.detectChanges();
+                }
+            });
+        }
+    }
+
+    // --- Payment Helpers (Copied & Adapted for Order History) ---
+    isPaymentMethod(order: any, methodKey: string): boolean {
+        if (!order || !order.metodo_pago) return false;
+
+        // In history, we rely on the backend name
+        const name = (order.metodo_pago.nombre || order.metodo_pago).toLowerCase();
+
+        switch (methodKey) {
+            case 'efectivo_local':
+                return name.includes('local') || name.includes('retiro');
+            case 'transferencia':
+                return name.includes('transferencia');
+            case 'efectivo':
+                return (name.includes('efectivo') || name.includes('rapipago') || name.includes('facil')) && !name.includes('local');
+            case 'mercadopago':
+                return name.includes('mercado') || name.includes('mp') || name.includes('tarjeta') || name.includes('credit') || name.includes('debit');
+            default:
+                return false;
+        }
+    }
+
+    getWhatsAppUrl(order: any, numberIndex: 1 | 2 = 1): string {
+        if (!order) return '';
+        const phoneNumber = numberIndex === 1 ? '5493585164402' : '5493584825640';
+        let msg = '';
+
+        if (this.isPaymentMethod(order, 'efectivo_local')) {
+            const itemsList = order.items?.map((i: any) => `- ${i.producto_nombre} (${i.talle_nombre}) x${i.cantidad}`).join('\n') || '';
+            const envioMethod = order.envio?.transportista || 'Retiro en Local';
+            msg = `*NUEVO PEDIDO #${order.numero_pedido}*\n\n*Detalle de la compra:*\n${itemsList}\n\n*Medio de pago:* Efectivo en el local\n*Modo de envío:* ${envioMethod}\n*Total a pagar:* $${order.total}\n\nHola! Quiero confirmar mi pedido.`;
+
+        } else if (this.isPaymentMethod(order, 'mercadopago')) {
+            msg = `Hola! Hice el pedido #${order.numero_pedido} pagando con Tarjeta/Mercado Pago.\nAdjunto el comprobante de pago para confirmar la compra.\n*Total:* $${order.total}`;
+
+        } else if (this.isPaymentMethod(order, 'transferencia')) {
+            msg = `Hola! Hice el pedido #${order.numero_pedido} via Transferencia.\nAdjunto el comprobante de pago.\n*Total:* $${order.total}`;
+
+        } else if (this.isPaymentMethod(order, 'efectivo')) {
+            msg = `Hola! Hice el pedido #${order.numero_pedido} y ya realicé el pago en Rapipago/Pago Fácil.\nAdjunto el comprobante.\n*Total:* $${order.total}`;
+
+        } else {
+            msg = `Hola! Hice el pedido #${order.numero_pedido}. Adjunto comprobante. Total: $${order.total}`;
+        }
+
+        return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(msg)}`;
+    }
+
     getTrackingUrl(transportista: string, guia: string): string | null {
         if (!guia) return null;
         const t = transportista.toLowerCase();

@@ -341,8 +341,133 @@ h1 {
     }
 }
 
+/* PAYMENT INSTRUCTIONS STYLES */
+.payment-instructions {
+    background: #fafafa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.note-green {
+    background: #f0fff4;
+    color: #2f855a;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 4px solid #48bb78;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.note-important {
+    color: #e53e3e;
+    /* Red/Alert */
+    font-size: 13px;
+    margin: 10px 0;
+    font-weight: 600;
+}
+
+.code-box {
+    background: #fff;
+    border: 1px dashed #ccc;
+    padding: 10px;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 1px;
+    margin: 10px 0;
+    font-weight: bold;
+    color: #333;
+}
+
+.bank-details-mini p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+}
+
+.total-highlight {
+    font-weight: 800;
+    font-size: 16px !important;
+    color: #000 !important;
+    border-top: 1px solid #ddd;
+    padding-top: 8px;
+    margin-top: 8px !important;
+}
+
+.wa-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-wa {
+    flex: 1;
+    text-align: center;
+    background: #25D366;
+    color: #fff;
+    padding: 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+    display: block;
+}
+
+.btn-wa:hover {
+    background: #128C7E;
+}
+
+.btn-whatsapp.full-width {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    background: #25D366;
+    color: #fff;
+    text-align: center;
+    padding: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 6px;
+}
+
+.btn-mp {
+    display: block;
+    width: 100%;
+    background: #009ee3;
+    color: #fff;
+    text-align: center;
+    padding: 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 700;
+    margin: 10px 0;
+}
+
+.btn-mp:hover {
+    background: #007eb5;
+}
+
 @media (max-width: 900px) {
     .account-grid {
         grid-template-columns: 1fr;
     }
+}
+
+.btn-delete {
+    background: transparent;
+    border: 1px solid #e53e3e;
+    color: #e53e3e;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover {
+    background: #e53e3e;
+    color: white;
 }

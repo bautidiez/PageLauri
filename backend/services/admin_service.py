@@ -16,7 +16,7 @@ class AdminService:
             ~Producto.stock_talles.any(StockTalle.cantidad > 5)
         ).count()
         
-        total_pedidos = Pedido.query.count()
+        total_pedidos = Pedido.query.filter(Pedido.estado != 'cancelado').count()
         pedidos_pendientes_aprobacion = Pedido.query.filter_by(aprobado=False, estado='pendiente_aprobacion').count()
         pedidos_pendientes = Pedido.query.filter(Pedido.estado.in_(['pendiente', 'pendiente_aprobacion', 'confirmado'])).count()
         

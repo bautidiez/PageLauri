@@ -64,4 +64,8 @@ export class CheckoutService {
     getMyOrders(): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/clientes/me/orders`, this.getHeaders());
     }
+
+    deleteOrder(id: number): Observable<any> {
+        return this.http.delete<any>(`${this.apiUrl}/clientes/me/orders/${id}`, this.getHeaders());
+    }
 }

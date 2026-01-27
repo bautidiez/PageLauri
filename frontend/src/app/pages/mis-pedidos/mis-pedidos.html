@@ -148,6 +148,63 @@
                 </div>
             </div>
 
+            <!-- INSTRUCCIONES DE PAGO Y PASOS (NUEVO) -->
+            <div class="info-section payment-instructions">
+                <h3>Instrucciones de Pago y Confirmación</h3>
+
+                <!-- 1. Efectivo Local -->
+                <div *ngIf="isPaymentMethod(pedidoDetalle, 'efectivo_local')">
+                    <p class="note-green">Presentate en nuestro local para abonar y retirar tu pedido.</p>
+                    <a [href]="getWhatsAppUrl(pedidoDetalle)" target="_blank" class="btn-whatsapp full-width">
+                        <i class="fab fa-whatsapp"></i> CONFIRMAR POR WHATSAPP
+                    </a>
+                </div>
+
+                <!-- 2. Transferencia -->
+                <div *ngIf="isPaymentMethod(pedidoDetalle, 'transferencia')">
+                    <div class="bank-details-mini">
+                        <p><strong>Banco:</strong> Mercado Pago</p>
+                        <p><strong>CBU:</strong> 0000003100068933152485</p>
+                        <p><strong>Alias:</strong> el.vestuario.r4</p>
+                        <p><strong>Titular:</strong> Tomas Cruseno</p>
+                        <p class="total-highlight">Total: ${{ pedidoDetalle.total | number:'1.0-2' }}</p>
+                    </div>
+                    <p class="note-important">⚠️ Enviá el comprobante por WhatsApp para confirmar.</p>
+                    <div class="wa-buttons">
+                        <a [href]="getWhatsAppUrl(pedidoDetalle, 1)" target="_blank" class="btn-wa">WhatsApp 1</a>
+                        <a [href]="getWhatsAppUrl(pedidoDetalle, 2)" target="_blank" class="btn-wa">WhatsApp 2</a>
+                    </div>
+                </div>
+
+                <!-- 3. Rapipago / Pago Facil -->
+                <div *ngIf="isPaymentMethod(pedidoDetalle, 'efectivo')">
+                    <p>CVU para Rapipago / Pago Fácil:</p>
+                    <div class="code-box">0000003100068933152485</div>
+                    <p class="note-important">⚠️ Dictale este número al cajero. Una vez pagado, enviá el ticket.</p>
+                    <div class="wa-buttons">
+                        <a [href]="getWhatsAppUrl(pedidoDetalle, 1)" target="_blank" class="btn-wa">WhatsApp 1</a>
+                        <a [href]="getWhatsAppUrl(pedidoDetalle, 2)" target="_blank" class="btn-wa">WhatsApp 2</a>
+                    </div>
+                </div>
+
+                <!-- 4. Mercado Pago / Tarjeta -->
+                <div *ngIf="isPaymentMethod(pedidoDetalle, 'mercadopago')">
+                    <div *ngIf="pedidoDetalle.estado !== 'pagado'">
+                        <a href="https://link.mercadopago.com.ar/elvestuarior4" target="_blank" class="btn-mp">
+                            PAGAR AHORA
+                        </a>
+                        <p class="note-important">⚠️ Una vez pagado, enviá el comprobante.</p>
+                    </div>
+                    <div *ngIf="pedidoDetalle.estado === 'pagado'">
+                        <p class="note-green">✅ Pago registrado correctamente.</p>
+                    </div>
+                    <div class="wa-buttons">
+                        <a [href]="getWhatsAppUrl(pedidoDetalle, 1)" target="_blank" class="btn-wa">WhatsApp 1</a>
+                        <a [href]="getWhatsAppUrl(pedidoDetalle, 2)" target="_blank" class="btn-wa">WhatsApp 2</a>
+                    </div>
+                </div>
+            </div>
+
             <div class="info-section">
                 <h3>Productos</h3>
                 <div class="items-mini">
@@ -156,6 +213,13 @@
                         <span>${{ item.subtotal | number:'1.0-0' }}</span>
                     </div>
                 </div>
+            </div>
+
+            <div class="modal-footer"
+                style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; text-align: right;">
+                <button class="btn-delete" (click)="deleteOrder(pedidoDetalle)">
+                    🗑️ Eliminar Pedido
+                </button>
             </div>
         </div>
     </div>
