@@ -185,15 +185,20 @@ export class CheckoutV2Component implements OnInit {
 
     calculateShipping() {
         console.log('DEBUG: calculateShipping triggered');
-        console.log('DEBUG: Current Items:', this.items);
+
+        // CRITICAL: Always sync items from cart service first
+        this.items = this.cartService.getCartItems();
+        console.log('DEBUG: Current Items after sync:', this.items);
+
         const cp = this.datosForm.get('codigo_postal')?.value;
 
         // Prevent re-calc if already calculating or invalid CP
         if (this.isCalculatingShipping || !cp || cp.length < 4) return;
 
+        // Double check items are present
         if (!this.items || this.items.length === 0) {
-            console.warn('DEBUG: Items empty in checkout calculation! Reloading from Service...');
-            this.items = this.cartService.getCartItems(); // Direct sync fetch attempt
+            console.error('CRITICAL: No items in cart! Cannot calculate shipping.');
+            return;
         }
 
         this.loading = true;
