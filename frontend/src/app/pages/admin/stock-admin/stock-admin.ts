@@ -101,6 +101,7 @@ export class StockAdminComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((params: any) => {
         // Validación y carga de producto preseleccionado
+        /*
         if (params['producto_id']) {
           const prodId = Number(params['producto_id']);
           if (!isNaN(prodId) && prodId > 0) {
@@ -118,6 +119,7 @@ export class StockAdminComponent implements OnInit, OnDestroy {
         } else {
           this.productoPreseleccionado = null;
         }
+        */
 
         this.loadStock();
       });
