@@ -101,10 +101,11 @@ export class StockAdminComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((params: any) => {
         // Validación y carga de producto preseleccionado
-        /*
         if (params['producto_id']) {
           const prodId = Number(params['producto_id']);
           if (!isNaN(prodId) && prodId > 0) {
+            // DEBUG: Alertar al usuario para verificar recepción
+            alert('DEBUG: Recibido ID producto en StockAdmin: ' + prodId);
             console.log('Cargando producto preseleccionado:', prodId);
             this.apiService.getProducto(prodId).subscribe({
               next: (prod) => {
@@ -112,14 +113,17 @@ export class StockAdminComponent implements OnInit, OnDestroy {
                 this.productoPreseleccionado = prod;
                 this.mostrarFormularioAgregarStock = true;
                 this.cdr.detectChanges();
+                alert('DEBUG: Producto cargado y modal abierto para: ' + prod.nombre);
               },
-              error: (err) => console.error('Error cargando producto para stock:', err)
+              error: (err) => {
+                console.error('Error cargando producto para stock:', err);
+                alert('Error al cargar producto para stock: ' + JSON.stringify(err));
+              }
             });
           }
         } else {
           this.productoPreseleccionado = null;
         }
-        */
 
         this.loadStock();
       });
