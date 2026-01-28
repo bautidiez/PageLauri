@@ -176,6 +176,8 @@ class Producto(db.Model):
             'precio_actual': self.get_precio_actual(),
             'categoria_id': self.categoria_id,
             'categoria_nombre': self.categoria.nombre if self.categoria else None,
+            'categoria_principal': self.categoria.categoria_padre.nombre if self.categoria and self.categoria.categoria_padre else (self.categoria.nombre if self.categoria else None),
+            'subcategoria': self.categoria.nombre if self.categoria and self.categoria.categoria_padre else None,
             'activo': self.activo,
             'destacado': self.destacado,
             'color': self.color,
