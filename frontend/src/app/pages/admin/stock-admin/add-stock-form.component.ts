@@ -89,7 +89,7 @@ import { ApiService } from '../../../services/api.service';
     </div>
   `
 })
-export class AddStockFormComponent implements OnInit {
+export class AddStockFormComponent {
   @Input() preSelectedProduct: any = null;
   @Output() stockAdded = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();

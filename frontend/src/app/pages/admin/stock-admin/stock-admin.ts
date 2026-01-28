@@ -99,7 +99,7 @@ export class StockAdminComponent implements OnInit, OnDestroy {
     // Subscribe to route changes
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
+      .subscribe((params: any) => {
         // Validación y carga de producto preseleccionado
         if (params['producto_id']) {
           const prodId = Number(params['producto_id']);
