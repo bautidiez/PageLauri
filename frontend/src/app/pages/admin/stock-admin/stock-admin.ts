@@ -104,16 +104,16 @@ export class StockAdminComponent implements OnInit, OnDestroy {
         if (params['producto_id']) {
           const prodId = Number(params['producto_id']);
           if (!isNaN(prodId) && prodId > 0) {
-            // DEBUG: Alertar al usuario para verificar recepción
-            alert('DEBUG: Recibido ID producto en StockAdmin: ' + prodId);
             console.log('Cargando producto preseleccionado:', prodId);
             this.apiService.getProducto(prodId).subscribe({
               next: (prod) => {
                 console.log('Producto cargado:', prod);
                 this.productoPreseleccionado = prod;
-                this.mostrarFormularioAgregarStock = true;
-                this.cdr.detectChanges();
-                alert('DEBUG: Producto cargado y modal abierto para: ' + prod.nombre);
+                // Pequeño delay para asegurar que el binding detecte el cambio antes de renderizar el componente
+                setTimeout(() => {
+                  this.mostrarFormularioAgregarStock = true;
+                  this.cdr.detectChanges();
+                }, 100);
               },
               error: (err) => {
                 console.error('Error cargando producto para stock:', err);

@@ -120,7 +120,6 @@ export class AddStockFormComponent {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['preSelectedProduct'] && changes['preSelectedProduct'].currentValue) {
       console.log('ngOnChanges: preSelectedProduct changed', changes['preSelectedProduct'].currentValue);
-      alert('DEBUG: AddStockForm recibió producto: ' + changes['preSelectedProduct'].currentValue.nombre);
       this.selectProduct(changes['preSelectedProduct'].currentValue);
     }
   }
