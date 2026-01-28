@@ -100,17 +100,21 @@ export class StockAdminComponent implements OnInit, OnDestroy {
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
-        // Si hay producto_id en query params, cargarlo y abrir modal
+        // Validación y carga de producto preseleccionado
         if (params['producto_id']) {
           const prodId = Number(params['producto_id']);
-          this.apiService.getProducto(prodId).subscribe({
-            next: (prod) => {
-              this.productoPreseleccionado = prod;
-              this.mostrarFormularioAgregarStock = true;
-              this.cdr.detectChanges();
-            },
-            error: (err) => console.error('Error loading product for stock:', err)
-          });
+          if (!isNaN(prodId) && prodId > 0) {
+            console.log('Cargando producto preseleccionado:', prodId);
+            this.apiService.getProducto(prodId).subscribe({
+              next: (prod) => {
+                console.log('Producto cargado:', prod);
+                this.productoPreseleccionado = prod;
+                this.mostrarFormularioAgregarStock = true;
+                this.cdr.detectChanges();
+              },
+              error: (err) => console.error('Error cargando producto para stock:', err)
+            });
+          }
         } else {
           this.productoPreseleccionado = null;
         }
