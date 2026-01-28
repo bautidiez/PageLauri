@@ -540,10 +540,36 @@ export class ProductosAdminComponent implements OnInit {
       this.apiService.deleteProducto(producto.id).subscribe({
         next: () => {
           this.loadProductos();
+          alert(`Producto "${producto.nombre}" eliminado exitosamente`);
         },
         error: (error) => {
-          alert('Error al eliminar producto');
-          console.error(error);
+          const errorData = error.error;
+
+          // Si el backend sugiere desactivar en lugar de eliminar
+          if (errorData && errorData.suggestion === 'desactivar') {
+            const mensaje = `${errorData.error}\n\n¿Quieres DESACTIVAR el producto en su lugar?\n\n(El producto dejará de mostrarse en la tienda pero se mantendrá el historial)`;
+            const desactivar = confirm(mensaje);
+
+            if (desactivar) {
+              // Desactivar el producto
+              this.apiService.updateProducto(producto.id, { activo: false }).subscribe({
+                next: () => {
+                  this.loadProductos();
+                  alert(`Producto "${producto.nombre}" desactivado exitosamente`);
+                },
+                error: (err) => {
+                  alert('Error al desactivar producto');
+                  console.error(err);
+                }
+              });
+            }
+          } else {
+            // Mostrar error genérico
+            const mensajeError = errorData?.error || error.message || 'Error al eliminar producto';
+            alert(mensajeError);
+          }
+
+          console.error('Error completo:', error);
         }
       });
     }

@@ -144,13 +144,46 @@ def manage_product(id):
     producto = Producto.query.get_or_404(id)
     if request.method == 'DELETE':
         try:
+            # Verificar si tiene items en pedidos
+            from models import ItemPedido, VentaExterna
+            pedidos_count = ItemPedido.query.filter_by(producto_id=id).count()
+            if pedidos_count > 0:
+                return jsonify({
+                    'error': f'No se puede eliminar "{producto.nombre}" porque tiene {pedidos_count} pedido(s) asociado(s). Para mantener el historial de ventas, se recomienda desactivar el producto en su lugar.',
+                    'suggestion': 'desactivar',
+                    'relacion': 'pedidos',
+                    'count': pedidos_count
+                }), 400
+            
+            # Verificar si tiene ventas externas
+            ventas_count = VentaExterna.query.filter_by(producto_id=id).count()
+            if ventas_count > 0:
+                return jsonify({
+                    'error': f'No se puede eliminar "{producto.nombre}" porque tiene {ventas_count} venta(s) externa(s) registrada(s). Para mantener el historial de ventas, se recomienda desactivar el producto en su lugar.',
+                    'suggestion': 'desactivar',
+                    'relacion': 'ventas_externas',
+                    'count': ventas_count
+                }), 400
+            
+            # Desvincular de promociones (no bloquea, solo limpia)
+            if hasattr(producto, 'promociones'):
+                for promo in producto.promociones:
+                    promo.productos.remove(producto)
+            
             db.session.delete(producto)
             db.session.commit()
             invalidate_cache(pattern='productos')
             return jsonify({'message': 'Producto eliminado'}), 200
         except Exception as e:
             db.session.rollback()
-            return jsonify({'error': str(e)}), 500
+            error_msg = str(e)
+            # Si hay otro tipo de restricción de clave foránea, dar mensaje genérico
+            if 'foreign key' in error_msg.lower() or 'violates' in error_msg.lower():
+                return jsonify({
+                    'error': f'No se puede eliminar "{producto.nombre}" porque tiene datos relacionados en el sistema.',
+                    'suggestion': 'desactivar'
+                }), 400
+            return jsonify({'error': error_msg}), 500
     
     data = request.get_json()
     try:
