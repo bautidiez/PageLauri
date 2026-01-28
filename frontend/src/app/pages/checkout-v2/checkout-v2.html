@@ -82,8 +82,8 @@
                             <div class="field full">
                                 <label>Código Postal</label>
                                 <div class="input-with-action">
-                                    <input type="text" formControlName="codigo_postal" placeholder="Ej: 5800"
-                                        (keyup.enter)="calculateShipping()">
+                                    <input type="text" formControlName="codigo_postal"
+                                        placeholder="Ingresá tu código postal" (keyup.enter)="calculateShipping()">
                                     <button type="button" class="btn-link" (click)="calculateShipping()"
                                         [disabled]="loading">
                                         {{ loading ? '...' : 'Calcular' }}
