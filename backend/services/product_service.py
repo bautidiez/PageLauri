@@ -82,7 +82,28 @@ class ProductService:
         if filters.get('precio_max'):
             query = query.filter(Producto.precio_base <= float(filters['precio_max']))
 
-            
+        # Filtro de estado de stock
+        estado_stock = filters.get('estado_stock')
+        if estado_stock:
+            if estado_stock == 'disponible':
+                # Productos con stock >= 6 en al menos un talle
+                query = query.join(StockTalle).filter(StockTalle.cantidad >= 6).distinct()
+            elif estado_stock == 'bajo':
+                # Productos con stock entre 1 y 5 (y sin stock >= 6)
+                productos_stock_alto = db.session.query(StockTalle.producto_id).filter(
+                    StockTalle.cantidad >= 6
+                ).distinct()
+                query = query.join(StockTalle).filter(
+                    StockTalle.cantidad.between(1, 5),
+                    ~Producto.id.in_(productos_stock_alto)
+                ).distinct()
+            elif estado_stock == 'no_disponible':
+                # Productos donde TODO el stock es 0
+                productos_con_stock = db.session.query(StockTalle.producto_id).filter(
+                    StockTalle.cantidad > 0
+                ).distinct()
+                query = query.filter(~Producto.id.in_(productos_con_stock))
+
         # Ordenamiento
         orden = filters.get('ordenar_por', 'nuevo')
         
