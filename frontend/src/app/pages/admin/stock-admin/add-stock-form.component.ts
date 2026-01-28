@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ChangeDetectorRef } from '@angular/core';
+import { Component, EventEmitter, Output, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, of } from 'rxjs';
@@ -21,6 +21,7 @@ import { ApiService } from '../../../services/api.service';
           (input)="onSearchInput($event)"
           placeholder="Escribe para buscar..."
           [disabled]="selectedProduct !== null"
+          autocomplete="off"
         />
         
         <!-- SEARCH RESULTS DROPDOWN -->
@@ -111,7 +112,8 @@ export class AddStockFormComponent {
 
   constructor(
     private apiService: ApiService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
   ) {
     // Setup debounced search
     this.searchSubject.pipe(
@@ -121,21 +123,27 @@ export class AddStockFormComponent {
         if (query.length < 2) {
           return of([]);
         }
-        this.searching = true;
-        this.cdr.detectChanges(); // Update UI to show 'Buscando...'
+        this.zone.run(() => {
+          this.searching = true;
+          this.cdr.detectChanges();
+        });
         return this.apiService.searchProducts(query);
       })
     ).subscribe({
       next: (results) => {
-        this.searchResults = results;
-        this.searching = false;
-        this.cdr.detectChanges(); // Force UI update with results
+        this.zone.run(() => {
+          this.searchResults = results;
+          this.searching = false;
+          this.cdr.detectChanges(); // Force UI update with results
+        });
       },
       error: (error) => {
         console.error('Error searching products:', error);
-        this.searching = false;
-        this.searchResults = [];
-        this.cdr.detectChanges();
+        this.zone.run(() => {
+          this.searching = false;
+          this.searchResults = [];
+          this.cdr.detectChanges();
+        });
       }
     });
   }
