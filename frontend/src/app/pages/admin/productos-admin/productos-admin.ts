@@ -44,6 +44,8 @@ export class ProductosAdminComponent implements OnInit {
   filtroSubcategoria: number | null = null;
   filtroSubsubcategoria: number | null = null;
   filtroEstadoStock: string = '';  // '', 'disponible', 'bajo', 'no_disponible'
+  filtroVersion: string = '';
+  ordenarPor: string = 'nuevo';
   filtroBusqueda = '';
 
   // Listas para desplegables de filtros en cascada
@@ -101,6 +103,8 @@ export class ProductosAdminComponent implements OnInit {
     if (this.filtroSubcategoria) filtros.subcategoria_id = this.filtroSubcategoria;
     if (this.filtroSubsubcategoria) filtros.subsubcategoria_id = this.filtroSubsubcategoria;
     if (this.filtroEstadoStock) filtros.estado_stock = this.filtroEstadoStock;
+    if (this.filtroVersion) filtros.version = this.filtroVersion;
+    if (this.ordenarPor) filtros.ordenar_por = this.ordenarPor;
     if (this.filtroBusqueda) filtros.busqueda = this.filtroBusqueda;
 
     // Paginado

@@ -54,6 +54,26 @@
             <option value="no_disponible">No disponible</option>
           </select>
         </div>
+
+        <div class="filter-group">
+          <label>Versión:</label>
+          <select [(ngModel)]="filtroVersion" (change)="filtrarPorCategoria()">
+            <option value="">Todas</option>
+            <option value="Jugador">Jugador</option>
+            <option value="Hincha">Hincha</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Ordenar por:</label>
+          <select [(ngModel)]="ordenarPor" (change)="filtrarPorCategoria()">
+            <option value="nuevo">Más recientes</option>
+            <option value="nombre_asc">Nombre (A-Z)</option>
+            <option value="nombre_desc">Nombre (Z-A)</option>
+            <option value="precio_asc">Menor Precio</option>
+            <option value="precio_desc">Mayor Precio</option>
+          </select>
+        </div>
       </div>
 
       <!-- Búsqueda -->
