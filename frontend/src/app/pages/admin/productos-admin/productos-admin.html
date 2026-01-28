@@ -312,6 +312,28 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Paginado -->
+      <div class="pagination" *ngIf="totalPaginas > 1">
+        <div class="pagination-info">
+          <span>Mostrando {{ (paginaActual - 1) * productosPorPagina + 1 }} - {{ Math.min(paginaActual *
+            productosPorPagina, totalProductos) }} de {{ totalProductos }} productos</span>
+        </div>
+        <div class="pagination-controls">
+          <button class="btn-page" [disabled]="paginaActual === 1" (click)="anteriorPagina()">
+            ← Anterior
+          </button>
+
+          <button class="btn-page" *ngFor="let pagina of getPaginasArray()" [class.active]="pagina === paginaActual"
+            (click)="cambiarPagina(pagina)">
+            {{ pagina }}
+          </button>
+
+          <button class="btn-page" [disabled]="paginaActual === totalPaginas" (click)="siguientePagina()">
+            Siguiente →
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

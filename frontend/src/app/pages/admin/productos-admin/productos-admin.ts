@@ -33,6 +33,12 @@ export class ProductosAdminComponent implements OnInit {
   mostrarFormulario = false;
   productoEditando: any = null;
 
+  // Paginado
+  paginaActual = 1;
+  productosPorPagina = 40;
+  totalProductos = 0;
+  totalPaginas = 0;
+
   // Filtros de lista
   filtroCategoria: number | null = null;
   filtroSubcategoria: number | null = null;
@@ -72,6 +78,9 @@ export class ProductosAdminComponent implements OnInit {
     private zone: NgZone
   ) { }
 
+  // Expo Math para el template
+  Math = Math;
+
   ngOnInit() {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/admin/login']);
@@ -93,13 +102,26 @@ export class ProductosAdminComponent implements OnInit {
     if (this.filtroSubsubcategoria) filtros.subsubcategoria_id = this.filtroSubsubcategoria;
     if (this.filtroEstadoStock) filtros.estado_stock = this.filtroEstadoStock;
     if (this.filtroBusqueda) filtros.busqueda = this.filtroBusqueda;
-    filtros.page_size = 200;  // Cargar 200 productos máximo
+
+    // Paginado
+    filtros.page = this.paginaActual;
+    filtros.page_size = this.productosPorPagina;
     filtros.activos = false;  // Mostrar todos en admin
 
     this.apiService.getProductos(filtros).subscribe({
       next: (data) => {
         // Manejar respuesta paginada o array
-        this.productos = data.items || data;
+        if (data.items) {
+          // Respuesta paginada del backend
+          this.productos = data.items;
+          this.totalProductos = data.total || data.items.length;
+          this.totalPaginas = Math.ceil(this.totalProductos / this.productosPorPagina);
+        } else {
+          // Array simple (fallback)
+          this.productos = data;
+          this.totalProductos = data.length;
+          this.totalPaginas = 1;
+        }
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -127,6 +149,7 @@ export class ProductosAdminComponent implements OnInit {
     this.filtroBusqueda = '';
     this.subcategoriasDisponibles = [];
     this.subsubcategoriasDisponibles = [];
+    this.paginaActual = 1;
     this.loadProductos();
   }
 
@@ -608,6 +631,42 @@ export class ProductosAdminComponent implements OnInit {
     }
 
     return path || '-';
+  }
+
+  // Métodos de paginado
+  cambiarPagina(pagina: number) {
+    if (pagina >= 1 && pagina <= this.totalPaginas) {
+      this.paginaActual = pagina;
+      this.loadProductos();
+      window.scrollTo(0, 0);
+    }
+  }
+
+  siguientePagina() {
+    this.cambiarPagina(this.paginaActual + 1);
+  }
+
+  anteriorPagina() {
+    this.cambiarPagina(this.paginaActual - 1);
+  }
+
+  getPaginasArray(): number[] {
+    const paginas: number[] = [];
+    const maxBotones = 5; // Mostrar máximo 5 botones de página
+
+    let inicio = Math.max(1, this.paginaActual - Math.floor(maxBotones / 2));
+    let fin = Math.min(this.totalPaginas, inicio + maxBotones - 1);
+
+    // Ajustar si estamos cerca del final
+    if (fin - inicio < maxBotones - 1) {
+      inicio = Math.max(1, fin - maxBotones + 1);
+    }
+
+    for (let i = inicio; i <= fin; i++) {
+      paginas.push(i);
+    }
+
+    return paginas;
   }
 
   formatPrecio(precio: number): string {

@@ -503,3 +503,69 @@ table tbody tr:hover {
   color: #666;
   font-weight: 500;
 }
+
+/* Paginación */
+.pagination {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-page {
+  padding: 8px 14px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  color: #333;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+  min-width: 40px;
+}
+
+.btn-page:hover:not(:disabled) {
+  background: #f0f0f0;
+  border-color: #667eea;
+  transform: translateY(-1px);
+}
+
+.btn-page.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  font-weight: 700;
+}
+
+.btn-page:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+  .pagination-controls {
+    font-size: 12px;
+  }
+
+  .btn-page {
+    padding: 6px 10px;
+    min-width: 35px;
+    font-size: 12px;
+  }
+}
