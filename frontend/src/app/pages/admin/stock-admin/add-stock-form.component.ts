@@ -90,7 +90,7 @@ import { ApiService } from '../../../services/api.service';
   `
 })
 export class AddStockFormComponent {
-  @Input() preSelectedProduct: any = null;
+  @Input() preSelectedProductId: number | null = null;
   @Output() stockAdded = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
 
@@ -112,16 +112,31 @@ export class AddStockFormComponent {
   private searchSubject = new Subject<string>();
 
   ngOnInit() {
-    if (this.preSelectedProduct) {
-      this.selectProduct(this.preSelectedProduct);
+    // alert('DEBUG: AddStockForm ngOnInit. ID: ' + this.preSelectedProductId);
+    if (this.preSelectedProductId) {
+      this.loadAndSelectProduct(this.preSelectedProductId);
     }
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['preSelectedProduct'] && changes['preSelectedProduct'].currentValue) {
-      console.log('ngOnChanges: preSelectedProduct changed', changes['preSelectedProduct'].currentValue);
-      this.selectProduct(changes['preSelectedProduct'].currentValue);
+    if (changes['preSelectedProductId'] && changes['preSelectedProductId'].currentValue) {
+      // alert('DEBUG: AddStockForm ID changed: ' + changes['preSelectedProductId'].currentValue);
+      this.loadAndSelectProduct(changes['preSelectedProductId'].currentValue);
     }
+  }
+
+  loadAndSelectProduct(id: number) {
+    // alert('DEBUG: Fetching product ' + id);
+    this.apiService.getProducto(id).subscribe({
+      next: (prod) => {
+        // alert('DEBUG: Product fetched: ' + prod.nombre);
+        this.selectProduct(prod);
+      },
+      error: (err) => {
+        console.error('Error fetching product by ID:', err);
+        // alert('Error fetching product: ' + err.message);
+      }
+    });
   }
 
   constructor(
@@ -169,6 +184,8 @@ export class AddStockFormComponent {
   }
 
   selectProduct(product: any) {
+    console.log('Selecting product:', product);
+    alert('DEBUG: ejecutando selectProduct para ' + product.nombre);
     this.selectedProduct = product;
     this.searchQuery = product.nombre;
     this.searchResults = [];
@@ -177,6 +194,9 @@ export class AddStockFormComponent {
     this.sizes.forEach(size => {
       this.sizeInputs[size] = 0;
     });
+
+    // Forzar actualización de UI
+    this.cdr.detectChanges();
   }
 
   clearSelection() {

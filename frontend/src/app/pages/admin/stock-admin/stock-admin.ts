@@ -83,7 +83,7 @@ export class StockAdminComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef
   ) { }
 
-  productoPreseleccionado: any = null;
+  productoPreseleccionadoId: number | null = null;
 
   ngOnInit() {
     if (!this.authService.isLoggedIn()) {
@@ -104,25 +104,18 @@ export class StockAdminComponent implements OnInit, OnDestroy {
         if (params['producto_id']) {
           const prodId = Number(params['producto_id']);
           if (!isNaN(prodId) && prodId > 0) {
-            console.log('Cargando producto preseleccionado:', prodId);
-            this.apiService.getProducto(prodId).subscribe({
-              next: (prod) => {
-                console.log('Producto cargado:', prod);
-                this.productoPreseleccionado = prod;
-                // Pequeño delay para asegurar que el binding detecte el cambio antes de renderizar el componente
-                setTimeout(() => {
-                  this.mostrarFormularioAgregarStock = true;
-                  this.cdr.detectChanges();
-                }, 100);
-              },
-              error: (err) => {
-                console.error('Error cargando producto para stock:', err);
-                alert('Error al cargar producto para stock: ' + JSON.stringify(err));
-              }
-            });
+            console.log('ID Productos recibido:', prodId);
+            this.productoPreseleccionadoId = prodId;
+            // alert('DEBUG: ID recibido en StockAdmin: ' + prodId);
+
+            // Abrimos el modal inmediatamente con el ID
+            setTimeout(() => {
+              this.mostrarFormularioAgregarStock = true;
+              this.cdr.detectChanges();
+            }, 50);
           }
         } else {
-          this.productoPreseleccionado = null;
+          this.productoPreseleccionadoId = null;
         }
 
         this.loadStock();
