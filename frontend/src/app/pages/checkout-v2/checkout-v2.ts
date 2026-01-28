@@ -376,6 +376,13 @@ export class CheckoutV2Component implements OnInit {
 
         const shipping = this.getSelectedShipping();
         const datos = this.datosForm.value;
+
+        // Calculate FINAL shipping cost (after free shipping discount)
+        let finalShippingCost = shipping ? shipping.costo : 0;
+        if (shipping && shipping.descuento) {
+            finalShippingCost = 0; // Free shipping applied
+        }
+
         const pedidoData = {
             cliente_nombre: `${datos.nombre} ${datos.apellido}`, // Concatenate for backend compatibility
             cliente_email: datos.email,
@@ -391,7 +398,7 @@ export class CheckoutV2Component implements OnInit {
             observaciones: datos.observaciones + (this.envioForm.get('sucursal_info')?.value ? `\n\n[Sucursal: ${this.envioForm.get('sucursal_info')?.value}]` : ''),
 
             metodo_envio: shipping?.nombre,
-            costo_envio: shipping?.costo,
+            costo_envio: finalShippingCost, // FIXED: Send FINAL cost (0 if free shipping)
             metodo_pago: this.pagoForm.get('metodo')?.value,
 
             items: this.items.map(i => ({

@@ -178,9 +178,10 @@ class OrderService:
         pedido.descuento += descuento_cupon
 
         # 6. Descuento Método de Pago (15%)
-        # Se aplica sobre el FINAL (Total + Envio - DescuentosPrevios)
+        # CRITICAL FIX: Apply ONLY on products, NOT on shipping
+        # The 15% discount should apply on (subtotal - product_discounts), NOT including shipping cost
         
-        base_pago = (pedido.subtotal - pedido.descuento) + pedido.costo_envio
+        base_pago = pedido.subtotal - pedido.descuento  # Product total after discounts
         base_pago = max(0, base_pago)
         
         descuento_pago = 0
@@ -188,11 +189,11 @@ class OrderService:
         if metodo:
             nombre = metodo.nombre.lower()
             if 'transferencia' in nombre or 'efectivo' in nombre:
-                descuento_pago = base_pago * 0.15
+                descuento_pago = base_pago * 0.15  # 15% on products only
         
         pedido.descuento += descuento_pago
         
-        # 7. Total Final
+        # 7. Total Final = Products (with discounts) + Shipping
         total_final = (pedido.subtotal + pedido.costo_envio) - pedido.descuento
         pedido.total = max(0, total_final)
         
