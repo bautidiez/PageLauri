@@ -92,6 +92,13 @@ class Categoria(db.Model):
         return data
 
 
+
+# Tabla de asociación para productos relacionados (Many-to-Many)
+productos_relacionados = db.Table('productos_relacionados',
+    db.Column('producto_id', db.Integer, db.ForeignKey('productos.id'), primary_key=True),
+    db.Column('relacionado_id', db.Integer, db.ForeignKey('productos.id'), primary_key=True)
+)
+
 class Producto(db.Model):
     """Modelo para productos"""
     __tablename__ = 'productos'
@@ -117,6 +124,17 @@ class Producto(db.Model):
     # Usar 'selectin' para cargar relaciones de forma eficiente (reduce N+1 queries)
     imagenes = db.relationship('ImagenProducto', backref='producto', lazy='selectin', cascade='all, delete-orphan')
     stock_talles = db.relationship('StockTalle', backref='producto', lazy='selectin', cascade='all, delete-orphan')
+    
+    # RELACIÓN N:M para productos relacionados
+    relacionados = db.relationship(
+        'Producto',
+        secondary=productos_relacionados,
+        primaryjoin=id==productos_relacionados.c.producto_id,
+        secondaryjoin=id==productos_relacionados.c.relacionado_id,
+        backref=db.backref('relacionados_inversos', lazy='dynamic'),
+        lazy='selectin'
+    )
+
     # Relación Many-to-Many con promociones (definida en PromocionProducto)
     
     # Índices para mejorar rendimiento de consultas

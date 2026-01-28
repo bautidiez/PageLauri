@@ -120,6 +120,14 @@ def create_producto():
                 version=data.get('version'),
                 producto_relacionado_id=int(data['producto_relacionado_id']) if data.get('producto_relacionado_id') else None
             )
+            
+            # Procesar productos relacionados (M:N)
+            if 'productos_relacionados' in data and isinstance(data['productos_relacionados'], list):
+               for rel_id in data['productos_relacionados']:
+                   rel_prod = Producto.query.get(rel_id)
+                   if rel_prod:
+                       producto.relacionados.append(rel_prod)
+
             db.session.add(producto)
             db.session.commit()
             invalidate_cache(pattern='productos')
@@ -203,6 +211,17 @@ def manage_product(id):
         if 'version' in data: producto.version = data['version']
         if 'producto_relacionado_id' in data:
             producto.producto_relacionado_id = int(data['producto_relacionado_id']) if data['producto_relacionado_id'] else None
+        
+        # Actualizar relaciones M:N
+        if 'productos_relacionados' in data and isinstance(data['productos_relacionados'], list):
+            # Limpiar relaciones existentes primero (reemplazo completo)
+            # Nota: Esto es seguro porque es una lista de objetos Producto, no IDs en la propiedad 'relacionados'
+            # pero necesitamos buscar los objetos.
+            nuevos_relacionados = []
+            for rel_id in data['productos_relacionados']:
+                p = Producto.query.get(rel_id)
+                if p: nuevos_relacionados.append(p)
+            producto.relacionados = nuevos_relacionados
             
         db.session.commit()
         invalidate_cache(pattern='productos')

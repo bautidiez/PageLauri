@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, of } from 'rxjs';
@@ -6,10 +6,10 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { ApiService } from '../../../services/api.service';
 
 @Component({
-    selector: 'app-add-stock-form',
-    standalone: true,
-    imports: [CommonModule, FormsModule],
-    template: `
+  selector: 'app-add-stock-form',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
     <div class="add-stock-form">
       <!-- PRODUCT SEARCH -->
       <div class="product-search-container">
@@ -89,108 +89,114 @@ import { ApiService } from '../../../services/api.service';
   `
 })
 export class AddStockFormComponent {
-    @Output() stockAdded = new EventEmitter<void>();
-    @Output() cancelled = new EventEmitter<void>();
+  @Output() stockAdded = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
 
-    selectedProduct: any = null;
-    searchQuery = '';
-    searchResults: any[] = [];
-    searching = false;
-    submitting = false;
+  selectedProduct: any = null;
+  searchQuery = '';
+  searchResults: any[] = [];
+  searching = false;
+  submitting = false;
 
-    sizes = ['S', 'M', 'L', 'XL', 'XXL'];
-    sizeInputs: { [key: string]: number } = {
-        S: 0,
-        M: 0,
-        L: 0,
-        XL: 0,
-        XXL: 0
-    };
+  sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+  sizeInputs: { [key: string]: number } = {
+    S: 0,
+    M: 0,
+    L: 0,
+    XL: 0,
+    XXL: 0
+  };
 
-    private searchSubject = new Subject<string>();
+  private searchSubject = new Subject<string>();
 
-    constructor(private apiService: ApiService) {
-        // Setup debounced search
-        this.searchSubject.pipe(
-            debounceTime(300),
-            distinctUntilChanged(),
-            switchMap(query => {
-                if (query.length < 2) {
-                    return of([]);
-                }
-                this.searching = true;
-                return this.apiService.searchProducts(query);
-            })
-        ).subscribe({
-            next: (results) => {
-                this.searchResults = results;
-                this.searching = false;
-            },
-            error: (error) => {
-                console.error('Error searching products:', error);
-                this.searching = false;
-                this.searchResults = [];
-            }
-        });
-    }
-
-    onSearchInput(event: Event) {
-        const value = (event.target as HTMLInputElement).value;
-        this.searchQuery = value;
-        this.searchSubject.next(value);
-    }
-
-    selectProduct(product: any) {
-        this.selectedProduct = product;
-        this.searchQuery = product.nombre;
-        this.searchResults = [];
-
-        // Reset size inputs
-        this.sizes.forEach(size => {
-            this.sizeInputs[size] = 0;
-        });
-    }
-
-    clearSelection() {
-        this.selectedProduct = null;
-        this.searchQuery = '';
-        this.searchResults = [];
-    }
-
-    submitStock() {
-        if (!this.selectedProduct) {
-            alert('Por favor selecciona un producto');
-            return;
+  constructor(
+    private apiService: ApiService,
+    private cdr: ChangeDetectorRef
+  ) {
+    // Setup debounced search
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(query => {
+        if (query.length < 2) {
+          return of([]);
         }
+        this.searching = true;
+        this.cdr.detectChanges(); // Update UI to show 'Buscando...'
+        return this.apiService.searchProducts(query);
+      })
+    ).subscribe({
+      next: (results) => {
+        this.searchResults = results;
+        this.searching = false;
+        this.cdr.detectChanges(); // Force UI update with results
+      },
+      error: (error) => {
+        console.error('Error searching products:', error);
+        this.searching = false;
+        this.searchResults = [];
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
-        // Filter out zero values
-        const increments: any = {};
-        this.sizes.forEach(size => {
-            if (this.sizeInputs[size] > 0) {
-                increments[size] = this.sizeInputs[size];
-            }
-        });
+  onSearchInput(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchQuery = value;
+    this.searchSubject.next(value);
+  }
 
-        if (Object.keys(increments).length === 0) {
-            alert('Por favor ingresa al menos una cantidad mayor a 0');
-            return;
-        }
+  selectProduct(product: any) {
+    this.selectedProduct = product;
+    this.searchQuery = product.nombre;
+    this.searchResults = [];
 
-        this.submitting = true;
-        this.apiService.addStockBySizes(this.selectedProduct.id, increments).subscribe({
-            next: (response) => {
-                alert(`Stock agregado exitosamente para ${Object.keys(increments).length} talles`);
-                this.stockAdded.emit();
-            },
-            error: (error) => {
-                console.error('Error adding stock:', error);
-                alert('Error al agregar stock. Por favor intenta nuevamente.');
-                this.submitting = false;
-            }
-        });
+    // Reset size inputs
+    this.sizes.forEach(size => {
+      this.sizeInputs[size] = 0;
+    });
+  }
+
+  clearSelection() {
+    this.selectedProduct = null;
+    this.searchQuery = '';
+    this.searchResults = [];
+  }
+
+  submitStock() {
+    if (!this.selectedProduct) {
+      alert('Por favor selecciona un producto');
+      return;
     }
 
-    cancel() {
-        this.cancelled.emit();
+    // Filter out zero values
+    const increments: any = {};
+    this.sizes.forEach(size => {
+      if (this.sizeInputs[size] > 0) {
+        increments[size] = this.sizeInputs[size];
+      }
+    });
+
+    if (Object.keys(increments).length === 0) {
+      alert('Por favor ingresa al menos una cantidad mayor a 0');
+      return;
     }
+
+    this.submitting = true;
+    this.apiService.addStockBySizes(this.selectedProduct.id, increments).subscribe({
+      next: (response) => {
+        alert(`Stock agregado exitosamente para ${Object.keys(increments).length} talles`);
+        this.stockAdded.emit();
+      },
+      error: (error) => {
+        console.error('Error adding stock:', error);
+        alert('Error al agregar stock. Por favor intenta nuevamente.');
+        this.submitting = false;
+      }
+    });
+  }
+
+  cancel() {
+    this.cancelled.emit();
+  }
 }

@@ -28,6 +28,7 @@ export class ProductosAdminComponent implements OnInit {
   // Propiedades para la búsqueda de productos relacionados (Autocomplete)
   public busquedaProductoRelacionado: string = '';
   public productosRelacionadosFiltrados: any[] = [];
+  public productosRelacionadosSeleccionados: any[] = []; // Lista de productos seleccionados
 
   loading = true;
   mostrarFormulario = false;
@@ -65,7 +66,10 @@ export class ProductosAdminComponent implements OnInit {
     producto_relacionado_id: null as number | null,
     dorsal: '',
     numero: null,
-    version: ''
+    dorsal: '',
+    numero: null,
+    version: '',
+    productos_relacionados: [] as number[]
   };
 
   imagenesSeleccionadas: File[] = [];
@@ -395,8 +399,21 @@ export class ProductosAdminComponent implements OnInit {
       producto_relacionado_id: producto.producto_relacionado_id || null,
       dorsal: producto.dorsal || '',
       numero: producto.numero || null,
-      version: producto.version || ''
+      version: producto.version || '',
+      productos_relacionados: []
     };
+
+    // Cargar productos relacionados (si existen backend los devuelve)
+    if (producto.productos_relacionados && Array.isArray(producto.productos_relacionados)) {
+      this.productosRelacionadosSeleccionados = [...producto.productos_relacionados];
+    } else if (producto.producto_relacionado_id) {
+      // Fallback legacy (si solo viniera el ID y no la lista)
+      // Idealmente el backend ya devuelve la lista en 'productos_relacionados'
+      this.productosRelacionadosSeleccionados = [];
+    } else {
+      this.productosRelacionadosSeleccionados = [];
+    }
+
     this.imagenesSeleccionadas = [];
     this.imagenesPreview = [];
     this.imagenesExistentes = producto.imagenes || [];
@@ -417,9 +434,14 @@ export class ProductosAdminComponent implements OnInit {
       this.nuevoProducto.categoria_id = this.categoriaPadreSeleccionada as number;
     }
 
-    // Asignar producto relacionado
-    if (this.productoRelacionadoId) {
-      this.nuevoProducto.producto_relacionado_id = this.productoRelacionadoId;
+    // Asignar lista de productos relacionados
+    this.nuevoProducto.productos_relacionados = this.productosRelacionadosSeleccionados.map(p => p.id);
+
+    // Mantener compatibilidad legacy temporal (usar el primero como principal si se quiere)
+    if (this.productosRelacionadosSeleccionados.length > 0) {
+      this.nuevoProducto.producto_relacionado_id = this.productosRelacionadosSeleccionados[0].id;
+    } else {
+      this.nuevoProducto.producto_relacionado_id = null;
     }
 
     if (!this.nuevoProducto.nombre || !this.nuevoProducto.precio_base || this.nuevoProducto.precio_base <= 0 || !this.nuevoProducto.categoria_id) {
@@ -582,6 +604,23 @@ export class ProductosAdminComponent implements OnInit {
   cancelar() {
     this.mostrarFormulario = false;
     this.productoEditando = null;
+    this.productosRelacionadosSeleccionados = []; // RESETEAR LISTA
+    this.nuevoProducto = {
+      nombre: '',
+      descripcion: '',
+      precio_base: 0,
+      precio_descuento: null,
+      categoria_id: null,
+      activo: null,
+      destacado: false,
+      color: '',
+      color_hex: '',
+      producto_relacionado_id: null,
+      dorsal: '',
+      numero: null,
+      version: '',
+      productos_relacionados: []
+    };
   }
 
   getImagenPrincipal(producto: any): string {
@@ -614,9 +653,15 @@ export class ProductosAdminComponent implements OnInit {
   }
 
   seleccionarProductoRelacionado(producto: any) {
-    this.nuevoProducto.producto_relacionado_id = producto.id;
-    this.busquedaProductoRelacionado = producto.nombre;
+    if (!this.productosRelacionadosSeleccionados.some(p => p.id === producto.id)) {
+      this.productosRelacionadosSeleccionados.push(producto);
+    }
+    this.busquedaProductoRelacionado = '';
     this.productosRelacionadosFiltrados = [];
+  }
+
+  removerProductoRelacionado(index: number) {
+    this.productosRelacionadosSeleccionados.splice(index, 1);
   }
 
   limpiarProductoRelacionado() {
