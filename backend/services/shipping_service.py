@@ -96,13 +96,20 @@ class ShippingService:
                     # Buscar producto real en DB para precio y promos
                     prod_db = Producto.query.get(p_id)
                     if prod_db:
-                        # Use precio_base explicitly for Free Shipping threshold as per user request
-                        # Fallback to current price if base is missing/0 to avoid logic errors
-                        price = prod_db.precio_base if prod_db.precio_base and prod_db.precio_base > 0 else prod_db.get_precio_actual()
+                        # CRITICAL FIX: ALWAYS use precio_base for Free Shipping threshold
+                        # Do NOT consider discounts/promotions - they don't affect free shipping eligibility
+                        price = prod_db.precio_base if prod_db.precio_base and prod_db.precio_base > 0 else 0
+                        
+                        # If precio_base is missing/0, use frontend fallback
+                        if price == 0:
+                            fallback_price = float(item.get('precio_unitario', 0))
+                            if fallback_price > 0:
+                                price = fallback_price
+                                print(f"DEBUG SHIPPING: Item {p_id} ({prod_db.nombre}) using FALLBACK price ${price}", flush=True)
                         
                         item_total = price * qty
                         total_cart_value += item_total
-                        print(f"DEBUG SHIPPING: Item {p_id} ({prod_db.nombre}) Price ${price} x {qty} = ${item_total} (Subtotal: {total_cart_value})", flush=True)
+                        print(f"DEBUG SHIPPING: Item {p_id} ({prod_db.nombre}) Base Price ${price} x {qty} = ${item_total} (Subtotal: {total_cart_value})", flush=True)
                         
                         # Verificar si tiene promo de envío gratis activa
                         promos = prod_db.get_promociones_activas()

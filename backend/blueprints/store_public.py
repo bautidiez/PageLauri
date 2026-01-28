@@ -168,14 +168,35 @@ def get_metodos_pago():
 @store_public_bp.route('/api/envios/calcular', methods=['POST'])
 def calcular_envio_route():
     from services.shipping_service import ShippingService
+    
+    # DEBUG: Log raw request data
+    print(f"DEBUG ENDPOINT RAW: request.data={request.data}", flush=True)
+    print(f"DEBUG ENDPOINT RAW: request.content_type={request.content_type}", flush=True)
+    print(f"DEBUG ENDPOINT RAW: request.headers={dict(request.headers)}", flush=True)
+    
     data = request.json
+    print(f"DEBUG ENDPOINT JSON: request.json={data}", flush=True)
+    
+    if not data:
+        print("ERROR: request.json is None - checking request.get_json()", flush=True)
+        data = request.get_json(force=True, silent=True)
+        print(f"DEBUG ENDPOINT FORCE: get_json(force=True)={data}", flush=True)
+    
+    if not data:
+        return jsonify({"error": "No JSON data received"}), 400
+    
     zip_code = data.get('codigo_postal')
+    items = data.get('items', [])  # CRITICAL: Extract items from request
+    
+    print(f"DEBUG ENDPOINT: Received zip_code={zip_code}, items_count={len(items) if items else 0}", flush=True)
+    print(f"DEBUG ENDPOINT: Items={items}", flush=True)
     
     if not zip_code:
         return jsonify({"error": "Código postal requerido"}), 400
         
     try:
-        options = ShippingService.calculate_cost(zip_code)
+        # CRITICAL: Pass items to calculate_cost
+        options = ShippingService.calculate_cost(zip_code, items=items)
         
         metodo_solicitado = data.get('metodo_envio')
         if metodo_solicitado and metodo_solicitado != 'retiro':
