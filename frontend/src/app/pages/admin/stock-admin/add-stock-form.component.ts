@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, EventEmitter, Output, ChangeDetectorRef, NgZone, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, of } from 'rxjs';
@@ -89,7 +89,8 @@ import { ApiService } from '../../../services/api.service';
     </div>
   `
 })
-export class AddStockFormComponent {
+export class AddStockFormComponent implements OnInit {
+  @Input() preSelectedProduct: any = null;
   @Output() stockAdded = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
 
@@ -109,6 +110,12 @@ export class AddStockFormComponent {
   };
 
   private searchSubject = new Subject<string>();
+
+  ngOnInit() {
+    if (this.preSelectedProduct) {
+      this.selectProduct(this.preSelectedProduct);
+    }
+  }
 
   constructor(
     private apiService: ApiService,

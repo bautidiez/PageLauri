@@ -232,7 +232,8 @@
       <div class="modal-form add-stock-modal" (click)="$event.stopPropagation()">
         <h3>➕ Agregar Stock por Talle</h3>
 
-        <app-add-stock-form (stockAdded)="onStockAdded()" (cancelled)="cerrarAgregarStock()">
+        <app-add-stock-form [preSelectedProduct]="productoPreseleccionado" (stockAdded)="onStockAdded()"
+          (cancelled)="cerrarAgregarStock()">
         </app-add-stock-form>
       </div>
     </div>
