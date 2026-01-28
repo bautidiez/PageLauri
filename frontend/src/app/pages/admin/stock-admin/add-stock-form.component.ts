@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ChangeDetectorRef, NgZone, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, ChangeDetectorRef, NgZone, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, of } from 'rxjs';
@@ -114,6 +114,13 @@ export class AddStockFormComponent {
   ngOnInit() {
     if (this.preSelectedProduct) {
       this.selectProduct(this.preSelectedProduct);
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['preSelectedProduct'] && changes['preSelectedProduct'].currentValue) {
+      console.log('ngOnChanges: preSelectedProduct changed', changes['preSelectedProduct'].currentValue);
+      this.selectProduct(changes['preSelectedProduct'].currentValue);
     }
   }
 
