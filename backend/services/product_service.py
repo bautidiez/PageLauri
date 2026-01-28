@@ -104,6 +104,10 @@ class ProductService:
                 ).distinct()
                 query = query.filter(~Producto.id.in_(productos_con_stock))
 
+        # Filtro de versión
+        if filters.get('version'):
+            query = query.filter(Producto.version == filters['version'])
+
         # Ordenamiento
         orden = filters.get('ordenar_por', 'nuevo')
         
@@ -122,6 +126,10 @@ class ProductService:
             query = query.order_by(Producto.precio_base.asc())
         elif orden == 'precio_desc':
             query = query.order_by(Producto.precio_base.desc())
+        elif orden == 'nombre_asc':
+            query = query.order_by(Producto.nombre.asc())
+        elif orden == 'nombre_desc':
+            query = query.order_by(Producto.nombre.desc())
         elif orden == 'destacado':
             # Implementamos el orden de prioridad: 1. Destacados, 2. Ofertas, 3. Otros
             # Definimos qué es una "oferta" para el ordenamiento (misma lógica que el filtro de ofertas)
