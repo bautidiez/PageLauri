@@ -77,6 +77,8 @@
             <button *ngIf="!pedido.aprobado" class="btn-icon btn-aprobar" (click)="aprobarPedido(pedido)"
               [disabled]="isExpirando(pedido) && getDiasRestantes(pedido.fecha_expiracion!) < 0"
               title="Aprobar Pedido">✓</button>
+            <button *ngIf="pedido.estado !== 'cancelado'" class="btn-icon btn-cancelar" (click)="cancelarPedido(pedido)"
+              title="Cancelar Pedido">✕</button>
           </td>
         </tr>
       </tbody>

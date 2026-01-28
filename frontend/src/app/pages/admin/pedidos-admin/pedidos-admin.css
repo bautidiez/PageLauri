@@ -513,6 +513,21 @@
   opacity: 0.5;
 }
 
+/* Cancel Button */
+.btn-cancelar {
+  background: #ef4444;
+  color: white;
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.btn-cancelar:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
 /* Approval Info Card */
 .info-aprobacion {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);

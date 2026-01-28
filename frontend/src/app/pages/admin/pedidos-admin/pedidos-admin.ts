@@ -291,6 +291,29 @@ export class PedidosAdminComponent implements OnInit {
     });
   }
 
+  cancelarPedido(pedido: Pedido) {
+    const mensaje = `¿Cancelar el pedido ${pedido.numero_pedido}?\n\nEl cliente verá este pedido como "Cancelado".\n\nEsta acción NO se puede deshacer.`;
+
+    if (!confirm(mensaje)) {
+      return;
+    }
+
+    this.apiService.patch(`/admin/pedidos/${pedido.id}`, { estado: 'cancelado' }).subscribe({
+      next: () => {
+        alert('✅ Pedido cancelado exitosamente');
+        this.loadPedidos();
+        if (this.pedidoSeleccionado && this.pedidoSeleccionado.id === pedido.id) {
+          this.pedidoSeleccionado.estado = 'cancelado';
+        }
+        this.cdr.detectChanges();
+      },
+      error: (error: any) => {
+        alert('❌ Error al cancelar pedido: ' + (error.error?.error || 'Error desconocido'));
+        console.error(error);
+      }
+    });
+  }
+
   getDiasRestantes(fecha_expiracion: string): number {
     if (!fecha_expiracion) return 0;
     const ahora = new Date().getTime();
