@@ -155,6 +155,12 @@ class Producto(db.Model):
     def tiene_stock_bajo(self):
         """Verifica si el producto tiene stock bajo (entre 1 y 5)"""
         return any(0 < st.cantidad < 6 for st in self.stock_talles)
+
+    def esta_agotado(self):
+        """Verifica si el producto está agotado (stock <= 0 en todos los talles)"""
+        if not self.stock_talles:
+            return True
+        return all(st.cantidad <= 0 for st in self.stock_talles)
     
     def get_promociones_activas(self):
         """Retorna las promociones activas para este producto"""
@@ -208,6 +214,7 @@ class Producto(db.Model):
             'ventas_count': self.ventas_count,
             'tiene_stock': self.tiene_stock(),
             'tiene_stock_bajo': self.tiene_stock_bajo(),
+            'esta_agotado': self.esta_agotado(),
             'imagenes': [img.to_dict() for img in self.imagenes],
             'promociones': [p.to_dict() for p in self.get_promociones_activas()],
             'created_at': self.created_at.isoformat() if self.created_at else None,

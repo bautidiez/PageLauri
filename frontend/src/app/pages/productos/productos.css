@@ -521,6 +521,25 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Badge Agotado - Centrado sobre imagen */
+.product-badge-agotado {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 8px 16px;
+  font-weight: 800;
+  font-size: 14px;
+  border-radius: 4px;
+  z-index: 5;
+  border: 2px solid white;
+  letter-spacing: 1px;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
 /* Product Info Section */
 .product-info {
   padding: 18px 16px 20px;

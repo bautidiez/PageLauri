@@ -231,6 +231,8 @@
               <div class="product-badge-promo" *ngIf="producto.promociones && producto.promociones.length > 0">
                 {{ getBadgeText(producto) }}
               </div>
+              <!-- Badge Agotado -->
+              <div class="product-badge-agotado" *ngIf="producto.esta_agotado">AGOTADO</div>
             </div>
             <div class="product-info">
               <h3 class="product-title">{{ producto.nombre }}</h3>
