@@ -270,8 +270,10 @@
             <tr>
               <th>Imagen</th>
               <th>Nombre</th>
-              <th>Categoría</th>
               <th>Precio</th>
+              <th>Categoría</th>
+              <th>Subcategoría</th>
+              <th>Versión</th>
               <th>Stock</th>
               <th>Estado</th>
               <th>Acciones</th>
@@ -282,30 +284,34 @@
               <td>
                 <img [src]="getImagenPrincipal(producto)" [alt]="producto.nombre" class="product-thumb">
               </td>
-              <td>{{ producto.nombre }}</td>
-              <td>{{ producto.categoria_nombre }}</td>
+              <td class="col-nombre">{{ producto.nombre }}</td>
               <td>
-                <span *ngIf="producto.precio_descuento" class="price-discounted">
-                  ${{ formatPrecio(producto.precio_descuento) }}
-                </span>
-                <span class="price">${{ formatPrecio(producto.precio_base) }}</span>
+                <div class="price-container">
+                  <span *ngIf="producto.precio_descuento" class="price-discounted">
+                    ${{ formatPrecio(producto.precio_descuento) }}
+                  </span>
+                  <span class="price">${{ formatPrecio(producto.precio_base) }}</span>
+                </div>
               </td>
+              <td>{{ producto.categoria_principal || producto.categoria_nombre }}</td>
+              <td>{{ producto.subcategoria || '-' }}</td>
+              <td>{{ producto.version || '-' }}</td>
               <td>
                 <span *ngIf="producto.tiene_stock" class="stock-ok">Disponible</span>
-                <span *ngIf="!producto.tiene_stock && producto.tiene_stock_bajo" class="stock-warning">Bajo stock</span>
+                <span *ngIf="!producto.tiene_stock && producto.tiene_stock_bajo" class="stock-warning">Bajo</span>
                 <span *ngIf="!producto.tiene_stock && !producto.tiene_stock_bajo" class="stock-out">Agotado</span>
               </td>
               <td>
-                <span [class.active]="producto.activo" [class.inactive]="!producto.activo">
+                <span class="status-badge" [class.active]="producto.activo" [class.inactive]="!producto.activo">
                   {{ producto.activo ? 'Activo' : 'Inactivo' }}
                 </span>
               </td>
               <td>
                 <div class="action-buttons">
-                  <button class="btn-edit" (click)="editar(producto)">Editar</button>
-                  <button class="btn-delete" (click)="eliminar(producto)">Eliminar</button>
-                  <button class="btn-stock" routerLink="/admin/stock"
-                    [queryParams]="{producto_id: producto.id}">Stock</button>
+                  <button class="btn-edit" (click)="editar(producto)" title="Editar">✏️</button>
+                  <button class="btn-delete" (click)="eliminar(producto)" title="Eliminar">🗑️</button>
+                  <button class="btn-stock" routerLink="/admin/stock" [queryParams]="{producto_id: producto.id}"
+                    title="Gestionar Stock">📦</button>
                 </div>
               </td>
             </tr>
