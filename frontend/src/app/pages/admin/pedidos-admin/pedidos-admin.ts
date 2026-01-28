@@ -298,7 +298,7 @@ export class PedidosAdminComponent implements OnInit {
       return;
     }
 
-    this.apiService.patch(`/admin/pedidos/${pedido.id}`, { estado: 'cancelado' }).subscribe({
+    this.apiService.updatePedido(pedido.id, { estado: 'cancelado' }).subscribe({
       next: () => {
         alert('✅ Pedido cancelado exitosamente');
         this.loadPedidos();
