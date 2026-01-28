@@ -63,7 +63,7 @@ export class ProductosAdminComponent implements OnInit {
     destacado: false,
     color: '',
     color_hex: '',
-    produto_relacionado_id: null as number | null,
+    producto_relacionado_id: null as number | null,
     dorsal: '',
     numero: null,
     version: '',
