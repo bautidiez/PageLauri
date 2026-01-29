@@ -52,7 +52,8 @@ export class StockAdminComponent implements OnInit, OnDestroy {
   busqueda = '';
   ordenarPor = 'alfabetico';
   mostrarSoloStockBajo = false;
-  umbralStockBajo = 5;
+  mostrarSoloAgotado = false;
+  umbralStockBajo = 3;
 
   // Formulario
   mostrarFormulario = false;
@@ -132,286 +133,311 @@ export class StockAdminComponent implements OnInit, OnDestroy {
 
     const params: any = {
       page: this.currentPage,
-      page_size: this.pageSize,
+      pageSize: this.pageSize,
       search: this.busqueda,
       solo_bajo: this.mostrarSoloStockBajo,
-      umbral: this.umbralStockBajo
-    };
-
-    // Nueva lógica combinada: Ordenamiento O Filtro por Talle
-    const tallesDisponibles = ['S', 'M', 'L', 'XL', 'XXL'];
-    if (tallesDisponibles.includes(this.ordenarPor)) {
-      params.talle_nombre = this.ordenarPor;
       params.ordenar_por = 'alfabetico'; // Por defecto A-Z si filtramos por talle
     } else {
       params.ordenar_por = this.ordenarPor;
+  }
+
+  if(this.categoriaFiltro) {
+    params.categoria_id = this.categoriaFiltro;
+  }
+
+this.apiService.getStock(params).subscribe({
+    next: (response: any) => {
+      // Backend now returns paginated response
+      this.stock = response.items.map((item: StockItem) => ({ ...item, editing: false }));
+      this.totalItems = response.total;
+      this.totalPages = response.pages;
+      this.currentPage = response.page;
+      this.loading = false;
+      this.loadingStock = false;
+
+      // 🔥 FORZAR Change Detection
+      this.cdr.detectChanges();
+    },
+    error: (error: any) => {
+      console.error('Error cargando stock:', error);
+      this.loading = false;
+      this.loadingStock = false;
+      this.cdr.detectChanges();
     }
-
-    if (this.categoriaFiltro) {
-      params.categoria_id = this.categoriaFiltro;
-    }
-
-    this.apiService.getStock(params).subscribe({
-      next: (response: any) => {
-        // Backend now returns paginated response
-        this.stock = response.items.map((item: StockItem) => ({ ...item, editing: false }));
-        this.totalItems = response.total;
-        this.totalPages = response.pages;
-        this.currentPage = response.page;
-        this.loading = false;
-        this.loadingStock = false;
-
-        // 🔥 FORZAR Change Detection
-        this.cdr.detectChanges();
-      },
-      error: (error: any) => {
-        console.error('Error cargando stock:', error);
-        this.loading = false;
-        this.loadingStock = false;
-        this.cdr.detectChanges();
-      }
-    });
+  });
   }
 
   get stockFiltrado(): StockItem[] {
-    // SIMPLIFICADO: Ya no filtramos en frontend, el backend lo hace
-    return this.stock;
-  }
+  // SIMPLIFICADO: Ya no filtramos en frontend, el backend lo hace
+  return this.stock;
+}
 
   get stockAgrupado(): { [key: string]: StockItem[] } {
-    const grupos: { [key: string]: StockItem[] } = {};
-    this.stockFiltrado.forEach(item => {
-      const key = item.producto_nombre;
-      if (!grupos[key]) {
-        grupos[key] = [];
-      }
-      grupos[key].push(item);
-    });
-    return grupos;
-  }
+  const grupos: { [key: string]: StockItem[] } = {};
+  this.stockFiltrado.forEach(item => {
+    const key = item.producto_nombre;
+    if (!grupos[key]) {
+      grupos[key] = [];
+    }
+    grupos[key].push(item);
+  });
+  return grupos;
+}
 
   get productosConStockBajo(): number {
-    return this.stock.filter(item => item.cantidad > 0 && item.cantidad <= this.umbralStockBajo).length;
-  }
+  return this.stock.filter(item => item.cantidad > 0 && item.cantidad <= this.umbralStockBajo).length;
+}
 
   get productosAgotados(): number {
-    return this.stock.filter(item => item.cantidad === 0).length;
-  }
+  return this.stock.filter(item => item.cantidad === 0).length;
+}
 
-  loadProductos() {
-    // OPTIMIZADO: Usar endpoint ligero solo con id y nombre
-    this.apiService.getProductosMini().subscribe({
-      next: (response: any) => {
-        this.productos = response.items;
-      },
-      error: (error: any) => {
-        console.error('Error cargando productos:', error);
-      }
-    });
-
-    // Cargar categorías para el filtro
-    this.apiService.getCategorias(false, undefined, true).subscribe({
-      next: (data: any) => {
-        // Solo categorías principales (sin padre)
-        this.categorias = data.filter((cat: any) => !cat.categoria_padre_id);
-      },
-      error: (error: any) => {
-        console.error('Error cargando categorías:', error);
-      }
-    });
-  }
-
-  getCategoriaLabel(cat: any): string {
-    return `🏠 ${cat.nombre}`;
-  }
-
-  loadTalles() {
-    this.apiService.getTalles().subscribe({
-      next: (data: any) => {
-        this.talles = data;
-      },
-      error: (error: any) => {
-        console.error('Error cargando talles:', error);
-      }
-    });
-  }
-
-  loadColores() {
-    this.apiService.getColores().subscribe({
-      next: (data: any) => {
-        this.colores = data;
-      },
-      error: (error: any) => {
-        console.error('Error cargando colores:', error);
-      }
-    });
-  }
-
-  // Edición inline
-  activarEdicion(item: StockItem) {
-    item.editing = true;
-    item.tempCantidad = item.cantidad;
-  }
-
-  guardarEdicion(item: StockItem) {
-    if (item.tempCantidad === undefined || item.tempCantidad < 0) {
-      return;
+loadProductos() {
+  // OPTIMIZADO: Usar endpoint ligero solo con id y nombre
+  this.apiService.getProductosMini().subscribe({
+    next: (response: any) => {
+      this.productos = response.items;
+    },
+    error: (error: any) => {
+      console.error('Error cargando productos:', error);
     }
+  });
 
-    this.apiService.updateStock(item.id, item.tempCantidad).subscribe({
-      next: () => {
-        item.cantidad = item.tempCantidad!;
-        item.tiene_stock = item.cantidad > 0;
-        item.editing = false;
-        // Toast o notificación sutil
-      },
-      error: (error: any) => {
-        console.error('Error actualizando stock:', error);
-        alert('Error al actualizar stock');
-      }
-    });
-  }
-
-  cancelarEdicion(item: StockItem) {
-    item.editing = false;
-    item.tempCantidad = item.cantidad;
-  }
-
-  // CRUD tradicional
-  nuevo() {
-    this.nuevoStock = {
-      producto_id: null,
-      color_id: null,
-      talle_id: null,
-      cantidad: 0
-    };
-    this.mostrarFormulario = true;
-  }
-
-  guardar() {
-    if (!this.nuevoStock.producto_id || !this.nuevoStock.talle_id) {
-      alert('Por favor selecciona producto y talle');
-      return;
+  // Cargar categorías para el filtro
+  this.apiService.getCategorias(false, undefined, true).subscribe({
+    next: (data: any) => {
+      // Solo categorías principales (sin padre)
+      this.categorias = data.filter((cat: any) => !cat.categoria_padre_id);
+    },
+    error: (error: any) => {
+      console.error('Error cargando categorías:', error);
     }
+  });
+}
 
-    this.apiService.createStock(this.nuevoStock).subscribe({
+getCategoriaLabel(cat: any): string {
+  return `🏠 ${cat.nombre}`;
+}
+
+loadTalles() {
+  this.apiService.getTalles().subscribe({
+    next: (data: any) => {
+      this.talles = data;
+    },
+    error: (error: any) => {
+      console.error('Error cargando talles:', error);
+    }
+  });
+}
+
+loadColores() {
+  this.apiService.getColores().subscribe({
+    next: (data: any) => {
+      this.colores = data;
+    },
+    error: (error: any) => {
+      console.error('Error cargando colores:', error);
+    }
+  });
+}
+
+// Edición inline
+activarEdicion(item: StockItem) {
+  item.editing = true;
+  item.tempCantidad = item.cantidad;
+}
+
+guardarEdicion(item: StockItem) {
+  if (item.tempCantidad === undefined || item.tempCantidad < 0) {
+    return;
+  }
+
+  this.apiService.updateStock(item.id, item.tempCantidad).subscribe({
+    next: () => {
+      item.cantidad = item.tempCantidad!;
+      item.tiene_stock = item.cantidad > 0;
+      item.editing = false;
+      // Toast o notificación sutil
+    },
+    error: (error: any) => {
+      console.error('Error actualizando stock:', error);
+      alert('Error al actualizar stock');
+    }
+  });
+}
+
+cancelarEdicion(item: StockItem) {
+  item.editing = false;
+  item.tempCantidad = item.cantidad;
+}
+
+// CRUD tradicional
+nuevo() {
+  this.nuevoStock = {
+    producto_id: null,
+    color_id: null,
+    talle_id: null,
+    cantidad: 0
+  };
+  this.mostrarFormulario = true;
+}
+
+guardar() {
+  if (!this.nuevoStock.producto_id || !this.nuevoStock.talle_id) {
+    alert('Por favor selecciona producto y talle');
+    return;
+  }
+
+  this.apiService.createStock(this.nuevoStock).subscribe({
+    next: () => {
+      this.loadStock();
+      this.cancelar();
+      alert('Stock agregado exitosamente');
+    },
+    error: (error: any) => {
+      alert('Error al guardar stock');
+      console.error(error);
+    }
+  });
+}
+
+eliminar(stockId: number) {
+  if (confirm('¿Estás seguro de eliminar este registro de stock?')) {
+    this.apiService.deleteStock(stockId).subscribe({
       next: () => {
         this.loadStock();
-        this.cancelar();
-        alert('Stock agregado exitosamente');
       },
       error: (error: any) => {
-        alert('Error al guardar stock');
+        alert('Error al eliminar stock');
         console.error(error);
       }
     });
   }
+}
 
-  eliminar(stockId: number) {
-    if (confirm('¿Estás seguro de eliminar este registro de stock?')) {
-      this.apiService.deleteStock(stockId).subscribe({
-        next: () => {
-          this.loadStock();
-        },
-        error: (error: any) => {
-          alert('Error al eliminar stock');
-          console.error(error);
-        }
-      });
-    }
-  }
+cancelar() {
+  this.mostrarFormulario = false;
+  this.nuevoStock = {
+    producto_id: null,
+    color_id: null,
+    talle_id: null,
+    cantidad: 0
+  };
+}
 
-  cancelar() {
-    this.mostrarFormulario = false;
-    this.nuevoStock = {
-      producto_id: null,
-      color_id: null,
-      talle_id: null,
-      cantidad: 0
-    };
-  }
+// Filtros
+filtrarPorProducto() {
+  this.loadStock();
+}
 
-  // Filtros
-  filtrarPorProducto() {
+buscar() {
+  this.loadStock();
+}
+
+cambiarOrdenamiento() {
+  this.loadStock();
+}
+
+limpiarBusqueda() {
+  this.busqueda = '';
+  this.currentPage = 1;  // Reset to first page
+  this.loadStock();
+}
+
+toggleStockBajo() {
+  if (this.mostrarSoloStockBajo) {
+    this.mostrarSoloAgotado = false; // Mutuamente exclusivo opcional, pero mejor evitar confusión
+    this.currentPage = 1;
+    this.loadStock();
+  } else {
     this.loadStock();
   }
+}
 
-  buscar() {
-    this.loadStock();
-  }
-
-  cambiarOrdenamiento() {
-    this.loadStock();
-  }
-
-  limpiarBusqueda() {
-    this.busqueda = '';
-    this.currentPage = 1;  // Reset to first page
-    this.loadStock();
-  }
-
-  limpiarFiltros() {
-    this.busqueda = '';
-    this.categoriaFiltro = null;
-    this.ordenarPor = 'alfabetico'; // Resetear a A-Z (limpia filtro por talle)
+toggleStockAgotado() {
+  if (this.mostrarSoloAgotado) {
     this.mostrarSoloStockBajo = false;
-    this.currentPage = 1;  // Reset to first page
+    this.currentPage = 1;
+    this.loadStock();
+  } else {
     this.loadStock();
   }
+}
 
-  // NUEVO: Trigger reload cuando cambia el filtro de stock bajo
-  toggleStockBajo() {
-    this.currentPage = 1;  // Reset to first page
+limpiarFiltros() {
+  this.busqueda = '';
+  this.categoriaFiltro = null;
+  this.mostrarSoloStockBajo = false;
+  this.mostrarSoloAgotado = false;
+
+  // Limpiar también el filtro de producto único si existe
+  if (this.productoPreseleccionadoId) {
+    this.productoPreseleccionadoId = null;
+    // Limpiar URL
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {},
+      queryParamsHandling: '' // replace all
+    });
+  }
+
+  this.currentPage = 1;
+  this.loadStock();
+}
+
+// NUEVO: Trigger reload cuando cambia el filtro de stock bajo
+toggleStockBajo() {
+  this.currentPage = 1;  // Reset to first page
+  this.loadStock();
+}
+
+// Pagination methods
+nextPage() {
+  if (this.currentPage < this.totalPages) {
+    this.currentPage++;
     this.loadStock();
   }
+}
 
-  // Pagination methods
-  nextPage() {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-      this.loadStock();
-    }
-  }
-
-  previousPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.loadStock();
-    }
-  }
-
-  goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-      this.loadStock();
-    }
-  }
-
-  // Open Add Stock Modal
-  abrirAgregarStock() {
-    this.mostrarFormularioAgregarStock = true;
-  }
-
-  cerrarAgregarStock() {
-    this.mostrarFormularioAgregarStock = false;
-  }
-
-  onStockAdded() {
-    // Refresh stock list after adding
+previousPage() {
+  if (this.currentPage > 1) {
+    this.currentPage--;
     this.loadStock();
-    this.cerrarAgregarStock();
   }
+}
 
-  // Helpers
-  getStockClass(cantidad: number): string {
-    if (cantidad === 0) return 'stock-agotado';
-    if (cantidad <= this.umbralStockBajo) return 'stock-bajo';
-    return 'stock-ok';
+goToPage(page: number) {
+  if (page >= 1 && page <= this.totalPages) {
+    this.currentPage = page;
+    this.loadStock();
   }
+}
 
-  getStockLabel(cantidad: number): string {
-    if (cantidad === 0) return 'Agotado';
-    if (cantidad <= this.umbralStockBajo) return 'Stock Bajo';
-    return 'Disponible';
-  }
+// Open Add Stock Modal
+abrirAgregarStock() {
+  this.mostrarFormularioAgregarStock = true;
+}
+
+cerrarAgregarStock() {
+  this.mostrarFormularioAgregarStock = false;
+}
+
+onStockAdded() {
+  // Refresh stock list after adding
+  this.loadStock();
+  this.cerrarAgregarStock();
+}
+
+// Helpers
+getStockClass(cantidad: number): string {
+  if (cantidad === 0) return 'stock-agotado';
+  if (cantidad <= this.umbralStockBajo) return 'stock-bajo';
+  return 'stock-ok';
+}
+
+getStockLabel(cantidad: number): string {
+  if (cantidad === 0) return 'Agotado';
+  if (cantidad <= this.umbralStockBajo) return 'Stock Bajo';
+  return 'Disponible';
+}
 }

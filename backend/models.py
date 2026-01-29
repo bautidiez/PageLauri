@@ -149,12 +149,12 @@ class Producto(db.Model):
         return self.precio_descuento if self.precio_descuento else self.precio_base
     
     def tiene_stock(self):
-        """Verifica si el producto tiene stock disponible (>= 6)"""
-        return any(st.cantidad >= 6 for st in self.stock_talles)
+        """Verifica si el producto tiene stock disponible (>= 4)"""
+        return any(st.cantidad >= 4 for st in self.stock_talles)
 
     def tiene_stock_bajo(self):
-        """Verifica si el producto tiene stock bajo (entre 1 y 5)"""
-        return any(0 < st.cantidad < 6 for st in self.stock_talles)
+        """Verifica si el producto tiene stock bajo (entre 1 y 3)"""
+        return any(0 < st.cantidad <= 3 for st in self.stock_talles)
 
     def esta_agotado(self):
         """Verifica si el producto está agotado (stock <= 0 en todos los talles)"""

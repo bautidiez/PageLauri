@@ -386,10 +386,18 @@ def manage_stock():
     if search:
         query = query.filter(Producto.nombre.ilike(f"%{search}%"))
         
+    # Filtro stock agotado (NUEVO)
+    solo_agotado = request.args.get('solo_agotado')
+    if solo_agotado == 'true':
+        query = query.filter(StockTalle.cantidad == 0)
+
     # Filtro stock bajo
+    # Ahora respeta el umbral enviado (default 3) y excluye 0 si se pide explícitamente solo bajo
     solo_bajo = request.args.get('solo_bajo')
     if solo_bajo == 'true':
-        query = query.filter(StockTalle.cantidad <= 5)
+        umbral = request.args.get('umbral', 3, type=int)
+        # Si se quiere strict stock bajo (1-3)
+        query = query.filter(StockTalle.cantidad > 0, StockTalle.cantidad <= umbral)
         
     # Ordenamiento (NUEVO)
     ordenar_por = request.args.get('ordenar_por', 'alfabetico')

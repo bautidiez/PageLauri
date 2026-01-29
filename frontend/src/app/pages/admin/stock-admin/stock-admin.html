@@ -68,9 +68,14 @@
         Vista Agrupada
       </label>
 
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="mostrarSoloAgotado" (change)="toggleStockAgotado()">
+        Solo Agotado
+      </label>
+
       <button class="btn btn-secondary" (click)="limpiarFiltros()"
-        *ngIf="busqueda || categoriaFiltro || mostrarSoloStockBajo">
-        🗑️ Limpiar
+        *ngIf="busqueda || categoriaFiltro || mostrarSoloStockBajo || mostrarSoloAgotado || productoPreseleccionadoId">
+        🗑️ Limpiar / Ver Todos
       </button>
     </div>
 
