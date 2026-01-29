@@ -86,15 +86,15 @@ class ProductService:
         estado_stock = filters.get('estado_stock')
         if estado_stock:
             if estado_stock == 'disponible':
-                # Productos con stock >= 6 en al menos un talle
-                query = query.join(StockTalle).filter(StockTalle.cantidad >= 6).distinct()
+                # Productos con stock >= 4 en al menos un talle
+                query = query.join(StockTalle).filter(StockTalle.cantidad >= 4).distinct()
             elif estado_stock == 'bajo':
-                # Productos con stock entre 1 y 5 (y sin stock >= 6)
+                # Productos con stock entre 1 y 3 (y sin stock >= 4)
                 productos_stock_alto = db.session.query(StockTalle.producto_id).filter(
-                    StockTalle.cantidad >= 6
+                    StockTalle.cantidad >= 4
                 ).distinct()
                 query = query.join(StockTalle).filter(
-                    StockTalle.cantidad.between(1, 5),
+                    StockTalle.cantidad.between(1, 3),
                     ~Producto.id.in_(productos_stock_alto)
                 ).distinct()
             elif estado_stock == 'no_disponible':

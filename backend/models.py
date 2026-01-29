@@ -283,7 +283,7 @@ class StockTalle(db.Model):
     
     def tiene_stock(self):
         """Stock disponible es >= 6"""
-        return self.cantidad >= 6
+        return self.cantidad >= 4
     
     def reducir_stock(self, cantidad=1):
         """Reduce el stock en la cantidad especificada"""
