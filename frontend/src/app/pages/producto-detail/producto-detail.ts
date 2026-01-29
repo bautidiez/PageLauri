@@ -125,7 +125,7 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
     const apiBase = this.apiService.getApiUrl().replace('/api', '');
     const imageUrl = this.producto.imagenes && this.producto.imagenes.length > 0
       ? `${apiBase}${this.producto.imagenes[0].url}`
-      : 'https://elvestuario-r4.vercel.app/assets/logo.png';
+      : 'https://elvestuario-r4.com.ar/assets/logo.png';
 
     // Update meta tags
     this.seoService.updateMetaTags({
@@ -142,8 +142,8 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
 
     // Add breadcrumb structured data
     const breadcrumbs = [
-      { name: 'Inicio', url: 'https://elvestuario-r4.vercel.app/' },
-      { name: 'Productos', url: 'https://elvestuario-r4.vercel.app/productos' },
+      { name: 'Inicio', url: 'https://elvestuario-r4.com.ar/' },
+      { name: 'Productos', url: 'https://elvestuario-r4.com.ar/productos' },
       { name: this.producto.nombre, url: window.location.href }
     ];
     const breadcrumbSchema = this.seoService.generateBreadcrumbSchema(breadcrumbs);

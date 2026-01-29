@@ -42,9 +42,9 @@ class PaymentService:
                 "email": pedido.cliente_email
             },
             "back_urls": {
-                "success": "http://localhost:4200/checkout/success",
-                "failure": "http://localhost:4200/checkout/failure",
-                "pending": "http://localhost:4200/checkout/pending"
+                "success": os.environ.get('FRONTEND_URL', 'http://localhost:4200') + "/checkout/success",
+                "failure": os.environ.get('FRONTEND_URL', 'http://localhost:4200') + "/checkout/failure",
+                "pending": os.environ.get('FRONTEND_URL', 'http://localhost:4200') + "/checkout/pending"
             },
             "auto_return": "approved",
             "external_reference": str(pedido.id),

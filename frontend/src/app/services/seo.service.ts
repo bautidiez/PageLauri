@@ -148,8 +148,8 @@ export class SeoService {
             '@context': 'https://schema.org',
             '@type': 'Organization',
             'name': 'El Vestuario',
-            'url': 'https://elvestuario-r4.vercel.app',
-            'logo': 'https://elvestuario-r4.vercel.app/assets/logo.png',
+            'url': 'https://elvestuario-r4.com.ar',
+            'logo': 'https://elvestuario-r4.com.ar/assets/logo.png',
             'contactPoint': {
                 '@type': 'ContactPoint',
                 'contactType': 'customer service',

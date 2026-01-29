@@ -13,7 +13,7 @@ import { DashboardComponent } from './pages/admin/dashboard/dashboard';
 import { GestionComponent } from './pages/admin/gestion/gestion';
 import { ProductosAdminComponent } from './pages/admin/productos-admin/productos-admin';
 import { PedidosAdminComponent } from './pages/admin/pedidos-admin/pedidos-admin';
-import { StockAdminComponent } from './pages/admin/stock-admin/stock-admin';
+import { StockAdminComponent } from './pages/admin/stock-admin/stock-administration';
 import { PromocionesAdminComponent } from './pages/admin/promociones-admin/promociones-admin';
 import { CategoriasAdminComponent } from './pages/admin/categorias-admin/categorias-admin';
 import { VentasExternasAdminComponent } from './pages/admin/ventas-externas-admin/ventas-externas-admin';
