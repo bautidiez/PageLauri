@@ -48,6 +48,23 @@ class OrderService:
                 'descuento_aplicado': 0, # Se calculará globalmente
             })
 
+        # 1.5 Calcular Promoción por CANTIDAD (NUEVO)
+        # "Llevando 2 unidades, se aplica un 10%. Llevando 3 unidades, se aplica un 15%."
+        total_qty = sum(item['cantidad'] for item in items_procesados)
+        qty_discount_percent = 0
+        
+        if total_qty >= 3:
+            qty_discount_percent = 15
+        elif total_qty == 2:
+            qty_discount_percent = 10
+            
+        if qty_discount_percent > 0:
+            for item in items_procesados:
+                # Aplica sobre el precio unitario * cantidad
+                # Se suma a 'descuento_aplicado'
+                amount = (item['precio_unitario'] * item['cantidad'] * qty_discount_percent) / 100
+                item['descuento_aplicado'] += amount
+
         # 2. Calcular Promociones AUTOMÁTICAS (Globalmente)
         promos_auto = PromocionProducto.query.filter_by(activa=True, es_cupon=False).all()
         
@@ -189,7 +206,19 @@ class OrderService:
         if metodo:
             nombre = metodo.nombre.lower()
             if 'transferencia' in nombre or 'efectivo' in nombre:
-                descuento_pago = base_pago * 0.15  # 15% on products only
+                # Nuevo Logic: 10% para Shorts (Cat 8), 15% para el resto
+                # Se calcula sobre el neto (Total item - descuentos previos)
+                
+                for item in items_procesados:
+                    item_total = item['precio_unitario'] * item['cantidad']
+                    item_net = item_total - item['descuento_aplicado']
+                    if item_net < 0: item_net = 0
+                    
+                    percentage = 0.15 # Default (Remeras, etc)
+                    if item['producto'].categoria_id == 8: # Shorts
+                        percentage = 0.10
+                        
+                    descuento_pago += item_net * percentage
         
         pedido.descuento += descuento_pago
         
@@ -220,48 +249,53 @@ class OrderService:
     @staticmethod
     def _generate_next_order_id():
         # Obtener el último pedido para calcular la secuencia
-        # Filtramos para asegurarnos que tenga el formato correcto (6 caracteres) si hay viejos
         try:
-            # Buscar el último pedido creado
+            # Buscar el último pedido creado por ID para tener referencia base
             last_order = Pedido.query.order_by(Pedido.id.desc()).first()
             
-            if not last_order or not last_order.numero_pedido:
-                return 'AA0001'
-            
-            last_code = last_order.numero_pedido
-            
-            # Si tiene formato UUID viejo (8 chars o más), ignoramos y empezamos de nuevo?
-            # O tratamos de buscar el último con formato válido.
-            if len(last_code) != 6 or not last_code[:2].isalpha() or not last_code[2:].isdigit():
-                # Fallback: buscar si existe ALGUNO con formato válido para continuar la serie
-                # Si es muy costoso, simplemente empezamos en AA0001 y asumimos que es el primero del nuevo sistema.
-                return 'AA0001'
+            start_code = 'AA0000'
+            if last_order and last_order.numero_pedido:
+                start_code = last_order.numero_pedido
 
-            letters = last_code[:2]
-            number = int(last_code[2:])
+            # Lógica de incremento y validación de colisiones
+            current_code = start_code
             
-            number += 1
-            if number > 9999:
-                number = 0
-                # Incrementar letras
-                first_char = letters[0]
-                second_char = letters[1]
+            for _ in range(10): # Intentar 10 veces encontrar un hueco libre
+                # Parsear
+                if len(current_code) != 6 or not current_code[:2].isalpha() or not current_code[2:].isdigit():
+                    current_code = 'AA0000'
+
+                letters = current_code[:2]
+                number = int(current_code[2:])
                 
-                if second_char == 'Z':
-                    second_char = 'A'
-                    if first_char == 'Z':
-                        # Overflow total (ZZ9999 -> ???) - Reiniciar o error?
-                        # Para este caso practico, reiniciamos a AA o extendemos.
-                        return 'AAA001' # Edge case improbable corto plazo
+                number += 1
+                if number > 9999:
+                    number = 0
+                    first_char = letters[0]
+                    second_char = letters[1]
+                    if second_char == 'Z':
+                        second_char = 'A'
+                        if first_char == 'Z':
+                             return 'AAA001' 
+                        else:
+                            first_char = chr(ord(first_char) + 1)
                     else:
-                        first_char = chr(ord(first_char) + 1)
-                else:
-                    second_char = chr(ord(second_char) + 1)
-                    
-                letters = f"{first_char}{second_char}"
+                        second_char = chr(ord(second_char) + 1)
+                    letters = f"{first_char}{second_char}"
+                
+                candidate = f"{letters}{number:04d}"
+                
+                # Verificar si existe
+                exists = Pedido.query.filter_by(numero_pedido=candidate).first()
+                if not exists:
+                    return candidate
+                
+                # Si existe, usamos este candidato como base para el siguiente loop
+                current_code = candidate
             
-            return f"{letters}{number:04d}"
+            # Fallback random si falla loop
+            return f"ER{datetime.now().strftime('%M%S')}"
             
         except Exception as e:
             print(f"Error generando ID pedido: {e}")
-            return 'AA0001'
+            return f"ER{datetime.now().strftime('%M%S')}"

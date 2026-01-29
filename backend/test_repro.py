@@ -1,109 +1,120 @@
-
 from app import app, db
-from models import Cliente, Pedido, MetodoPago
-from flask_jwt_extended import create_access_token
+from models import Producto, StockTalle, Talle, MetodoPago
+from services.order_service import OrderService
+import sys
+import traceback
 
-def test_search():
-    with app.app_context():
-        print("--- SETUP ---")
-        # Ensure clean state for test
-        email_base = "usuario.prueba@gmail.com"
-        
-        # 1. Create Client with Mixed Case
-        client_email = "Usuario.Prueba@gmail.com"
-        cliente = Cliente.query.filter_by(email=client_email).first()
-        if not cliente:
-            print(f"Creating client: {client_email}")
-            cliente = Cliente(nombre="Test User", email=client_email, password_hash="hash")
-            db.session.add(cliente)
-            db.session.commit()
-        else:
-            print(f"Client exists: {cliente.email}")
 
-        client_id = cliente.id
-        
-        # 2. Create Orders with variations
-        variations = [
-            "usuario.prueba@gmail.com",   # Exact match normalized
-            "Usuario.Prueba@gmail.com",   # Exact match raw
-            " usuario.prueba@gmail.com ", # Spaces
-            "Usuario.Prueba@gmail.com ",  # Mixed + Space
-        ]
-        
-        metodo = MetodoPago.query.first()
-        if not metodo:
-            metodo = MetodoPago(nombre="Efectivo", activo=True)
-            db.session.add(metodo)
-            db.session.commit()
-
-        for i, var_email in enumerate(variations):
-            # Check if order exists
-            import random
-            order_num = f"TEST{random.randint(10000, 99999)}"
-            existing = Pedido.query.filter_by(numero_pedido=order_num).first()
-            if not existing:
-                print(f"Creating order with email: '{var_email}'")
-                p = Pedido(
-                    numero_pedido=order_num,
-                    cliente_nombre="Test",
-                    cliente_email=var_email, # Saving RAW
-                    cliente_direccion="Calle Falsa 123",
-                    cliente_codigo_postal="1234",
-                    cliente_localidad="CABA",
-                    cliente_provincia="BA",
-                    metodo_pago_id=metodo.id,
-                    subtotal=100,
-                    total=100
-                )
-                db.session.add(p)
-        db.session.commit()
-
-        # 3. Simulate get_my_orders
-        print("\n--- TESTING SEARCH ---")
-        
-        # Logic from clients.py (SIMULATION)
-        pedidos_map = {}
-        search_email = cliente.email.strip().lower()
-
-        # 1. Email Search
-        pedidos_email_exact = Pedido.query.filter(Pedido.cliente_email == search_email).all()
-        for p in pedidos_email_exact: pedidos_map[p.id] = p
-        
-        pedidos_email_like = Pedido.query.filter(Pedido.cliente_email.ilike(f"%{search_email}%")).all()
-        for p in pedidos_email_like: pedidos_map[p.id] = p
-
-        # 2. Phone Search
-        cliente.telefono = "11-1234-5678" # Set test phone
-        clean_phone = "".join(filter(str.isdigit, str(cliente.telefono)))
-        print(f"Testing phone: {clean_phone}")
-        
-        # Create "Lost" Order (Different email, but matching phone)
-        import random
-        lost_id = f"LOST{random.randint(1000, 9999)}"
-        lost_order = Pedido(
-            numero_pedido=lost_id,
-            cliente_nombre="Lost User",
-            cliente_email="typo@email.com", 
-            cliente_telefono="+54 9 11 1234 5678", # Contains 1112345678
-            cliente_direccion="Nowhere",
-            cliente_codigo_postal="0000",
-            cliente_localidad="Void",
-            cliente_provincia="V",
-            metodo_pago_id=1,
-            subtotal=99,
-            total=99
-        )
-        db.session.add(lost_order)
-        db.session.commit()
-        
-        if len(clean_phone) >= 7:
-            pedidos_fono = Pedido.query.filter(Pedido.cliente_telefono.ilike(f"%{clean_phone}%")).all()
-            for p in pedidos_fono:
-                pedidos_map[p.id] = p
-                print(f"Found by Phone: {p.numero_pedido} ({p.cliente_email})")
+def run_test():
+    with open("repro_output.txt", "w", encoding="utf-8") as f:
+        try:
+            with app.app_context():
+                # 1. Use verified products
+                short = Producto.query.get(62)
+                short_talle = Talle.query.get(2)
                 
-        pedidos_finales = list(pedidos_map.values())
-        print(f"Total Found: {len(pedidos_finales)}")
+                other = Producto.query.get(5)
+                other_talle = Talle.query.get(6)
 
-if __name__ == "__main__":
-    test_search()
+                if not short or not other:
+                    f.write("Could not find suitable products for test.\n")
+                    return
+
+                # 2. Setup Mock Payment Methods
+                pm_efectivo = MetodoPago.query.filter_by(nombre="Efectivo Test").first()
+                if not pm_efectivo:
+                    pm_efectivo = MetodoPago(nombre="Efectivo Test", activo=True)
+                    db.session.add(pm_efectivo)
+                
+                pm_tarjeta = MetodoPago.query.filter_by(nombre="Tarjeta Test").first()
+                if not pm_tarjeta:
+                    pm_tarjeta = MetodoPago(nombre="Tarjeta Test", activo=True)
+                    db.session.add(pm_tarjeta)
+                    
+                db.session.commit() # Commit to get IDs and be visible
+
+                f.write(f"Test Products: Short={short.id} (${short.precio_base}), Other={other.id} (${other.precio_base})\n")
+                f.write(f"PM Efectivo: {pm_efectivo.id}, PM Tarjeta: {pm_tarjeta.id}\n")
+
+                # Mock Data Helper
+                def create_payload(items, metodo_pago_id):
+                    return {
+                        "cliente_nombre": "Test User",
+                        "cliente_email": "test@example.com",
+                        "metodo_pago_id": metodo_pago_id,
+                        "metodo_envio": "retiro_local",
+                        "items": items,
+                        "codigo_postal": "1234",
+                        "calle": "Calle Falsa",
+                        "altura": 123,
+                        "ciudad": "Springfield",
+                        "provincia": "Buenos Aires",
+                        "dni": "12345678"
+                    }
+
+                f.write("\n--- TEST CASE 1: 1 Short (Cash) ---\n")
+                # Current: 15% Payment Discount
+                # Expected New: 10% Payment Discount
+                payload = create_payload([
+                    {"producto_id": short.id, "talle_id": short_talle.id, "cantidad": 1}
+                ], metodo_pago_id=pm_efectivo.id)
+                order = OrderService.create_order(payload)
+                
+                f.write(f"Subtotal: {order.subtotal}\n")
+                f.write(f"Descuento Total: {order.descuento}\n")
+                f.write(f"Total: {order.total}\n")
+                payment_percentage = (order.descuento / order.subtotal) * 100
+                f.write(f"Effective Discount %: {payment_percentage:.2f}%\n")
+
+                f.write("\n--- TEST CASE 2: 2 items (Shorts) (Mix) ---\n")
+                # New: 10% Qty Discount
+                payload = create_payload([
+                    {"producto_id": short.id, "talle_id": short_talle.id, "cantidad": 2}
+                ], metodo_pago_id=pm_tarjeta.id) # Card
+                
+                try:
+                    order = OrderService.create_order(payload)
+                    f.write(f"Subtotal: {order.subtotal}\n")
+                    f.write(f"Descuento Total: {order.descuento}\n")
+                    f.write(f"Total: {order.total}\n")
+                    qty_percentage = (order.descuento / order.subtotal) * 100 if order.subtotal > 0 else 0
+                    f.write(f"Effective Discount %: {qty_percentage:.2f}%\n")
+                except Exception as e:
+                    f.write(f"Error in Case 2: {e}\n")
+                    f.write(traceback.format_exc())
+
+                f.write("\n--- TEST CASE 3: 3 items (Shorts) (Mix) ---\n")
+                # New: 15% Qty Discount
+                payload = create_payload([
+                    {"producto_id": short.id, "talle_id": short_talle.id, "cantidad": 3}
+                ], metodo_pago_id=pm_tarjeta.id)
+                
+                try:
+                    order = OrderService.create_order(payload)
+                    f.write(f"Subtotal: {order.subtotal}\n")
+                    f.write(f"Descuento Total: {order.descuento}\n")
+                    qty_percentage = (order.descuento / order.subtotal) * 100 if order.subtotal > 0 else 0
+                    f.write(f"Effective Discount %: {qty_percentage:.2f}%\n")
+                except Exception as e:
+                     f.write(f"Error in Case 3: {e}\n")
+                     f.write(traceback.format_exc())
+
+                f.write("\n--- TEST CASE 4: 1 Remera (Cash) ---\n")
+                # Expected: 15% Payment Discount (Status Quo)
+                payload = create_payload([
+                    {"producto_id": other.id, "talle_id": other_talle.id, "cantidad": 1}
+                ], metodo_pago_id=pm_efectivo.id)
+                order = OrderService.create_order(payload)
+                f.write(f"Subtotal: {order.subtotal}\n")
+                f.write(f"Descuento Total: {order.descuento}\n")
+                payment_percentage = (order.descuento / order.subtotal) * 100 if order.subtotal > 0 else 0
+                f.write(f"Effective Discount %: {payment_percentage:.2f}%\n")
+
+                db.session.rollback() # Don't save test orders
+        except Exception:
+            f.write("FATAL ERROR:\n")
+            f.write(traceback.format_exc())
+
+
+
+run_test()

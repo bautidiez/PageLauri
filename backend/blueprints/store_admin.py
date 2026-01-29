@@ -329,8 +329,22 @@ def manage_category(id):
         if 'activa' in data: categoria.activa = data['activa']
         if 'slug' in data: categoria.slug = data['slug']
         
+        # Procesar subcategorías nuevas al editar
+        if 'subcategorias_nuevas' in data:
+            for sub_data in data['subcategorias_nuevas']:
+                if sub_data.get('nombre'):
+                    sub_cat = Categoria(
+                        nombre=sub_data['nombre'],
+                        descripcion=sub_data.get('descripcion', ''),
+                        categoria_padre=categoria, # Relación directa con la categoría actual
+                        orden=int(sub_data.get('orden', 0)),
+                        activa=sub_data.get('activa', True)
+                    )
+                    db.session.add(sub_cat)
+
         db.session.commit()
         invalidate_cache(pattern='categorias')
+        invalidate_cache(pattern='productos') # Invalida cache de productos para reflejar cambios de nombre de categoría
         return jsonify(categoria.to_dict()), 200
     except Exception as e:
         db.session.rollback()
