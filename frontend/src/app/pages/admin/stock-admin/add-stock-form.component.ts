@@ -112,7 +112,6 @@ export class AddStockFormComponent {
   private searchSubject = new Subject<string>();
 
   ngOnInit() {
-    // alert('DEBUG: AddStockForm ngOnInit. ID: ' + this.preSelectedProductId);
     if (this.preSelectedProductId) {
       this.loadAndSelectProduct(this.preSelectedProductId);
     }
@@ -120,21 +119,17 @@ export class AddStockFormComponent {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['preSelectedProductId'] && changes['preSelectedProductId'].currentValue) {
-      // alert('DEBUG: AddStockForm ID changed: ' + changes['preSelectedProductId'].currentValue);
       this.loadAndSelectProduct(changes['preSelectedProductId'].currentValue);
     }
   }
 
   loadAndSelectProduct(id: number) {
-    // alert('DEBUG: Fetching product ' + id);
     this.apiService.getProducto(id).subscribe({
       next: (prod) => {
-        // alert('DEBUG: Product fetched: ' + prod.nombre);
         this.selectProduct(prod);
       },
       error: (err) => {
         console.error('Error fetching product by ID:', err);
-        // alert('Error fetching product: ' + err.message);
       }
     });
   }
@@ -185,7 +180,6 @@ export class AddStockFormComponent {
 
   selectProduct(product: any) {
     console.log('Selecting product:', product);
-    alert('DEBUG: ejecutando selectProduct para ' + product.nombre);
     this.selectedProduct = product;
     this.searchQuery = product.nombre;
     this.searchResults = [];
