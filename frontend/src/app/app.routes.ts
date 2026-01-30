@@ -17,6 +17,7 @@ import { StockAdminComponent } from './pages/admin/stock-admin/stock-administrat
 import { PromocionesAdminComponent } from './pages/admin/promociones-admin/promociones-admin';
 import { CategoriasAdminComponent } from './pages/admin/categorias-admin/categorias-admin';
 import { VentasExternasAdminComponent } from './pages/admin/ventas-externas-admin/ventas-externas-admin';
+import { NewsletterAdminComponent } from './pages/admin/newsletter-admin/newsletter-admin';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -55,6 +56,7 @@ export const routes: Routes = [
   { path: 'admin/promociones', component: PromocionesAdminComponent },
   { path: 'admin/categorias', component: CategoriasAdminComponent },
   { path: 'admin/ventas-externas', component: VentasExternasAdminComponent },
+  { path: 'admin/newsletter', component: NewsletterAdminComponent },
   { path: 'pedido-exitoso', loadComponent: () => import('./pages/order-success/order-success').then(m => m.OrderSuccessComponent) },
   { path: '**', redirectTo: '' }
 ];

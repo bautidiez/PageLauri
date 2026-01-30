@@ -384,3 +384,55 @@ class NotificationService:
             except Exception as e:
                 print(f"DEBUG NOTIFICACION: Error en SMS de fallback: {e}")
                 return False
+
+    @staticmethod
+    def send_newsletter(subject, html_content, recipients, test_email=None):
+        """
+        Envía un newsletter a una lista de destinatarios usando Flask-Mail (SMTP).
+        Args:
+            subject (str): Asunto del correo.
+            html_content (str): Contenido HTML del mensaje.
+            recipients (list): Lista de diccionarios [{'email': '...', 'nombre': '...'}].
+            test_email (str): Si está presente, solo envía a este email.
+        Returns:
+            int: Cantidad de emails enviados exitosamente.
+        """
+        from app import mail
+        from flask_mail import Message
+        
+        # Si es test, sobrescribir lista
+        if test_email:
+            recipients = [{'email': test_email, 'nombre': 'Test Admin'}]
+            
+        count = 0
+        total = len(recipients)
+        
+        print(f"DEBUG NEWSLETTER: Iniciando envío a {total} destinatarios. Test mode: {bool(test_email)}")
+        
+        # Iterar y enviar individualmente para mejor deliverability y personalización
+        with mail.connect() as conn:
+            for recipient in recipients:
+                try:
+                    email = recipient['email']
+                    nombre = recipient.get('nombre') or 'Cliente'
+                    
+                    msg = Message(
+                        subject=subject,
+                        recipients=[email],
+                        html=html_content
+                    )
+                    
+                    conn.send(msg)
+                    count += 1
+                    
+                    if not test_email and count % 10 == 0:
+                        import time
+                        time.sleep(1) 
+                        
+                except Exception as e:
+                    print(f"Error enviando newsletter a {recipient.get('email')}: {e}")
+                    continue
+
+        print(f"DEBUG NEWSLETTER: Finalizado. Enviados: {count}/{total}")
+        return count
+

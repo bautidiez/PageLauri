@@ -449,4 +449,9 @@ export class ApiService {
   fixSequences(): Observable<any> {
     return this.http.post(`${this.apiUrl}/admin/db/fix-sequences`, {}, { headers: this.getHeaders() });
   }
+
+  // Newsletter
+  subscribeNewsletter(data: { email: string, nombre?: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/newsletter/subscribe`, data);
+  }
 }

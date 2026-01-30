@@ -384,3 +384,50 @@ def delete_my_order(pedido_id):
         traceback.print_exc()
         logger.error(f"Error deleting order {pedido_id}: {e}")
         return jsonify({'error': f'Error al eliminar el pedido: {str(e)}'}), 500
+
+@clients_bp.route('/api/newsletter/subscribe', methods=['POST'])
+@limiter.limit("20 per hour")
+def subscribe_newsletter():
+    try:
+        data = request.json
+        email = data.get('email')
+        nombre = data.get('nombre')
+        
+        if not email:
+            return jsonify({'error': 'El email es requerido'}), 400
+            
+        cliente = Cliente.query.filter_by(email=email).first()
+        
+        if cliente:
+            # Cliente existente, actualizamos suscripción
+            cliente.acepta_newsletter = True
+            if nombre and not cliente.nombre: # Actualizar nombre si no tenía
+                cliente.nombre = nombre
+            db.session.commit()
+            message = '¡Gracias por suscribirte nuevamente! Te mantendremos informado.'
+        else:
+            # Nuevo cliente solo para newsletter
+            cliente = Cliente(
+                nombre=nombre if nombre else 'Suscriptor',
+                email=email,
+                acepta_newsletter=True,
+                metodo_verificacion='email', # Asumimos verificado o pendiente, pero para newsletter no bloqueamos
+                password_hash=None # Sin password
+            )
+            db.session.add(cliente)
+            db.session.commit()
+            message = '¡Gracias por suscribirte! Recibirás nuestras novedades pronto.'
+            
+        # Intentar enviar email de bienvenida (opcional, si existe método)
+        try:
+            # Por ahora solo logueamos, idealmente NotificationService.send_welcome_newsletter(cliente)
+            logger.info(f"📧 Newsletter suscripción: {email}")
+        except:
+            pass
+            
+        return jsonify({'message': message}), 200
+        
+    except Exception as e:
+        logger.error(f"Error en newsletter subscribe: {e}")
+        return jsonify({'error': 'Ocurrió un error al procesar la suscripción'}), 500
+

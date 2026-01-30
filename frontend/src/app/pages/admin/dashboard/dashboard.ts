@@ -215,6 +215,10 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/admin/promociones']);
   }
 
+  goToGestionNewsletter() {
+    this.router.navigate(['/admin/newsletter']);
+  }
+
   getVentaMaxima(): any {
     if (!this.estadisticasVentas || !this.estadisticasVentas.datos) return null;
     return this.estadisticasVentas.datos.reduce((max: any, item: any) =>

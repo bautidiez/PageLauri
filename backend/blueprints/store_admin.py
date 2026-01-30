@@ -798,6 +798,10 @@ def crear_venta_externa():
     - Incrementa contador de ventas del producto
     - Calcula y guarda ganancia total
     """
+    # ... implementation (will be preserved by not overwriting, just adding above or below if needed context, but here I am appending to file end effectively if I choose right insertion point. Wait, line 800 is inside `crear_venta_externa` docstring. I should verify file length. View showed 1168 lines. I will scroll to bottom or find a good place.
+    # Actually, I'll append it at the end of the file or after `crear_venta_externa`.
+    # Let me check the file content again or just append safely.
+    # The view_file output stopped at line 800 inside a docstring. I will read the end of the file to see where to append properly.
     try:
         data = request.get_json()
         
@@ -1164,4 +1168,48 @@ def fix_db_sequences_route():
         
     except Exception as e:
         db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# ==================== NEWSLETTER ====================
+
+@store_admin_bp.route('/api/admin/newsletter/send', methods=['POST'])
+@jwt_required()
+def send_marketing_newsletter():
+    """
+    Envía un newsletter a los suscriptores.
+    Payload: { "subject": "...", "content": "HTML...", "test_email": "optional@test.com" }
+    """
+    try:
+        data = request.get_json()
+        subject = data.get('subject')
+        content = data.get('content')
+        test_email = data.get('test_email')
+        
+        if not subject or not content:
+            return jsonify({'error': 'Asunto y contenido son requeridos'}), 400
+            
+        recipients = []
+        if not test_email:
+            # Obtener suscriptores reales
+            clientes = Cliente.query.filter_by(acepta_newsletter=True).all()
+            recipients = [{'email': c.email, 'nombre': c.nombre} for c in clientes]
+            
+            if not recipients:
+                return jsonify({'error': 'No hay suscriptores para enviar'}), 400
+        else:
+            # Test mode
+            recipients = [{'email': test_email, 'nombre': 'Admin Test'}]
+            
+        # Enviar usando NotificationService (Gmail SMTP)
+        from services.notification_service import NotificationService
+        sent_count = NotificationService.send_newsletter(subject, content, recipients, test_email)
+        
+        return jsonify({
+            'message': 'Newsletter procesado',
+            'sent_count': sent_count,
+            'total_targets': len(recipients)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error sending newsletter: {e}")
         return jsonify({'error': str(e)}), 500
