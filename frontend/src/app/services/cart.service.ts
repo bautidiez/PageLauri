@@ -65,6 +65,8 @@ export class CartService {
     const key = this.getCartKey();
     const saved = localStorage.getItem(key);
 
+    console.log(`DEBUG LOAD CART: Key=${key}, SavedRaw=${saved ? saved.substring(0, 50) + '...' : 'null'}`);
+
     this.cartItems = []; // Reset inicial
 
     if (saved) {
@@ -74,30 +76,37 @@ export class CartService {
         let lastUpdated = 0;
 
         if (Array.isArray(parsed)) {
+          console.log('DEBUG LOAD CART: Parsed is Array (Old format or simple list)');
           items = parsed;
           lastUpdated = Date.now();
         } else {
+          console.log('DEBUG LOAD CART: Parsed is Storage Object');
           items = parsed.items || [];
           lastUpdated = parsed.lastUpdated || 0;
         }
 
         // Verificar expiración (48 horas)
+        /*
         const now = Date.now();
         if (now - lastUpdated > this.CART_EXPIRATION) {
           console.log(`Carrito expirado (${key}). Limpiando.`);
           this.clearCart();
           return;
         } else {
-          this.cartItems = items;
-          // Calculate initial total
-          this.updateTotal();
-          // Refresh data to get latest promotions/prices
-          this.refreshCartData();
-        }
+        */
+        console.log(`DEBUG LOAD CART: Loading ${items.length} items.`);
+        this.cartItems = items;
+        // Calculate initial total
+        this.updateTotal();
+        // Refresh data to get latest promotions/prices
+        this.refreshCartData();
+        // }
       } catch (e) {
         console.error('Error al cargar carrito', e);
         this.cartItems = [];
       }
+    } else {
+      console.log('DEBUG LOAD CART: No saved data found for key', key);
     }
 
     this.notify();

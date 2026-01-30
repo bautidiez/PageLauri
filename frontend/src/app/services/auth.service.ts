@@ -130,7 +130,12 @@ export class AuthService {
             this.isAuthenticatedSubject.next(true);
             this.resetInactivityTimer();
           },
-          error: () => this.logout()
+          error: (error) => {
+            console.error('Verify Token Error:', error);
+            if (error.status === 401 || error.status === 403) {
+              this.logout();
+            }
+          }
         });
       } else if (isCliente) {
         this.apiService.verifyTokenCliente().subscribe({
@@ -138,7 +143,12 @@ export class AuthService {
             this.isAuthenticatedSubject.next(true);
             this.resetInactivityTimer();
           },
-          error: () => this.logout()
+          error: (error) => {
+            console.error('Verify Token Cliente Error:', error);
+            if (error.status === 401 || error.status === 403) {
+              this.logout();
+            }
+          }
         });
       } else {
         this.logout();
