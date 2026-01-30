@@ -96,11 +96,17 @@ export class CheckoutComponent implements OnInit {
     let attempts = 0;
 
     while (currentId !== null && attempts < 10) {
-      if (currentId === 8) return true;
+      if (currentId === 8 || currentId === 2) return true;
 
       const category = this.categoriesMap.get(currentId);
-      if (category && category.categoria_padre_id) {
-        currentId = category.categoria_padre_id;
+      if (category) {
+        if (category.nombre && category.nombre.toLowerCase().trim() === 'shorts') return true;
+
+        if (category.categoria_padre_id) {
+          currentId = +category.categoria_padre_id;
+        } else {
+          break;
+        }
       } else {
         break;
       }

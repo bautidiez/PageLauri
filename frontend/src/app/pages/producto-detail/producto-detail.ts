@@ -380,13 +380,22 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
         this.esShort = false;
 
         while (currentId && attempts < 10) {
-          if (currentId === 8) {
+          // Check ID 8 (Local) or 2 (Prod) or Name
+          if (currentId === 8 || currentId === 2) {
             this.esShort = true;
             break;
           }
           const cat = this.categoriesMap.get(currentId);
-          if (cat && cat.categoria_padre_id) {
-            currentId = cat.categoria_padre_id;
+          if (cat) {
+            if (cat.nombre && cat.nombre.toLowerCase().trim() === 'shorts') {
+              this.esShort = true;
+              break;
+            }
+            if (cat.categoria_padre_id) {
+              currentId = +cat.categoria_padre_id;
+            } else {
+              break;
+            }
           } else {
             break;
           }

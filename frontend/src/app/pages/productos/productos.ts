@@ -554,7 +554,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
       let cat = this.findCategoryById(producto.categoria_id);
       let attempts = 0;
       while (cat && attempts < 5) {
-        if (cat.id === 8) {
+        if (cat.id === 8 || cat.id === 2 || (cat.nombre && cat.nombre.toLowerCase().trim() === 'shorts')) {
           esShort = true;
           break;
         }
