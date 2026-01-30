@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 clients_bp = Blueprint('clients', __name__)
 
 def verify_recaptcha(token):
-    secret_key = current_app.config.get('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFyjTsGk5UW0R') # CLAVE SK PRUEBA
+    secret_key = current_app.config.get('RECAPTCHA_SECRET_KEY', '6LfgSlssAAAAAFWj1hXPYvUlp3xK3x6bU2pvYZXI') # CLAVE SK PRODUCCION
     if not secret_key or not token:
         # Si no hay key configurada, bypass (para dev) o error log
         print("DEBUG RECAPTCHA: No secret key or token provided", flush=True)
@@ -43,14 +43,13 @@ def registrar_cliente():
         data = request.json
         print(f"DEBUG CLIENTES: Recibida solicitud de registro para {data.get('email')}", flush=True)
         
-        # Validar captcha si viene en el payload (opcional por ahora para compatibilidad incremental)
+        # Validar captcha (OBLIGATORIO)
         captcha_token = data.get('recaptcha_token')
-        if captcha_token:
-            if not verify_recaptcha(captcha_token):
-               # return jsonify({'error': 'Captcha inválido. Por favor intenta de nuevo.'}), 400
-               print("DEBUG CLIENTES: Captcha invalido pero PERMITIDO temporalmente", flush=True)
-        else:
-             print("DEBUG CLIENTES: Registro SIN captcha token (permitido temporalmente)", flush=True)
+        if not captcha_token:
+            return jsonify({'error': 'Falta el captcha'}), 400
+            
+        if not verify_recaptcha(captcha_token):
+             return jsonify({'error': 'Captcha inválido. Por favor intenta de nuevo.'}), 400
 
         if not data.get('nombre') or not data.get('email') or not data.get('password') or not data.get('metodo_verificacion'):
             return jsonify({'error': 'Faltan campos requeridos (incluyendo método de verificación)'}), 400
@@ -116,10 +115,13 @@ def login_cliente():
     data = request.json
     
     # Validar captcha (opcional por ahora)
+    # Validar captcha (OBLIGATORIO)
     captcha_token = data.get('recaptcha_token')
-    if captcha_token:
-        if not verify_recaptcha(captcha_token):
-           return jsonify({'error': 'Captcha inválido'}), 400
+    if not captcha_token:
+        return jsonify({'error': 'Falta el captcha'}), 400
+
+    if not verify_recaptcha(captcha_token):
+       return jsonify({'error': 'Captcha inválido'}), 400
 
     email = data.get('email')
     password = data.get('password')

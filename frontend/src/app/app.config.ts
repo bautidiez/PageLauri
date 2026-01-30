@@ -11,7 +11,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: 'RECAPTCHA_SETTINGS',
       useValue: {
-        siteKey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI', // CLAVE DE PRUEBA (User needs to replace)
+        siteKey: '6LfgSlssAAAAALlGb4Fnu9-AoIkKNGOCAGydHwOB', // CLAVE DE PRODUCCION
       },
     }
   ]

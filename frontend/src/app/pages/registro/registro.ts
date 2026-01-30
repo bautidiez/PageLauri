@@ -153,10 +153,10 @@ export class RegistroComponent implements OnInit {
         }
 
         // Validate CAPTCHA
-        // if (!this.cliente.recaptcha_token) {
-        //     this.mensajeError = 'Por favor completa el captcha';
-        //     return;
-        // }
+        if (!this.cliente.recaptcha_token) {
+            this.mensajeError = 'Por favor completa el captcha';
+            return;
+        }
 
         this.registrando = true;
         this.mensajeError = '';

@@ -35,10 +35,10 @@ export class LoginClienteComponent {
         console.log('DEBUG LOGIN: Iniciando proceso para', this.email);
 
         // Validate Captcha first
-        // if (!this.recaptcha_token) {
-        //     this.error = 'Por favor completa el captcha';
-        //     return;
-        // }
+        if (!this.recaptcha_token) {
+            this.error = 'Por favor completa el captcha';
+            return;
+        }
 
         if (!this.email || !this.password) {
             this.error = 'Por favor completa todos los campos';
