@@ -95,8 +95,7 @@
           </div>
 
           <div class="product-actions">
-            <button class="btn btn-primary btn-large" (click)="agregarAlCarrito()"
-              [disabled]="agregandoAlCarrito || !producto.tiene_stock">
+            <button class="btn btn-primary btn-large" (click)="agregarAlCarrito()" [disabled]="agregandoAlCarrito">
               {{ agregandoAlCarrito ? 'Agregando...' : 'Agregar al Carrito' }}
             </button>
           </div>

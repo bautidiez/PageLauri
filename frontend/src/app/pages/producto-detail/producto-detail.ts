@@ -195,13 +195,21 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   }
 
   agregarAlCarrito() {
+    console.log('addCart click. Selected:', this.talleSeleccionado, 'Cant:', this.cantidad);
+
+    if (!this.producto.tiene_stock) {
+      alert('Este producto no tiene stock disponible.');
+      return;
+    }
+
     if (!this.talleSeleccionado) {
       alert('Por favor selecciona un talle');
       return;
     }
 
-    if (this.cantidad > this.getStockTalle(this.talleSeleccionado.id)) {
-      alert('No hay suficiente stock disponible');
+    const stock = this.getStockTalle(this.talleSeleccionado.id);
+    if (this.cantidad > stock) {
+      alert(`No hay suficiente stock. Disponibles: ${stock}`);
       return;
     }
 
