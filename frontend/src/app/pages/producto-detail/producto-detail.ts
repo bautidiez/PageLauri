@@ -28,7 +28,9 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   coloresDisponibles: any[] = [];
   colorSeleccionado: any = null;
   subcategorias: any[] = [];
+  categoriesMap = new Map<number, any>();
   zoomOrigin = 'center center';
+
 
   // ✅ FIX: Add Subject for cleanup
   private destroy$ = new Subject<void>();
@@ -353,41 +355,52 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   }
 
 
+
+  buildCategoriesMap(nodes: any[]) {
+    nodes.forEach(node => {
+      this.categoriesMap.set(node.id, node);
+      if (node.subcategorias && node.subcategorias.length > 0) {
+        this.buildCategoriesMap(node.subcategorias);
+      }
+    });
+  }
+
   loadSubcategorias() {
     if (!this.producto) return;
 
     // Obtener la categoría padre del producto actual
     this.apiService.getCategorias().subscribe({
       next: (categorias) => {
-        // Chequear si es Short (recursivo)
-        let cat = categorias.find((c: any) => c.id === this.producto.categoria_id);
+        // Flatten the tree
+        this.buildCategoriesMap(categorias);
+
+        // Chequear si es Short (recursivo) usando el MAPA
+        let currentId = this.producto.categoria_id;
         let attempts = 0;
         this.esShort = false;
 
-        while (cat && attempts < 10) {
-          if (cat.id === 8) {
+        while (currentId && attempts < 10) {
+          if (currentId === 8) {
             this.esShort = true;
             break;
           }
-          if (cat.categoria_padre_id) {
-            cat = categorias.find((c: any) => c.id === cat.categoria_padre_id);
+          const cat = this.categoriesMap.get(currentId);
+          if (cat && cat.categoria_padre_id) {
+            currentId = cat.categoria_padre_id;
           } else {
             break;
           }
           attempts++;
         }
 
-        const categoriaActual = categorias.find((c: any) => c.id === this.producto.categoria_id);
+        const categoriaActual = this.categoriesMap.get(this.producto.categoria_id);
         if (categoriaActual && categoriaActual.categoria_padre_id) {
-          // El producto está en una subcategoría, obtener todas las subcategorías del mismo padre
-          this.subcategorias = categorias.filter((c: any) =>
-            c.categoria_padre_id === categoriaActual.categoria_padre_id
-          );
+          // El producto está en una subcategoría. Obtener siblings.
+          const parent = this.categoriesMap.get(categoriaActual.categoria_padre_id);
+          this.subcategorias = parent ? (parent.subcategorias || []) : [];
         } else if (categoriaActual && !categoriaActual.categoria_padre_id) {
-          // El producto está en una categoría padre, obtener todas sus subcategorías
-          this.subcategorias = categorias.filter((c: any) =>
-            c.categoria_padre_id === categoriaActual.id
-          );
+          // El producto está en una categoría raiz.
+          this.subcategorias = categoriaActual.subcategorias || [];
         }
       }
     });

@@ -22,6 +22,7 @@ export class CheckoutComponent implements OnInit {
   descuentoPago = 0; // Descuento por método de pago
   procesando = false;
   categorias: any[] = [];
+  categoriesMap = new Map<number, any>(); // Mapa para búsqueda rápida
 
   // Datos del cliente
   cliente = {
@@ -73,24 +74,33 @@ export class CheckoutComponent implements OnInit {
     this.apiService.getCategorias().subscribe({
       next: (data) => {
         this.categorias = data;
+        this.buildCategoriesMap(data);
         this.calcularTotal(); // Recalcular con categorias cargadas
       }
     });
   }
 
+  buildCategoriesMap(nodes: any[]) {
+    nodes.forEach(node => {
+      this.categoriesMap.set(node.id, node);
+      if (node.subcategorias && node.subcategorias.length > 0) {
+        this.buildCategoriesMap(node.subcategorias);
+      }
+    });
+  }
+
   checkIfShort(categoriaId: number): boolean {
-    if (!this.categorias.length) return false;
+    if (this.categoriesMap.size === 0) return false;
 
-    // Check ID 8 directly
-    if (categoriaId === 8) return true;
-
-    // Recursive check
-    let cat = this.categorias.find(c => c.id === categoriaId);
+    let currentId: number | null = categoriaId;
     let attempts = 0;
-    while (cat && attempts < 10) {
-      if (cat.id === 8) return true;
-      if (cat.categoria_padre_id) {
-        cat = this.categorias.find(c => c.id === cat.categoria_padre_id);
+
+    while (currentId !== null && attempts < 10) {
+      if (currentId === 8) return true;
+
+      const category = this.categoriesMap.get(currentId);
+      if (category && category.categoria_padre_id) {
+        currentId = category.categoria_padre_id;
       } else {
         break;
       }

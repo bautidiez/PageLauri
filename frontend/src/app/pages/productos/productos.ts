@@ -64,6 +64,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
   mostrarFiltros = false;
   precioMinInput = '';
   precioMaxInput = '';
+  categoriesMap = new Map<number, any>(); // Mapa flatten
 
   // Category slug mapping
   private categorySlugMap: { [key: string]: number } = {};
@@ -101,7 +102,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.destroy$.next();
-    this.destroy$.complete();
+    this.destroy_.complete();
   }
 
   private handleRouteParams() {
@@ -427,6 +428,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
         });
 
         this.categorias = roots.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        this.buildCategoriesMap(this.categorias); // Call buildCategoriesMap here
 
         // Note: buildSlugMap removed as we map during iteration above
 
@@ -741,18 +743,17 @@ export class ProductosComponent implements OnInit, OnDestroy {
     return ['/categoria', ...pathParts];
   }
 
-  findCategoryById(id: number): any {
-    const findInArray = (list: any[]): any => {
-      for (const cat of list) {
-        if (cat.id === id) return cat;
-        if (cat.subcategorias && cat.subcategorias.length > 0) {
-          const found = findInArray(cat.subcategorias);
-          if (found) return found;
-        }
+  buildCategoriesMap(nodes: any[]) {
+    nodes.forEach(node => {
+      this.categoriesMap.set(node.id, node);
+      if (node.subcategorias && node.subcategorias.length > 0) {
+        this.buildCategoriesMap(node.subcategorias);
       }
-      return null;
-    };
-    return findInArray(this.categorias);
+    });
+  }
+
+  findCategoryById(id: number): any {
+    return this.categoriesMap.get(id);
   }
 
   navigateToCategory(categoriaId: number) {
