@@ -8,6 +8,7 @@ import { SeoService } from '../../services/seo.service';
 import { ShippingCalculatorComponent } from '../../components/shipping-calculator/shipping-calculator';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-producto-detail',
@@ -42,7 +43,8 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
     private cartService: CartService,
     private seoService: SeoService,
     private cdr: ChangeDetectorRef,
-    private zone: NgZone
+    private zone: NgZone,
+    private toastService: ToastService
   ) { }
 
   ngOnInit() {
@@ -215,23 +217,24 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
     console.log('addCart click. Selected:', this.talleSeleccionado, 'Cant:', this.cantidad);
 
     if (!this.producto.tiene_stock) {
-      alert('Este producto no tiene stock disponible.');
+      this.toastService.show('Este producto no tiene stock disponible.', 'error');
       return;
     }
 
     if (!this.talleSeleccionado) {
-      alert('Por favor selecciona un talle');
+      this.toastService.show('Por favor selecciona un talle', 'info');
       return;
     }
 
     const stock = this.getStockTalle(this.talleSeleccionado.id);
     if (this.cantidad > stock) {
-      alert(`No hay suficiente stock. Disponibles: ${stock}`);
+      this.toastService.show(`No hay suficiente stock. Disponibles: ${stock}`, 'error');
       return;
     }
 
     this.agregandoAlCarrito = true;
     this.cartService.addItem(this.producto, this.talleSeleccionado, this.cantidad);
+    this.toastService.show('¡Producto agregado al carrito!', 'success');
 
     // Reducir tiempo de feedback visual
     setTimeout(() => {

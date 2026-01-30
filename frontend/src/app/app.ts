@@ -4,11 +4,12 @@ import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './components/header/header';
 import { FooterComponent } from './components/footer/footer';
 import { WhatsAppButtonComponent } from './components/whatsapp-button/whatsapp-button';
+import { ToastComponent } from './components/toast/toast';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HeaderComponent, FooterComponent, WhatsAppButtonComponent, CommonModule],
+  imports: [RouterOutlet, HeaderComponent, FooterComponent, WhatsAppButtonComponent, CommonModule, ToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

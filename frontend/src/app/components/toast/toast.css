@@ -1,0 +1,92 @@
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    /* Top Right usually better for toasts, but for mobile User might prefer Bottom or Center-Top */
+    /* Center top for high visibility as requested */
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%) translateY(-100px);
+    background: rgba(18, 18, 18, 0.95);
+    /* Deep dark background */
+    backdrop-filter: blur(10px);
+    color: #fff;
+    padding: 16px 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    font-family: 'Montserrat', sans-serif;
+    /* Assuming font match */
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 300px;
+    justify-content: space-between;
+}
+
+/* Success variant */
+.toast-container.success {
+    border-left: 4px solid #4CAF50;
+}
+
+/* Error variant */
+.toast-container.error {
+    border-left: 4px solid #ff4444;
+}
+
+/* Info variant (Default/Gold) */
+.toast-container {
+    border-left: 4px solid #D4AF37;
+    /* Gold accent */
+}
+
+.toast-container.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    top: 100px;
+    /* Offset from top */
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.icon {
+    font-size: 1.2rem;
+}
+
+.message {
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    margin-left: 12px;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: #fff;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+    .toast-container {
+        width: 90%;
+        min-width: auto;
+        font-size: 0.9rem;
+    }
+}
