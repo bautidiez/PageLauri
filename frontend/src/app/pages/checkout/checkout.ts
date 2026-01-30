@@ -19,7 +19,9 @@ export class CheckoutComponent implements OnInit {
   costoEnvio = 0;
   subtotal = 0;
   total = 0;
+  descuentoPago = 0; // Descuento por método de pago
   procesando = false;
+  categorias: any[] = [];
 
   // Datos del cliente
   cliente = {
@@ -52,7 +54,7 @@ export class CheckoutComponent implements OnInit {
     // Auto-llenar email si el usuario está logueado
     const clienteLogueado = this.authService.getCliente();
     const adminLogueado = this.authService.getAdmin();
-    
+
     if (clienteLogueado && clienteLogueado.email) {
       this.cliente.email = clienteLogueado.email;
       console.log('Email auto-filled from cliente:', this.cliente.email);
@@ -64,6 +66,37 @@ export class CheckoutComponent implements OnInit {
     this.subtotal = this.cartService.getTotal();
     this.calcularEnvio();
     this.loadMetodosPago();
+    this.loadCategorias();
+  }
+
+  loadCategorias() {
+    this.apiService.getCategorias().subscribe({
+      next: (data) => {
+        this.categorias = data;
+        this.calcularTotal(); // Recalcular con categorias cargadas
+      }
+    });
+  }
+
+  checkIfShort(categoriaId: number): boolean {
+    if (!this.categorias.length) return false;
+
+    // Check ID 8 directly
+    if (categoriaId === 8) return true;
+
+    // Recursive check
+    let cat = this.categorias.find(c => c.id === categoriaId);
+    let attempts = 0;
+    while (cat && attempts < 10) {
+      if (cat.id === 8) return true;
+      if (cat.categoria_padre_id) {
+        cat = this.categorias.find(c => c.id === cat.categoria_padre_id);
+      } else {
+        break;
+      }
+      attempts++;
+    }
+    return false;
   }
 
   loadMetodosPago() {
@@ -72,6 +105,7 @@ export class CheckoutComponent implements OnInit {
         this.metodosPago = data;
         if (data.length > 0) {
           this.metodoPagoSeleccionado = data[0].id;
+          this.calcularTotal();
         }
       },
       error: (error) => {
@@ -156,7 +190,58 @@ export class CheckoutComponent implements OnInit {
   }
 
   calcularTotal() {
-    this.total = this.subtotal + this.costoEnvio;
+    this.descuentoPago = 0;
+
+    // Calcular descuento por transferencia/efectivo
+    // Logica: 10% para Shorts (y descendientes), 15% para el resto
+    if (this.metodoPagoSeleccionado) {
+      const metodo = this.metodosPago.find(m => m.id === this.metodoPagoSeleccionado);
+      if (metodo) {
+        const nombre = metodo.nombre.toLowerCase();
+        if (nombre.includes('transferencia') || nombre.includes('efectivo')) {
+          let totalDesc = 0;
+          this.items.forEach(item => {
+            // Precio base * cantidad es la base
+            // Pero ojo, si tiene descuento previo promos, deberiamos usar ese?
+            // Según backend: `base_pago = pedido.subtotal - pedido.descuento`.
+            // Y luego aplica sobre items.
+            // Simplificación frontend: Aplicar sobre el item.precio_unitario (que ya puede tener descuento estatico? NO, cartService usa precio_base)
+            // CartService calculateTotal YA aplica descuentos. 
+            // `item.precio_unitario` en checkout es `precio_base` segun CartService?
+            // CartService: `this.cartItems[index].precio_unitario = freshProduct.precio_base;`
+            // Display en resumen checkout: `item.precio_unitario * item.cantidad`.
+            // PERO `subtotal` viene de `cartService.getTotal()` que tiene descuentos aplicados.
+            // ESTO ES COMPLEJO. El backend aplica el 15% sobre el NETO.
+
+            // Aproximación visual para Frontend:
+            const esShort = this.checkIfShort(item.producto.categoria_id);
+            const porcentaje = esShort ? 0.10 : 0.15;
+
+            // Precio efectivo del item en el total (aproximado)
+            // Si el subtotal ya tiene descuentos, es dificil prorratear. 
+            // Asumiremos precio base o precio promo.
+
+            // Mejor estrategia: Calcular sobre el monto que contribuye al subtotal?
+            // CartService item.descuento tiene el descuento aplicado.
+
+            let precioItem = item.precio_unitario; // Base
+            if (item.producto.precio_descuento) precioItem = item.producto.precio_descuento;
+
+            // Si hay promo dinamica, es mas complejo. 
+            // Usaremos una heuristica: (precio * cantidad) * porcentaje
+            const montoItem = precioItem * item.cantidad;
+            totalDesc += montoItem * porcentaje;
+          });
+          this.descuentoPago = totalDesc;
+        }
+      }
+    }
+
+    this.total = (this.subtotal - this.descuentoPago) + this.costoEnvio;
+  }
+
+  onMetodoPagoChange() {
+    this.calcularTotal();
   }
 
   getMetodoEnvioNombre(metodo: string): string {
