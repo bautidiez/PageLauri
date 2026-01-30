@@ -227,11 +227,12 @@ def reset_password():
 def verify_token_cliente():
     """Verificar token JWT para cliente"""
     cliente_id = get_jwt_identity()
+    cliente = Cliente.query.get(cliente_id)
+    if not cliente:
+        return jsonify({'error': 'Cliente no encontrado'}), 404
+        
     return jsonify({
-        'cliente': {
-            'id': int(cliente_id),
-            'authenticated': True
-        }
+        'cliente': cliente.to_dict()
     }), 200
 
 @clients_bp.route('/api/clientes/me', methods=['PUT'])

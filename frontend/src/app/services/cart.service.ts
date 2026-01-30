@@ -164,6 +164,14 @@ export class CartService {
 
       // Cargar carrito del usuario actual para fusionar
       const userKey = this.getCartKey();
+
+      // SAFETY CHECK: If we are still identified as guest (e.g. client data not loaded yet),
+      // DO NOT merge/delete. Wait for the next emission where we are identified as client.
+      if (userKey === 'cart_guest') {
+        console.warn('DEBUG CART: Merge aborted - User identified as guest (Client data missing?).');
+        return;
+      }
+
       const userData = localStorage.getItem(userKey);
       let userItems: CartItem[] = [];
 

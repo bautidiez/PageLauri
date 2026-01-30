@@ -139,7 +139,11 @@ export class AuthService {
         });
       } else if (isCliente) {
         this.apiService.verifyTokenCliente().subscribe({
-          next: () => {
+          next: (response) => {
+            // Restore session data if missing or outdated
+            if (response && response.cliente) {
+              localStorage.setItem('cliente', JSON.stringify(response.cliente));
+            }
             this.isAuthenticatedSubject.next(true);
             this.resetInactivityTimer();
           },
@@ -151,7 +155,21 @@ export class AuthService {
           }
         });
       } else {
-        this.logout();
+        // Fallback: Token exists but no type stored. Assume Client and try to verify/restore.
+        console.log('DEBUG AUTH: Token exists but no type. Attempting to restore client session.');
+        this.apiService.verifyTokenCliente().subscribe({
+          next: (response) => {
+            if (response && response.cliente) {
+              this.setSession(response, 'cliente');
+              console.log('DEBUG AUTH: Client session restored.');
+            }
+            this.resetInactivityTimer();
+          },
+          error: (err) => {
+            console.error('DEBUG AUTH: Failed to restore session. Logging out.', err);
+            this.logout();
+          }
+        });
       }
     }
   }
