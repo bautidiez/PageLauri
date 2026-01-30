@@ -543,8 +543,9 @@ export class ProductosComponent implements OnInit, OnDestroy {
   }
 
   getPrecioTransferencia(producto: any): number {
-    // 15% de descuento con transferencia sobre el mejor precio
-    return this.getPrecioFinal(producto) * 0.85;
+    // 15% de descuento el resto, 10% para Shorts (ID 8)
+    const porcentaje = producto.categoria_id === 8 ? 0.90 : 0.85;
+    return this.getPrecioFinal(producto) * porcentaje;
   }
 
   // Obtener el mejor precio disponible (base, descuento directo o promoción)
