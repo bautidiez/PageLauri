@@ -543,8 +543,29 @@ export class ProductosComponent implements OnInit, OnDestroy {
   }
 
   getPrecioTransferencia(producto: any): number {
-    // 15% de descuento el resto, 10% para Shorts (ID 8)
-    const porcentaje = producto.categoria_id === 8 ? 0.90 : 0.85;
+    // 15% de descuento el resto, 10% para Shorts (ID 8) o sus descendientes
+    let esShort = false;
+    if (producto.categoria_id === 8) {
+      esShort = true;
+    } else {
+      // Chequear ancestros
+      let cat = this.findCategoryById(producto.categoria_id);
+      let attempts = 0;
+      while (cat && attempts < 5) {
+        if (cat.id === 8) {
+          esShort = true;
+          break;
+        }
+        if (cat.categoria_padre_id) {
+          cat = this.findCategoryById(cat.categoria_padre_id);
+        } else {
+          break;
+        }
+        attempts++;
+      }
+    }
+
+    const porcentaje = esShort ? 0.90 : 0.85;
     return this.getPrecioFinal(producto) * porcentaje;
   }
 

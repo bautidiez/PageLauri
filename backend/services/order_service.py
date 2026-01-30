@@ -215,7 +215,20 @@ class OrderService:
                     if item_net < 0: item_net = 0
                     
                     percentage = 0.15 # Default (Remeras, etc)
-                    if item['producto'].categoria_id == 8: # Shorts
+                    
+                    # Verificar si es Short (ID 8) o descendiente
+                    es_short = False
+                    cat_cursor = item['producto'].categoria
+                    # Recorrer hacia arriba hasta encontrar root o id 8
+                    # Limite de seguridad para evitar loops infinitos (aunque no deberia haber)
+                    for _ in range(5): 
+                        if not cat_cursor: break
+                        if cat_cursor.id == 8:
+                            es_short = True
+                            break
+                        cat_cursor = cat_cursor.categoria_padre
+                    
+                    if es_short: # Shorts y derivados
                         percentage = 0.10
                         
                     descuento_pago += item_net * percentage

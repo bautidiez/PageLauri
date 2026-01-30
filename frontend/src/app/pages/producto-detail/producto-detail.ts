@@ -23,6 +23,7 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   cantidad = 1;
   imagenSeleccionada: any = null;
   loading = true;
+  esShort = false; // Flag para determinar descuento
   agregandoAlCarrito = false;
   coloresDisponibles: any[] = [];
   colorSeleccionado: any = null;
@@ -236,13 +237,13 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
     const final = this.getPrecioFinal();
     if (!final) return 0;
 
-    // Shorts (ID 8) tienen 10% descuento, el resto 15%
-    const porcentaje = (this.producto && this.producto.categoria_id === 8) ? 0.90 : 0.85;
+    // Shorts (ID 8) o descendientes tienen 10% descuento, el resto 15%
+    const porcentaje = this.esShort ? 0.90 : 0.85;
     return final * porcentaje;
   }
 
   getTransferenciaDiscountText(): string {
-    if (this.producto && this.producto.categoria_id === 8) {
+    if (this.esShort) {
       return '¡10% OFF!';
     }
     return '¡15% OFF!';
@@ -356,6 +357,24 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
     // Obtener la categoría padre del producto actual
     this.apiService.getCategorias().subscribe({
       next: (categorias) => {
+        // Chequear si es Short (recursivo)
+        let cat = categorias.find((c: any) => c.id === this.producto.categoria_id);
+        let attempts = 0;
+        this.esShort = false;
+
+        while (cat && attempts < 10) {
+          if (cat.id === 8) {
+            this.esShort = true;
+            break;
+          }
+          if (cat.categoria_padre_id) {
+            cat = categorias.find((c: any) => c.id === cat.categoria_padre_id);
+          } else {
+            break;
+          }
+          attempts++;
+        }
+
         const categoriaActual = categorias.find((c: any) => c.id === this.producto.categoria_id);
         if (categoriaActual && categoriaActual.categoria_padre_id) {
           // El producto está en una subcategoría, obtener todas las subcategorías del mismo padre
