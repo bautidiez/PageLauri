@@ -44,7 +44,7 @@ export class OrderSuccessComponent implements OnInit {
         // Legacy name matching fallback
         const name = (this.order.metodo_pago_nombre || '').toLowerCase();
         if (key === 'efectivo_local') return name.includes('local') || name.includes('retiro');
-        if (key === 'transferencia') return name.includes('transferencia');
+        if (key === 'transferencia') return name.includes('transferencia') && !name.includes('local');
         if (key === 'efectivo') return (name.includes('efectivo') || name.includes('rapipago')) && !name.includes('local');
         if (key === 'mercadopago') return name.includes('mercado') || name.includes('tarjeta');
 
