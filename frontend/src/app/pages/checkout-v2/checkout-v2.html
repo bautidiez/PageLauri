@@ -399,75 +399,120 @@
 
         <!-- SIDEBAR RESUMEN -->
         <div class="summary-sidebar" *ngIf="currentStep < 4">
-            <!-- ... existing content ... -->
-            <!-- Payment Method Discount -->
-            <div class="summary-row" *ngIf="getDiscountAmount() > 0">
-                <span>Descuento Pago</span>
-                <span class="discount-val">-${{ getDiscountAmount() | number:'1.0-0' }}</span>
-            </div>
-
-            <div class="summary-divider"></div>
-
-            <!-- Total Highlight with Discount -->
-            <div class="summary-row promo-highlight"
-                *ngIf="getDiscountAmount() > 0 || getSelectedShipping()?.descuento">
-                <span class="promo-title">Total con Descuentos:</span>
-                <span class="promo-value">${{ getFinalTotal() | number:'1.2-2' }}</span>
-            </div>
-
-            <!-- Standard Total Row (Struckthrough if discounted) -->
-            <div class="summary-row total"
-                [class.strikethrough]="getDiscountAmount() > 0 || getSelectedShipping()?.descuento" *ngIf="!loading">
-                <span>{{ (getDiscountAmount() > 0 || getSelectedShipping()?.descuento) ? 'Total sin desc.' : 'Total'
-                    }}</span>
-                <span>${{ (total + (getSelectedShipping()?.costo || 0)) | number:'1.2-2' }}</span>
-            </div>
-
-            <!-- Loading Indicator -->
-            <div class="summary-row total" *ngIf="loading">
-                <span>Total</span>
-                <span>Calculando...</span>
-            </div>
-
-            <!-- Payment Promo Badge -->
-            <div class="payment-method-promo" *ngIf="getDiscountAmount() > 0">
-                ✓ Descuento por pago con {{ pagoForm.get('metodo')?.value === 'transferencia' ? 'Transferencia' :
-                'Efectivo' }} aplicado
-            </div>
-
-            <!-- Coupon Section -->
-            <div class="coupon-section" [formGroup]="couponForm">
-                <div class="coupon-input-group">
-                    <input type="text" formControlName="code" placeholder="Código de cupón">
-                    <button class="btn-coupon" (click)="validateCoupon()"
-                        [disabled]="couponForm.invalid || validatingCoupon">
-                        {{ validatingCoupon ? '...' : 'Aplicar' }}
-                    </button>
-                </div>
-                <p class="error-msg" *ngIf="couponError">{{ couponError }}</p>
-                <p class="success-msg" *ngIf="couponSuccess">{{ couponSuccess }}</p>
-
-                <div class="applied-coupon" *ngIf="appliedCoupon">
-                    <div class="coupon-info">
-                        <strong>🏷️ {{ appliedCoupon.codigo }}</strong>
-                        <span *ngIf="appliedCoupon.envio_gratis">Envío Gratis</span>
-                        <span
-                            *ngIf="!appliedCoupon.envio_gratis && appliedCoupon.tipo_promocion_nombre === 'descuento_porcentaje'">
-                            {{ appliedCoupon.valor }}% OFF
-                        </span>
-                        <span
-                            *ngIf="!appliedCoupon.envio_gratis && appliedCoupon.tipo_promocion_nombre === 'descuento_fijo'">
-                            ${{ appliedCoupon.valor }} OFF
-                        </span>
+            <div class="summary-card">
+                <h3>Resumen del pedido</h3>
+                <!-- Item simplified list in sidebar -->
+                <div class="mini-items">
+                    <div class="mini-item" *ngFor="let item of items">
+                        <img [src]="getFormattedImageUrl(item.producto.imagenes[0]?.url)">
+                        <div class="mini-details">
+                            <span>{{ item.producto.nombre }} x {{ item.cantidad }}</span>
+                            <strong>${{ (item.precio_unitario * item.cantidad) - (item.descuento || 0) | number:'1.0-0'
+                                }}</strong>
+                        </div>
                     </div>
-                    <button class="remove-coupon" (click)="appliedCoupon = null; couponSuccess = ''">✕</button>
                 </div>
-                <!-- Version Marker -->
-                <div class="version-marker" style="font-size: 10px; color: #ccc; text-align: right; margin-top: 10px;">
-                    v1.2 - Refined Messages & Flows
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>${{ getSubtotalBruto() | number:'1.0-0' }}</span>
+                </div>
+                <div class="summary-row" *ngIf="getDescuentoProductos() > 0" style="color: #28a745;">
+                    <span>Descuento Promociones</span>
+                    <span>-${{ getDescuentoProductos() | number:'1.0-0' }}</span>
+                </div>
+                <!-- Line separator if product discount exists -->
+                <div class="summary-divider" *ngIf="getDescuentoProductos() > 0"></div>
+
+                <!-- Subtotal Net (What CartService.total returns) -->
+                <div class="summary-row" *ngIf="getDescuentoProductos() > 0">
+                    <span>Subtotal con desc.</span>
+                    <span>${{ total | number:'1.0-0' }}</span>
+                </div>
+
+                <!-- Shipping Cost -->
+                <div class="summary-row" *ngIf="getSelectedShipping()">
+                    <span>Envío ({{ getSelectedShipping().nombre }})</span>
+                    <span>${{ getSelectedShipping().costo | number:'1.0-0' }}</span>
+                </div>
+
+                <!-- Shipping Discount (NEW) -->
+                <div class="summary-row" *ngIf="getSelectedShipping()?.descuento" style="color: #10b981;">
+                    <span>Descuento Envío</span>
+                    <span>-${{ getSelectedShipping().descuento | number:'1.0-0' }}</span>
+                </div>
+
+                <!-- Payment Method Discount -->
+                <div class="summary-row" *ngIf="getDiscountAmount() > 0">
+                    <span>Descuento Pago</span>
+                    <span class="discount-val">-${{ getDiscountAmount() | number:'1.0-0' }}</span>
+                </div>
+
+                <div class="summary-divider"></div>
+
+                <!-- Total Highlight with Discount -->
+                <div class="summary-row promo-highlight"
+                    *ngIf="getDiscountAmount() > 0 || getSelectedShipping()?.descuento">
+                    <span class="promo-title">Total con Descuentos:</span>
+                    <span class="promo-value">${{ getFinalTotal() | number:'1.2-2' }}</span>
+                </div>
+
+                <!-- Standard Total Row (Struckthrough if discounted) -->
+                <div class="summary-row total"
+                    [class.strikethrough]="getDiscountAmount() > 0 || getSelectedShipping()?.descuento"
+                    *ngIf="!loading">
+                    <span>{{ (getDiscountAmount() > 0 || getSelectedShipping()?.descuento) ? 'Total sin desc.' : 'Total'
+                        }}</span>
+                    <span>${{ (total + (getSelectedShipping()?.costo || 0)) | number:'1.2-2' }}</span>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div class="summary-row total" *ngIf="loading">
+                    <span>Total</span>
+                    <span>Calculando...</span>
+                </div>
+
+                <!-- Payment Promo Badge -->
+                <div class="payment-method-promo" *ngIf="getDiscountAmount() > 0">
+                    ✓ Descuento por pago aplicado
+                </div>
+
+                <!-- Coupon Section -->
+                <div class="coupon-section" [formGroup]="couponForm">
+                    <div class="coupon-input-group">
+                        <input type="text" formControlName="code" placeholder="Código de cupón">
+                        <button class="btn-coupon" (click)="validateCoupon()"
+                            [disabled]="couponForm.invalid || validatingCoupon">
+                            {{ validatingCoupon ? '...' : 'Aplicar' }}
+                        </button>
+                    </div>
+                    <p class="error-msg" *ngIf="couponError">{{ couponError }}</p>
+                    <p class="success-msg" *ngIf="couponSuccess">{{ couponSuccess }}</p>
+
+                    <div class="applied-coupon" *ngIf="appliedCoupon">
+                        <div class="coupon-info">
+                            <strong>🏷️ {{ appliedCoupon.codigo }}</strong>
+                            <span *ngIf="appliedCoupon.envio_gratis">Envío Gratis</span>
+                            <span
+                                *ngIf="!appliedCoupon.envio_gratis && appliedCoupon.tipo_promocion_nombre === 'descuento_porcentaje'">
+                                {{ appliedCoupon.valor }}% OFF
+                            </span>
+                            <span
+                                *ngIf="!appliedCoupon.envio_gratis && appliedCoupon.tipo_promocion_nombre === 'descuento_fijo'">
+                                ${{ appliedCoupon.valor }} OFF
+                            </span>
+                        </div>
+                        <button class="remove-coupon" (click)="appliedCoupon = null; couponSuccess = ''">✕</button>
+                    </div>
+                    <!-- Version Marker -->
+                    <div class="version-marker"
+                        style="font-size: 10px; color: #ccc; text-align: right; margin-top: 10px;">
+                        v1.3 - Mixed Discount Fixed
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>
