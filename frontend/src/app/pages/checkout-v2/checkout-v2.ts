@@ -35,6 +35,9 @@ export class CheckoutV2Component implements OnInit {
     couponSuccess: string = '';
     validatingCoupon = false;
 
+    // Category mapping for logic
+    categoriesMap = new Map<number, any>();
+
     constructor(
         private fb: FormBuilder,
         private cartService: CartService,
@@ -84,6 +87,7 @@ export class CheckoutV2Component implements OnInit {
     }
 
     ngOnInit() {
+        console.log('DEBUG: CHECKOUT V2 LOADED');
         this.cartService.cart$.subscribe(items => {
             this.items = items;
             this.total = this.cartService.getTotal();
@@ -96,8 +100,56 @@ export class CheckoutV2Component implements OnInit {
             this.transferData = data;
         });
 
+        this.loadCategorias();
         this.prefillClientData();
         this.setupConditionalValidation();
+    }
+
+    loadCategorias() {
+        this.apiService.getCategorias().subscribe({
+            next: (data) => {
+                this.buildCategoriesMap(data);
+                this.cdr.detectChanges(); // Refresh UI once categories loaded
+            }
+        });
+    }
+
+    buildCategoriesMap(nodes: any[]) {
+        nodes.forEach(node => {
+            this.categoriesMap.set(node.id, node);
+            if (node.subcategorias && node.subcategorias.length > 0) {
+                this.buildCategoriesMap(node.subcategorias);
+            }
+        });
+    }
+
+    checkIfShort(categoriaId: number): boolean {
+        // Fallback for direct ID match (Shorts usually ID 8 or 2) even if map not loaded yet
+        if (categoriaId === 8 || categoriaId === 2) return true;
+
+        if (this.categoriesMap.size === 0) return false;
+
+        let currentId: number | null = +categoriaId;
+        let attempts = 0;
+
+        while (currentId !== null && attempts < 10) {
+            if (currentId === 8 || currentId === 2) return true;
+
+            const category = this.categoriesMap.get(currentId);
+            if (category) {
+                if (category.nombre && category.nombre.toLowerCase().trim() === 'shorts') return true;
+
+                if (category.categoria_padre_id) {
+                    currentId = +category.categoria_padre_id;
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+            attempts++;
+        }
+        return false;
     }
 
     prefillClientData() {
@@ -150,11 +202,24 @@ export class CheckoutV2Component implements OnInit {
     }
 
     getDiscountedHeaderPrice(metodo: string) {
-        const base = this.getBaseTotal();
-        if (['transferencia', 'efectivo', 'efectivo_local'].includes(metodo)) {
-            return base * 0.85;
+        if (!['transferencia', 'efectivo', 'efectivo_local'].includes(metodo)) {
+            return this.getBaseTotal();
         }
-        return base;
+
+        const shipping = this.getSelectedShipping();
+        const shippingCost = shipping ? shipping.costo : 0;
+
+        // Calculate items total with discount mixed
+        let itemsDiscountedTotal = 0;
+
+        this.items.forEach(item => {
+            const esShort = this.checkIfShort(item.producto.categoria_id);
+            const factor = esShort ? 0.90 : 0.85; // 10% off for shorts, 15% off for others
+
+            itemsDiscountedTotal += (item.precio_unitario * item.cantidad) * factor;
+        });
+
+        return itemsDiscountedTotal + shippingCost;
     }
 
     nextStep() {
@@ -295,9 +360,17 @@ export class CheckoutV2Component implements OnInit {
     getDiscountAmount() {
         const metodoPago = this.pagoForm.get('metodo')?.value;
 
-        // El descuento del 15% se aplica SOLO sobre productos, NO sobre envío
         if (['efectivo_local', 'transferencia', 'efectivo'].includes(metodoPago)) {
-            return this.total * 0.15;
+            let totalDiscount = 0;
+            this.items.forEach(item => {
+                const esShort = this.checkIfShort(item.producto.categoria_id);
+                // Discount applies on the 'Effective Total' of the item (after quantity/promo discounts)
+                const effectiveItemTotal = (item.precio_unitario * item.cantidad) - (item.descuento || 0);
+
+                const porcentaje = esShort ? 0.10 : 0.15;
+                totalDiscount += effectiveItemTotal * porcentaje;
+            });
+            return totalDiscount;
         }
         return 0;
     }
@@ -306,39 +379,42 @@ export class CheckoutV2Component implements OnInit {
         const shipping = this.getSelectedShipping();
         const metodoPago = this.pagoForm.get('metodo')?.value;
 
-        // PASO 1: Calcular subtotal de productos (sin envío)
+        // PASO 1: Calcular total de productos
         let productsTotal = this.total;
 
-        // PASO 2: Aplicar descuento del 15% SOLO sobre productos (si pago es efectivo/transferencia)
-        // El descuento NO debe aplicarse sobre el costo de envío
+        // Si es efectivo/transferencia, recalculamos con descuento mixto (10% shorts, 15% resto)
         if (['efectivo_local', 'transferencia', 'efectivo'].includes(metodoPago)) {
-            productsTotal = productsTotal * 0.85;
+            productsTotal = 0;
+            this.items.forEach(item => {
+                // Effective Price being paid for this item in the cart
+                const effectiveItemTotal = (item.precio_unitario * item.cantidad) - (item.descuento || 0);
+
+                const esShort = this.checkIfShort(item.producto.categoria_id);
+                const factor = esShort ? 0.90 : 0.85;
+
+                productsTotal += effectiveItemTotal * factor;
+            });
         }
 
-        // PASO 3: Calcular costo de envío (considerando descuento por envío gratis > 150k)
+        // PASO 2: Calcular costo de envío
         let shippingCost = shipping ? shipping.costo : 0;
         if (shipping && shipping.descuento) {
-            // Si el backend marcó este envío como gratis (compra > 150k), restar el descuento
-            shippingCost -= shipping.descuento;
+            shippingCost = 0; // Free shipping
         }
 
-        // PASO 4: Aplicar cupón si existe (solo si NO se aplicó descuento de transferencia/efectivo)
+        // PASO 3: Aplicar cupón si existe (solo si NO se aplicó descuento de transferencia/efectivo)
         if (this.appliedCoupon && !['efectivo_local', 'transferencia', 'efectivo'].includes(metodoPago)) {
             if (this.appliedCoupon.envio_gratis) {
-                // Si es cupón de envío gratis, verificar que el backend no lo haya descontado ya
                 if (shipping && !shipping.descuento) {
                     shippingCost = 0;
                 }
             } else if (this.appliedCoupon.tipo_promocion_nombre === 'descuento_porcentaje') {
-                // Aplicar cupón de porcentaje sobre productos
                 productsTotal -= (this.total * this.appliedCoupon.valor / 100);
             } else if (this.appliedCoupon.tipo_promocion_nombre === 'descuento_fijo') {
-                // Aplicar cupón de descuento fijo
                 productsTotal -= this.appliedCoupon.valor;
             }
         }
 
-        // PASO 5: Total final = productos (con desc. 15% si aplica) + envío (gratis si aplica)
         return Math.max(0, productsTotal + shippingCost);
     }
 
@@ -426,19 +502,15 @@ export class CheckoutV2Component implements OnInit {
                         this.orderCreated.metodo_pago_frontend_key = selectedMethod;
                     }
 
-                    this.currentStep = 4;
-                    this.cartService.clearCart();
-                    window.scrollTo(0, 0);
-                    // Auto-open MP link if card payment
+                    // Redirect to dedicated Success Page
+                    console.log('DEBUG CHECKOUT V2: Order Created, redirecting to success page.', this.orderCreated);
+                    this.router.navigate(['/pedido-exitoso'], { state: { order: this.orderCreated } });
+
+                    // Auto-open MP link if card payment (keep this logic if needed, or rely on success page)
                     if (pedidoData.metodo_pago === 'mercadopago_card') {
                         const mpLink = 'https://link.mercadopago.com.ar/elvestuarior4';
                         window.open(mpLink, '_blank');
                     }
-
-                    this.loading = false;
-                    // Force full application check
-                    this.appRef.tick();
-                    window.scrollTo(0, 0);
                 });
             },
             error: (err) => {

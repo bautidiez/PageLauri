@@ -1,0 +1,125 @@
+<div class="success-screen redesigned">
+    <div class="success-two-col-layout">
+        <!-- Left Panel: Success Message & Order Info -->
+        <div class="success-left-panel">
+            <div class="success-header-flex">
+                <div class="success-icon-large">✅</div>
+                <div class="success-text-group">
+                    <h2>¡GRACIAS POR TU COMPRA<span *ngIf="order?.cliente_nombre">, {{ order.cliente_nombre | uppercase
+                            }}</span>!</h2>
+                    <p class="order-subtitle">Tu pedido ha sido registrado correctamente.</p>
+                </div>
+            </div>
+
+            <div class="order-id-block" *ngIf="order">
+                <span class="label">NÚMERO DE PEDIDO</span>
+                <span class="value">#{{ order.numero_pedido }}</span>
+            </div>
+
+            <div class="final-actions-left">
+                <button class="btn-primary" routerLink="/productos">Seguir Comprando</button>
+                <button class="btn-secondary" routerLink="/mis-pedidos">Ver Mis Pedidos</button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Instructions -->
+        <div class="success-right-panel" *ngIf="order">
+            <div class="instructions-card">
+
+                <!-- CASO 1: EFECTIVO EN EL LOCAL -->
+                <div *ngIf="checkPayment('efectivo_local')">
+                    <h3>Pago en efectivo en el local</h3>
+                    <p class="important-note"
+                        style="border-left: 4px solid #48bb78; background: #f0fff4; color: #276749;">
+                        Presentate en nuestro local para abonar y retirar tu pedido.
+                    </p>
+
+                    <a [href]="getWhatsAppUrl(1)" target="_blank" class="btn-whatsapp">
+                        <i class="fab fa-whatsapp"></i> ENVIAR MENSAJE POR WHATSAPP
+                    </a>
+                </div>
+
+                <!-- CASO 2: TARJETA / MP -->
+                <div *ngIf="checkPayment('mercadopago') || checkPayment('mercadopago_card')">
+                    <h3>Pagá con Mercado Pago</h3>
+                    <p>Si todavía no pagaste, hacé click acá:</p>
+
+                    <a href="https://link.mercadopago.com.ar/elvestuarior4" target="_blank" class="btn-mp-pay">
+                        IR A PAGAR AHORA
+                    </a>
+
+                    <p class="important-note">⚠️ <strong>IMPORTANTE:</strong> Una vez realizado el pago, enviá el
+                        comprobante por WhatsApp para confirmar la compra.</p>
+
+                    <div class="whatsapp-group">
+                        <a [href]="getWhatsAppUrl(1)" target="_blank" class="btn-wa-sm">WhatsApp 1</a>
+                        <a [href]="getWhatsAppUrl(2)" target="_blank" class="btn-wa-sm">WhatsApp 2</a>
+                    </div>
+                </div>
+
+                <!-- CASO 3: TRANSFERENCIA -->
+                <div *ngIf="checkPayment('transferencia')">
+                    <h3>Datos para la transferencia:</h3>
+                    <div class="bank-details-simple">
+                        <div class="detail-row"><span>Banco:</span> <strong>Mercado Pago</strong></div>
+                        <div class="detail-row"><span>Titular:</span> <strong>Tomas Cruseno</strong></div>
+                        <div class="detail-row"><span>CVU:</span> <strong>0000003100068933152485</strong></div>
+                        <div class="detail-row"><span>Alias:</span> <strong>el.vestuario.r4</strong></div>
+                        <div class="detail-row price"><span>Total:</span> <strong>${{ order.total | number:'1.0-2'
+                                }}</strong></div>
+                    </div>
+
+                    <p class="important-note">⚠️ Enviá el comprobante por WhatsApp para confirmar.</p>
+
+                    <div class="whatsapp-group">
+                        <a [href]="getWhatsAppUrl(1)" target="_blank" class="btn-wa-sm">WhatsApp 1</a>
+                        <a [href]="getWhatsAppUrl(2)" target="_blank" class="btn-wa-sm">WhatsApp 2</a>
+                    </div>
+                </div>
+
+                <!-- CASO 4: EFECTIVO (RAPIPAGO) -->
+                <div *ngIf="checkPayment('efectivo')">
+                    <h3 style="font-size: 16px; margin-bottom: 10px; color: #718096;">CVU para Rapipago / Pago Fácil:
+                    </h3>
+
+                    <div class="cvu-code-block" style="font-size: 28px; margin: 15px 0;">0000003100068933152485</div>
+                    <p style="text-align: center; color: #4a5568; margin-bottom: 25px; font-weight: 600;">⚠️ Dictale
+                        este número al cajero para realizar el pago.</p>
+
+                    <table style="width: 100%; margin-bottom: 20px; font-size: 16px;">
+                        <tr>
+                            <td style="color: #718096;">Monto Total:</td>
+                            <td style="text-align: right; font-weight: 800; font-size: 20px;">${{ order.total |
+                                number:'1.0-2' }}</td>
+                        </tr>
+                    </table>
+
+                    <p class="important-note">Una vez realizado el pago, enviá el comprobante por WhatsApp.</p>
+
+                    <div class="whatsapp-group">
+                        <a [href]="getWhatsAppUrl(1)" target="_blank" class="btn-wa-sm">WhatsApp 1</a>
+                        <a [href]="getWhatsAppUrl(2)" target="_blank" class="btn-wa-sm">WhatsApp 2</a>
+                    </div>
+                </div>
+
+                <!-- FALLBACK Generic -->
+                <div
+                    *ngIf="!checkPayment('efectivo_local') && !checkPayment('mercadopago') && !checkPayment('mercadopago_card') && !checkPayment('transferencia') && !checkPayment('efectivo')">
+                    <p>Pedido realizado exitosamente.</p>
+                    <p>Revisa tu email para más detalles.</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ERROR / EMPTY STATE -->
+        <div class="success-right-panel" *ngIf="!order">
+            <div class="instructions-card">
+                <h3>Pedido Registrado</h3>
+                <p>Tu pedido se ha procesado, pero no pudimos recuperar los detalles de visualización.</p>
+                <p>Por favor revisá tu casilla de correo electrónico.</p>
+                <button class="btn-primary" routerLink="/">Volver al Inicio</button>
+            </div>
+        </div>
+    </div>
+</div>

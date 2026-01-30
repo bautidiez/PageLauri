@@ -114,6 +114,9 @@ export class CartService {
     this.cartItems.forEach((item, index) => {
       this.apiService.getProducto(item.producto.id).subscribe({
         next: (freshProduct) => {
+          // Safety check for race conditions
+          if (!this.cartItems[index]) return;
+
           // Update product data (includes fresh promotions)
           this.cartItems[index].producto = freshProduct;
 
@@ -218,14 +221,28 @@ export class CartService {
 
     // Calcular cantidad actual en carrito
     const existingIndex = this.cartItems.findIndex(
-      item => item.producto.id == producto.id && item.talle.id == talle.id
+      item => {
+        const prodMatch = item.producto.id == producto.id;
+        const talleMatch = item.talle.id == talle.id;
+        // console.log(`DEBUG COMPARE: Item(${item.producto.id}, ${item.talle.id}) vs New(${producto.id}, ${talle.id}) -> ${prodMatch && talleMatch}`);
+        return prodMatch && talleMatch;
+      }
     );
 
-    const currentQty = existingIndex >= 0 ? this.cartItems[existingIndex].cantidad : 0;
-    const newTotal = currentQty + cantidad;
+    const currentQty = existingIndex >= 0 ? +this.cartItems[existingIndex].cantidad : 0;
+    const qtyToAdd = +cantidad;
+    const newTotal = currentQty + qtyToAdd;
+
+    console.log('DEBUG ADDCART CHECK:', {
+      found: existingIndex,
+      currentQty,
+      req: qtyToAdd,
+      newTotal,
+      stock: stockDisponible
+    });
 
     if (newTotal > stockDisponible) {
-      console.warn(`DEBUG CART: Stock insuficiente. Disp: ${stockDisponible}, Curr: ${currentQty}, Req: ${cantidad}`);
+      console.warn(`DEBUG CART: Stock insuficiente. Disp: ${stockDisponible}, Curr: ${currentQty}, Req: ${qtyToAdd}`);
       this.toastService.show(`No hay suficiente stock. Disponibles: ${stockDisponible}, ya tienes: ${currentQty} en carrito.`, 'error');
       return;
     }
@@ -235,12 +252,12 @@ export class CartService {
     const precio = producto.precio_base;
 
     if (existingIndex >= 0) {
-      this.cartItems[existingIndex].cantidad += cantidad;
+      this.cartItems[existingIndex].cantidad = currentQty + qtyToAdd;
     } else {
       this.cartItems.push({
         producto,
         talle,
-        cantidad,
+        cantidad: qtyToAdd,
         precio_unitario: precio
       });
     }
@@ -291,6 +308,8 @@ export class CartService {
     } else if (totalQty === 2) {
       globalQtyDiscountPercent = 10;
     }
+
+    console.log('DEBUG CALC TOTAL: Qty:', totalQty, 'Percent:', globalQtyDiscountPercent);
 
     // Group items by promotion
     const itemsPorPromocion: { [key: string]: CartItem[] } = {};
@@ -453,7 +472,7 @@ export class CartService {
   }
 
   getItemCount(): number {
-    return this.cartItems.reduce((count, item) => count + item.cantidad, 0);
+    return this.cartItems.reduce((count, item) => count + (+item.cantidad), 0);
   }
 }
 

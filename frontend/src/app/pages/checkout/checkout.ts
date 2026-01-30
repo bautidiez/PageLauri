@@ -46,6 +46,7 @@ export class CheckoutComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    console.log('DEBUG: CHECKOUT V1 (LEGACY) LOADED');
     this.items = this.cartService.getItems();
     if (this.items.length === 0) {
       this.router.navigate(['/carrito']);
@@ -303,8 +304,10 @@ export class CheckoutComponent implements OnInit {
     this.apiService.createPedido(pedido).subscribe({
       next: (data) => {
         this.cartService.clearCart();
-        alert(`Pedido creado exitosamente. Número de pedido: ${data.numero_pedido}`);
-        this.router.navigate(['/']);
+        this.cartService.clearCart();
+        // Removed alert, navigating to success page
+        console.log('DEBUG CHECKOUT V1: Order Created, redirecting to success page.', data);
+        this.router.navigate(['/pedido-exitoso'], { state: { order: data } });
       },
       error: (error) => {
         console.error('Error creando pedido:', error);

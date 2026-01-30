@@ -227,8 +227,33 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
     }
 
     const stock = this.getStockTalle(this.talleSeleccionado.id);
-    if (this.cantidad > stock) {
-      this.toastService.show(`No hay suficiente stock. Disponibles: ${stock}`, 'error');
+
+    // Verificar cuánto ya tenemos en el carrito de este producto y talle
+    const cartItems = this.cartService.getCartItems();
+    console.log('DEBUG VALIDATION: checking cart.', {
+      prodId: this.producto.id,
+      talleId: this.talleSeleccionado.id,
+      cartItemsCount: cartItems.length
+    });
+
+    const itemEnCarrito = cartItems.find(item => {
+      const pMatch = item.producto.id == this.producto.id;
+      const tMatch = item.talle.id == this.talleSeleccionado.id;
+      // console.log(`DEBUG COMPARE ITEM: ${item.producto.id}==${this.producto.id} (${pMatch}), ${item.talle.id}==${this.talleSeleccionado.id} (${tMatch})`);
+      return pMatch && tMatch;
+    });
+
+    const cantidadEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad : 0;
+    const demandaTotal = cantidadEnCarrito + this.cantidad;
+
+    console.log('DEBUG VALIDATION: result', { cantidadEnCarrito, demandaTotal, stock });
+
+    if (demandaTotal > stock) {
+      if (cantidadEnCarrito >= stock) {
+        this.toastService.show(`Ya tenés todo el stock disponible en tu carrito.`, 'error');
+      } else {
+        this.toastService.show(`No hay suficiente stock. Disponibles: ${stock}. Ya tenés ${cantidadEnCarrito} en el carrito.`, 'error');
+      }
       return;
     }
 

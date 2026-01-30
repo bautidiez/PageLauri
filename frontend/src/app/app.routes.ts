@@ -55,5 +55,6 @@ export const routes: Routes = [
   { path: 'admin/promociones', component: PromocionesAdminComponent },
   { path: 'admin/categorias', component: CategoriasAdminComponent },
   { path: 'admin/ventas-externas', component: VentasExternasAdminComponent },
+  { path: 'pedido-exitoso', loadComponent: () => import('./pages/order-success/order-success').then(m => m.OrderSuccessComponent) },
   { path: '**', redirectTo: '' }
 ];
