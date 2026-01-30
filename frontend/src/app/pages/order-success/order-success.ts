@@ -41,6 +41,10 @@ export class OrderSuccessComponent implements OnInit {
         // Match key directly
         if (setKey === key) return true;
 
+        // CRITICAL: If we have a specific frontend key, rely ONLY on it.
+        // Don't fall back to legacy name matching which might be ambiguous (e.g. backend naming "Efectivo Local" as "Transferencia")
+        if (this.order.metodo_pago_frontend_key) return false;
+
         // Legacy name matching fallback
         const name = (this.order.metodo_pago_nombre || '').toLowerCase();
         if (key === 'efectivo_local') return name.includes('local') || name.includes('retiro');

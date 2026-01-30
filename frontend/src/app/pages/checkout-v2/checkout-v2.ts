@@ -137,7 +137,7 @@ export class CheckoutV2Component implements OnInit {
 
             const category = this.categoriesMap.get(currentId);
             if (category) {
-                if (category.nombre && category.nombre.toLowerCase().trim() === 'shorts') return true;
+                if (category.nombre && category.nombre.toLowerCase().trim().includes('short')) return true;
 
                 if (category.categoria_padre_id) {
                     currentId = +category.categoria_padre_id;
@@ -207,16 +207,19 @@ export class CheckoutV2Component implements OnInit {
         }
 
         const shipping = this.getSelectedShipping();
-        const shippingCost = shipping ? shipping.costo : 0;
+        let shippingCost = shipping ? shipping.costo : 0;
+        if (shipping && shipping.descuento) {
+            shippingCost = 0;
+        }
 
-        // Calculate items total with discount mixed
         let itemsDiscountedTotal = 0;
 
         this.items.forEach(item => {
+            const effectiveItemTotal = (item.precio_unitario * item.cantidad) - (item.descuento || 0);
             const esShort = this.checkIfShort(item.producto.categoria_id);
-            const factor = esShort ? 0.90 : 0.85; // 10% off for shorts, 15% off for others
+            const factor = esShort ? 0.90 : 0.85;
 
-            itemsDiscountedTotal += (item.precio_unitario * item.cantidad) * factor;
+            itemsDiscountedTotal += effectiveItemTotal * factor;
         });
 
         return itemsDiscountedTotal + shippingCost;
