@@ -375,7 +375,7 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
         this.buildCategoriesMap(categorias);
 
         // Chequear si es Short (recursivo) usando el MAPA
-        let currentId = this.producto.categoria_id;
+        let currentId = +this.producto.categoria_id;
         let attempts = 0;
         this.esShort = false;
 

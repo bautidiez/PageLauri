@@ -92,7 +92,7 @@ export class CheckoutComponent implements OnInit {
   checkIfShort(categoriaId: number): boolean {
     if (this.categoriesMap.size === 0) return false;
 
-    let currentId: number | null = categoriaId;
+    let currentId: number | null = +categoriaId;
     let attempts = 0;
 
     while (currentId !== null && attempts < 10) {
