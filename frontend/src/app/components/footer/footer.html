@@ -67,20 +67,6 @@
 
     </div>
 
-    <!-- Newsletter Section -->
-    <div class="newsletter-section">
-      <div class="newsletter-content">
-        <h3>NUESTRO NEWSLETTER</h3>
-        <p>Inscribite para recibir nuestras últimas novedades.</p>
-        <div class="newsletter-form">
-          <input type="text" [(ngModel)]="nombre" placeholder="Nombre" class="newsletter-input">
-          <input type="email" [(ngModel)]="email" placeholder="Tu E-mail" class="newsletter-input">
-          <button (click)="subscribe()" [disabled]="isLoading" class="newsletter-button">
-            {{ isLoading ? 'Enviando...' : 'Suscribirse' }}
-          </button>
-        </div>
-      </div>
-    </div>
 
     <div class="footer-bottom">
       <div class="copyright">
