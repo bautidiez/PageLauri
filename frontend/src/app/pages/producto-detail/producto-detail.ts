@@ -181,7 +181,8 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
 
   getStockTalle(talleId: number): number {
     if (!this.producto || !this.producto.stock_talles) return 0;
-    const stock = this.producto.stock_talles.find((s: any) => s.talle_id === talleId);
+    // Use loose equality to match string/number IDs
+    const stock = this.producto.stock_talles.find((s: any) => s.talle_id == talleId);
     return stock ? stock.cantidad : 0;
   }
 
