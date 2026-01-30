@@ -97,6 +97,10 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
           // Cargar subcategorías y chequear descuento (recursive)
           this.loadSubcategorias();
 
+          // ✅ FIX: Recalculate stock availability based on visible sizes
+          // Backend might send stale tiene_stock or include hidden sizes (XS) in calculation
+          this.recalculateStockStatus();
+
           this.loading = false;
           this.cdr.detectChanges();
         });
@@ -109,6 +113,19 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  private recalculateStockStatus() {
+    if (!this.producto || !this.producto.stock_talles) return;
+
+    // Sum visible stock
+    const totalStock = this.producto.stock_talles.reduce((sum: number, item: any) => sum + (item.cantidad || 0), 0);
+
+    // Override backend flag with local truth
+    this.producto.tiene_stock = totalStock > 0;
+
+    // Also re-check "agotado" flag if present
+    this.producto.esta_agotado = totalStock <= 0;
   }
 
   private autoSeleccionarTalle() {
