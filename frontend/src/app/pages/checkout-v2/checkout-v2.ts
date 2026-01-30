@@ -198,7 +198,11 @@ export class CheckoutV2Component implements OnInit {
 
     getBaseTotal() {
         const shipping = this.getSelectedShipping();
-        return this.total + (shipping ? shipping.costo : 0);
+        let shippingCost = shipping ? shipping.costo : 0;
+        if (shipping && shipping.descuento) {
+            shippingCost = 0;
+        }
+        return this.total + shippingCost;
     }
 
     getDiscountedHeaderPrice(metodo: string) {
