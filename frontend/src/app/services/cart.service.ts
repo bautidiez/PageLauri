@@ -205,19 +205,26 @@ export class CartService {
   }
 
   addItem(producto: any, talle: any, cantidad: number): void {
+    console.log('DEBUG CART: Adding item', { productoId: producto.id, talleId: talle.id, cantidad });
+
     // Validar Stock
-    const stockDisponible = producto.stock_talles?.find((s: any) => s.talle_id === talle.id)?.cantidad || 0;
+    // Use loose comparison for IDs to avoid string/number mismatch
+    const stockEntry = producto.stock_talles?.find((s: any) => s.talle_id == talle.id);
+    const stockDisponible = stockEntry?.cantidad || 0;
+
+    console.log('DEBUG CART: Stock disponible:', stockDisponible);
 
     // Calcular cantidad actual en carrito
     const existingIndex = this.cartItems.findIndex(
-      item => item.producto.id === producto.id && item.talle.id === talle.id
+      item => item.producto.id == producto.id && item.talle.id == talle.id
     );
 
     const currentQty = existingIndex >= 0 ? this.cartItems[existingIndex].cantidad : 0;
     const newTotal = currentQty + cantidad;
 
     if (newTotal > stockDisponible) {
-      alert(`No hay suficiente stock. Disponibles: ${stockDisponible}, en tu carrito: ${currentQty}.`);
+      console.warn(`DEBUG CART: Stock insuficiente. Disp: ${stockDisponible}, Curr: ${currentQty}, Req: ${cantidad}`);
+      alert(`No hay suficiente stock. Disponibles: ${stockDisponible}, ya tienes: ${currentQty} en carrito.`);
       return;
     }
 

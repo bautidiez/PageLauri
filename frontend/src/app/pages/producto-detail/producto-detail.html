@@ -2,16 +2,7 @@
   <div class="container" *ngIf="!loading && producto">
     <div class="product-detail-wrapper">
       <!-- Subcategorías a la izquierda -->
-      <aside class="subcategorias-sidebar" *ngIf="subcategorias.length > 0">
-        <h3>Subcategorías</h3>
-        <ul class="subcategorias-list">
-          <li *ngFor="let subcat of subcategorias" [class.active]="producto.categoria_id === subcat.id">
-            <a [routerLink]="['/productos']" [queryParams]="{categoria_id: subcat.id}">
-              {{ subcat.nombre }}
-            </a>
-          </li>
-        </ul>
-      </aside>
+
 
       <div class="product-detail-content">
         <div class="product-images">
