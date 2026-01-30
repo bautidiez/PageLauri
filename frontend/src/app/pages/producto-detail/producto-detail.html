@@ -51,7 +51,7 @@
               <p class="price-label">En efectivo o transferencia:</p>
               <div class="transfer-price-wrapper">
                 <p class="price-descuento">${{ getPrecioConDescuento() | number:'1.0-0' }}</p>
-                <span class="promo-badge">¡15% OFF!</span>
+                <span class="promo-badge">{{ getTransferenciaDiscountText() }}</span>
               </div>
               <p class="price-cuotas">3 cuotas sin interés de ${{ getPrecioCuotas() | number:'1.0-0' }}</p>
             </div>
@@ -105,7 +105,7 @@
 
           <div class="product-actions">
             <button class="btn btn-primary btn-large" (click)="agregarAlCarrito()"
-              [disabled]="!talleSeleccionado || agregandoAlCarrito || !producto.tiene_stock">
+              [disabled]="agregandoAlCarrito || !producto.tiene_stock">
               {{ agregandoAlCarrito ? 'Agregando...' : 'Agregar al Carrito' }}
             </button>
           </div>

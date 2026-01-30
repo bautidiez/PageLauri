@@ -234,7 +234,18 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
 
   getPrecioConDescuento(): number {
     const final = this.getPrecioFinal();
-    return final ? final * 0.85 : 0;
+    if (!final) return 0;
+
+    // Shorts (ID 8) tienen 10% descuento, el resto 15%
+    const porcentaje = (this.producto && this.producto.categoria_id === 8) ? 0.90 : 0.85;
+    return final * porcentaje;
+  }
+
+  getTransferenciaDiscountText(): string {
+    if (this.producto && this.producto.categoria_id === 8) {
+      return '¡10% OFF!';
+    }
+    return '¡15% OFF!';
   }
 
   getPrecioCuotas(): number {
