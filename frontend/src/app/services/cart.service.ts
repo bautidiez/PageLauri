@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 import { ApiService } from './api.service';
+import { ToastService } from './toast.service';
 
 export interface CartItem {
   producto: any;
@@ -32,7 +33,8 @@ export class CartService {
 
   constructor(
     private authService: AuthService,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private toastService: ToastService
   ) {
     this.initCart();
   }
@@ -224,7 +226,7 @@ export class CartService {
 
     if (newTotal > stockDisponible) {
       console.warn(`DEBUG CART: Stock insuficiente. Disp: ${stockDisponible}, Curr: ${currentQty}, Req: ${cantidad}`);
-      alert(`No hay suficiente stock. Disponibles: ${stockDisponible}, ya tienes: ${currentQty} en carrito.`);
+      this.toastService.show(`No hay suficiente stock. Disponibles: ${stockDisponible}, ya tienes: ${currentQty} en carrito.`, 'error');
       return;
     }
 
@@ -280,11 +282,35 @@ export class CartService {
     // Reset discounts first
     this.cartItems.forEach(item => item.descuento = 0);
 
+    // 1. Calculate Total Quantity for Global Discount
+    const totalQty = this.getItemCount();
+    let globalQtyDiscountPercent = 0;
+
+    if (totalQty >= 3) {
+      globalQtyDiscountPercent = 15;
+    } else if (totalQty === 2) {
+      globalQtyDiscountPercent = 10;
+    }
+
     // Group items by promotion
     const itemsPorPromocion: { [key: string]: CartItem[] } = {};
     const itemsSinPromocionDinamica: CartItem[] = [];
 
     this.cartItems.forEach(item => {
+      // Calculate Global Quantity Discount per item (Additive)
+      const basePrice = item.producto.precio_base || 0;
+      // Static Price is the basis for most discounts
+      const staticPrice = item.producto.precio_descuento && item.producto.precio_descuento > 0
+        ? item.producto.precio_descuento
+        : basePrice;
+
+      if (globalQtyDiscountPercent > 0) {
+        const qtyDiscountAmount = staticPrice * item.cantidad * (globalQtyDiscountPercent / 100);
+        item.descuento = (item.descuento || 0) + qtyDiscountAmount;
+        // We will subtract this from the total later or strictly implicitly via net price
+        // Actually, easiest is to sum up 'final prices' minus 'global discount'
+      }
+
       if (item.producto.promociones && item.producto.promociones.length > 0) {
         // En esta tienda, usualmente hay una promo principal por producto (ej: 2x1 o 15% OFF)
         const promo = item.producto.promociones[0];
@@ -299,19 +325,25 @@ export class CartService {
       }
     });
 
-    // 1. Calcular items sin promoción DINÁMICA (solo checkear precio_descuento estático)
+    // 2. Calcular items sin promoción DINÁMICA (solo checkear precio_descuento estático)
     itemsSinPromocionDinamica.forEach(item => {
       const basePrice = item.producto.precio_base || 0;
       const staticPrice = item.producto.precio_descuento && item.producto.precio_descuento > 0
         ? item.producto.precio_descuento
         : basePrice;
 
-      item.descuento = (basePrice - staticPrice) * item.cantidad;
-      total += (staticPrice * item.cantidad);
+      // Item discount already has global qty discount added above
+      // Add static discount (Base - Static)
+      item.descuento = (item.descuento || 0) + ((basePrice - staticPrice) * item.cantidad);
+
+      // Total contribution is StaticPrice * Qty - GlobalDiscount
+      const globalDesc = staticPrice * item.cantidad * (globalQtyDiscountPercent / 100);
+      total += (staticPrice * item.cantidad) - globalDesc;
     });
 
-    // 2. Calcular items con promoción DINÁMICA agrupada
+    // 3. Calcular items con promoción DINÁMICA agrupada
     Object.values(itemsPorPromocion).forEach(group => {
+      // Assuming all items in group have same promo type
       const promo = group[0].producto.promociones[0];
       const tipo = (promo.tipo_promocion_nombre || '').toLowerCase();
       const valor = promo.valor || 0;
@@ -333,44 +365,91 @@ export class CartService {
 
           // Elegir el MEJOR precio (match lógica producto-detail)
           const finalPrice = Math.min(staticPrice, dynamicPrice);
-          item.descuento = (basePrice - finalPrice) * item.cantidad;
-          total += (finalPrice * item.cantidad);
+
+          // Calculate Promo Discount contribution (Base - Final)
+          const promoDesc = (basePrice - finalPrice) * item.cantidad;
+          item.descuento = (item.descuento || 0) + promoDesc;
+
+          // Total contribution: FinalPrice * Qty - GlobalDiscount (applied on static price)
+          // Wait, backend applies qty discount on 'precio_unitario' (static price)
+          // So we should subtract that amount regardless of whether we chose dynamic price?
+          // Backend Logic: item['descuento_aplicado'] += amount (qty)
+          // Then loops promos...
+          // If promo 'porcentaje' -> item['descuento_aplicado'] += discount
+          // So discounts ACUMULATE.
+          // Frontend 'total' should be: (Base * Qty) - TotalDiscount.
+          // Or (FinalPriceFromBestPromo * Qty) - QtyDiscount?
+          // If we accumulate discounts using Base as reference:
+
+          // Re-aligning with Backend Additive Logic:
+          // Qty Discount = Static * Qty * %
+          // Promo Discount = Base * Qty * % (if percentage)
+          // Static Discount = (Base - Static) * Qty
+
+          // The Frontend Logic used 'finalPrice' = min(Static, Dynamic).
+          // Meaning it chooses the better DEAL. 
+          // If Dynamic is better, we use Dynamic.
+          // THEN we subtract Qty Discount (which is additive).
+
+          const globalDesc = staticPrice * item.cantidad * (globalQtyDiscountPercent / 100);
+          total += (finalPrice * item.cantidad) - globalDesc;
         });
       }
-      // Cantidad (2x1, 3x2) - Usualmente no se acumulan con precio_descuento, usamos basePrice
+      // Cantidad (2x1, 3x2)
       else if (tipo.includes('2x1') || tipo.includes('3x2')) {
         let slots: { price: number, parentItem: CartItem }[] = [];
         group.forEach(item => {
+          // Use Base Price for 2x1 slots logic usually? Backend uses 'precio_unitario' (Static)
+          // Backend line 105: {'precio': item['precio_unitario']...}
+          // So slots use Static Price.
+          const p = item.producto.precio_descuento || item.producto.precio_base;
           for (let i = 0; i < item.cantidad; i++) {
-            slots.push({ price: item.producto.precio_base, parentItem: item });
+            slots.push({ price: p, parentItem: item });
           }
         });
 
-        // Ordenar por precio desc (pagas los más caros)
         slots.sort((a, b) => b.price - a.price);
         const factor = tipo.includes('2x1') ? 2 : 3;
 
         let groupTotal = 0;
         slots.forEach((slot, i) => {
           if ((i + 1) % factor === 0) {
-            // Item gratis
+            // Item gratis (100% off this slot)
             slot.parentItem.descuento = (slot.parentItem.descuento || 0) + slot.price;
           } else {
             groupTotal += slot.price;
           }
         });
-        total += groupTotal;
+
+        // Additive Global Discount
+        // Backend applies Global Discount to ALL items regardless of 2x1 status
+        // So we subtract Global Discount for ALL items in this group
+        let totalGlobalDescForGroup = 0;
+        group.forEach(item => {
+          const p = item.producto.precio_descuento || item.producto.precio_base;
+          totalGlobalDescForGroup += p * item.cantidad * (globalQtyDiscountPercent / 100);
+        });
+
+        total += groupTotal - totalGlobalDescForGroup;
       }
       else {
-        // Fallback: usar precio_descuento o base
+        // Fallback
         group.forEach(item => {
           const finalPrice = item.producto.precio_descuento || item.producto.precio_base;
-          total += finalPrice * item.cantidad;
+          const globalDesc = finalPrice * item.cantidad * (globalQtyDiscountPercent / 100);
+
+          // Add Promo Discount (Base - Final) if any? 
+          // Default fallthrough assumes no meaningful dynamic promo, just static
+          // item.descuento already has qty discount
+          const basePrice = item.producto.precio_base || 0;
+          item.descuento = (item.descuento || 0) + ((basePrice - finalPrice) * item.cantidad);
+
+          total += (finalPrice * item.cantidad) - globalDesc;
         });
       }
     });
 
-    return total;
+    return Math.max(0, total);
   }
 
   getItemCount(): number {
