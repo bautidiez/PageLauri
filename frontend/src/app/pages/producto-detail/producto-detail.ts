@@ -57,7 +57,6 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
     // Load static data once
     this.loadTalles();
     this.loadColores();
-    this.loadSubcategorias();
   }
 
   ngOnDestroy() {
@@ -92,6 +91,9 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
 
           // Auto-seleccionar primer talle con stock
           this.autoSeleccionarTalle();
+
+          // Cargar subcategorías y chequear descuento (recursive)
+          this.loadSubcategorias();
 
           this.loading = false;
           this.cdr.detectChanges();
