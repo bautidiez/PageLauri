@@ -102,7 +102,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.destroy$.next();
-    this.destroy_.complete();
+    this.destroy$.complete();
   }
 
   private handleRouteParams() {
