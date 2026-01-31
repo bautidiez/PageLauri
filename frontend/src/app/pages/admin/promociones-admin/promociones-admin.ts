@@ -115,7 +115,13 @@ export class PromocionesAdminComponent implements OnInit {
 
     // Filtro por estado
     if (this.filtroEstado !== 'todas') {
-      filtradas = filtradas.filter(p => p.estado === this.filtroEstado as any);
+      const estadoMap: any = {
+        'activas': 'activa',
+        'programadas': 'programada',
+        'expiradas': 'expirada'
+      };
+      const estadoBuscado = estadoMap[this.filtroEstado];
+      filtradas = filtradas.filter(p => p.estado === estadoBuscado);
     }
 
     // Búsqueda
