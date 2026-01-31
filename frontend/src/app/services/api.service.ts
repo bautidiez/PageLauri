@@ -454,4 +454,8 @@ export class ApiService {
   subscribeNewsletter(data: { email: string, nombre?: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/newsletter/subscribe`, data);
   }
+
+  testEmailConnection(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/admin/newsletter/test-connection`, { headers: this.getHeaders() });
+  }
 }

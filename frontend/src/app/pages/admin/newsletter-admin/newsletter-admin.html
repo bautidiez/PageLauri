@@ -22,6 +22,17 @@
         <div class="actions-card">
             <h3>Acciones</h3>
 
+            <div class="form-group">
+                <button class="btn-verify" (click)="testConnection()" [disabled]="isLoading || isTestingConnection">
+                    <span *ngIf="!isTestingConnection">🔌 Verificar Conexión SMTP</span>
+                    <span *ngIf="isTestingConnection">⏳ Verificando...</span>
+                </button>
+                <p *ngIf="connectionStatus" [ngClass]="{'status-ok': connectionOk, 'status-error': !connectionOk}"
+                    class="status-msg">
+                    {{ connectionStatus }}
+                </p>
+            </div>
+
             <div class="test-section">
                 <label>Email de Prueba</label>
                 <input type="email" [(ngModel)]="testEmail" placeholder="tu@email.com">
