@@ -28,33 +28,6 @@ export class NewsletterAdminComponent {
         private toastService: ToastService
     ) { }
 
-    isTestingConnection: boolean = false;
-    connectionStatus: string = '';
-    connectionOk: boolean = false;
-
-    testConnection() {
-        this.isTestingConnection = true;
-        this.connectionStatus = 'Probando conexión con Gmail...';
-        this.connectionOk = false;
-
-        this.http.get(`${this.apiUrl}/admin/newsletter/test-connection`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        }).subscribe({
-            next: (res: any) => {
-                this.isTestingConnection = false;
-                this.connectionOk = true;
-                this.connectionStatus = '✅ Conexión Exitosa. El servidor puede enviar correos.';
-                this.toastService.show('Conexión SMTP OK', 'success');
-            },
-            error: (err) => {
-                this.isTestingConnection = false;
-                this.connectionOk = false;
-                this.connectionStatus = `❌ Error: ${err.error?.message || err.message}`;
-                this.toastService.show('Error de conexión SMTP', 'error');
-            }
-        });
-    }
-
     send(isTest: boolean = true) {
         if (!this.subject || !this.content) {
             this.toastService.show('Asunto y Mensaje son requeridos', 'error');
