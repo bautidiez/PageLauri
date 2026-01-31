@@ -388,18 +388,13 @@ class NotificationService:
     @staticmethod
     def send_newsletter(subject, html_content, recipients, test_email=None):
         """
-        Envía un newsletter a una lista de destinatarios usando Flask-Mail (SMTP).
-        Args:
-            subject (str): Asunto del correo.
-            html_content (str): Contenido HTML del mensaje.
-            recipients (list): Lista de diccionarios [{'email': '...', 'nombre': '...'}].
-            test_email (str): Si está presente, solo envía a este email.
-        Returns:
-            int: Cantidad de emails enviados exitosamente.
+        Envía un newsletter usando la API de Brevo (HTTP) para evitar bloqueos de puertos SMTP.
         """
-        from app import mail
-        from flask_mail import Message
-        
+        api_key = os.environ.get('BREVO_API_KEY')
+        if not api_key:
+            print("DEBUG NEWSLETTER: BREVO_API_KEY no configurada.")
+            return 0
+            
         # Si es test, sobrescribir lista
         if test_email:
             recipients = [{'email': test_email, 'nombre': 'Test Admin'}]
@@ -407,35 +402,44 @@ class NotificationService:
         count = 0
         total = len(recipients)
         
-        print(f"DEBUG NEWSLETTER: Iniciando envío a {total} destinatarios. Test mode: {bool(test_email)}")
+        print(f"DEBUG NEWSLETTER: Iniciando envío a {total} destinatarios vía Brevo API.")
         
-        # Iterar y enviar individualmente para mejor deliverability y personalización
-        try:
-            with mail.connect() as conn:
-                for recipient in recipients:
-                    try:
-                        email = recipient['email']
-                        nombre = recipient.get('nombre') or 'Cliente'
-                        
-                        msg = Message(
-                            subject=subject,
-                            recipients=[email],
-                            html=html_content
-                        )
-                        
-                        conn.send(msg)
-                        count += 1
-                        
-                        if not test_email and count % 10 == 0:
-                            import time
-                            time.sleep(1) 
-                            
-                    except Exception as e:
-                        print(f"Error enviando newsletter a {recipient.get('email')}: {e}")
-                        continue
-        except Exception as conn_err:
-            print(f"DEBUG NEWSLETTER: Error de conexión SMTP: {conn_err}")
-            raise conn_err # Re-raise to let the admin know
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": api_key
+        }
+        
+        sender_email = os.environ.get('MAIL_DEFAULT_SENDER', 'elvestuario.r4@gmail.com')
+        
+        for recipient in recipients:
+            try:
+                email = recipient['email']
+                nombre = recipient.get('nombre') or 'Cliente'
+                
+                payload = {
+                    "sender": {"name": "El Vestuario", "email": sender_email},
+                    "to": [{"email": email, "name": nombre}],
+                    "subject": subject,
+                    "htmlContent": html_content
+                }
+                
+                response = requests.post(url, headers=headers, json=payload, timeout=10)
+                
+                if response.status_code in [200, 201, 202]:
+                    count += 1
+                else:
+                    print(f"Error Brevo enviando a {email}: {response.text}")
+                
+                # Rate limiting suave (no bombardear la API)
+                if not test_email and count % 5 == 0:
+                    import time
+                    time.sleep(0.2)
+                    
+            except Exception as e:
+                print(f"Error enviando newsletter a {email}: {e}")
+                continue
 
         print(f"DEBUG NEWSLETTER: Finalizado. Enviados: {count}/{total}")
         return count
