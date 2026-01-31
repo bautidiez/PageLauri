@@ -455,6 +455,16 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/newsletter/subscribe`, data);
   }
 
+  // Carrito
+  getCart(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/cart`, { headers: this.getHeaders() });
+  }
+
+  syncCart(items: any[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/cart`, { items }, { headers: this.getHeaders() });
+  }
+
+  // Debugging
   testEmailConnection(): Observable<any> {
     return this.http.get(`${this.apiUrl}/admin/newsletter/test-connection`, { headers: this.getHeaders() });
   }

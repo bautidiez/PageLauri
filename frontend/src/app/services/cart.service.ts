@@ -113,7 +113,7 @@ export class CartService {
 
         this.notify();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error loading server cart, falling back to local', err);
         this.loadCart(); // Fallback
       }
@@ -197,7 +197,7 @@ export class CartService {
       this.saveTimer = setTimeout(() => {
         this.apiService.syncCart(this.cartItems).subscribe({
           next: () => console.log('DEBUG CART: Synced to server'),
-          error: (e) => console.error('DEBUG CART: Sync error', e)
+          error: (e: any) => console.error('DEBUG CART: Sync error', e)
         });
       }, 2000); // Esperar 2 segundos de inactividad para subir
     }
