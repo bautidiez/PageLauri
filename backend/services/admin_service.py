@@ -72,30 +72,28 @@ class AdminService:
                 intervalos.append((f"{dias_labels[i]} {fecha.strftime('%d/%m')}", inicio, fin))
         
         elif periodo == 'semana':
-            # Semana a semana: 8 semanas desde el 1 de enero del año
-            # semana_offset indica cuántos bloques de 8 semanas retroceder
-            year = anio if anio else ahora.year
-            inicio_ano = datetime(year, 1, 1, 0, 0, 0)
+            # Semana a semana: Mostrar última 8 semanas terminando en la fecha de referencia
+            # 1. Encontrar el lunes de la semana de referencia
+            dia_semana = (ahora.weekday()) # 0=Lunes, 6=Domingo
+            lunes_ref = ahora - timedelta(days=dia_semana)
+            lunes_ref = lunes_ref.replace(hour=0, minute=0, second=0, microsecond=0)
             
-            # Calcular la semana de inicio basándose en el offset
-            semana_inicio = semana_offset * 8
-            fecha_inicio_bloque = inicio_ano + timedelta(weeks=semana_inicio)
+            # 2. Queremos ver 8 semanas. Para que 'ahora' sea el final, restamos 7 semanas al inicio
+            # Así el rango es [Semana-7 ... Semana-0]
+            fecha_inicio_bloque = lunes_ref - timedelta(weeks=7)
             
             # Generar 8 semanas consecutivas
             for i in range(8):
                 inicio_semana = fecha_inicio_bloque + timedelta(weeks=i)
-                # Ajustar al lunes de esa semana
-                dias_hasta_lunes = (inicio_semana.weekday()) % 7
-                if dias_hasta_lunes > 0:
-                    inicio_semana = inicio_semana - timedelta(days=dias_hasta_lunes)
-                
-                inicio = datetime(inicio_semana.year, inicio_semana.month, inicio_semana.day, 0, 0, 0)
+                inicio = inicio_semana
                 fin = inicio + timedelta(days=6, hours=23, minutes=59, seconds=59)
                 
-                # No mostrar semanas futuras
-                if inicio > ahora:
-                    break
-                    
+                # Opcional: No mostrar semanas futuras si estamos navegando cerca de la fecha real
+                # Pero si navegamos al pasado, queremos verlas.
+                # Solo break si inicio es mayor que NOW (tiempo real, no fecha_ref)
+                if inicio > datetime.utcnow():
+                     break
+                
                 label = f"S {inicio.strftime('%d/%m')}"
                 intervalos.append((label, inicio, fin))
                 

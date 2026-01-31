@@ -106,8 +106,7 @@
                 estadisticasVentas.datos[6]?.fecha | date:'dd/MM' }}
               </div>
               <div class="history-label" *ngIf="periodoSeleccionado === 'semana'">
-                8 Semanas de {{ anioSemanas }}
-                <span *ngIf="semanaOffset > 0"> ({{ semanaOffset * 8 }} semanas atrás)</span>
+                8 Semanas hasta {{ currentDate | date:'dd/MM/yyyy' }}
               </div>
               <div class="history-label" *ngIf="periodoSeleccionado === 'mes'">
                 12 Meses de {{ anioMeses }}

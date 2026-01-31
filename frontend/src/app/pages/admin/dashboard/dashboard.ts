@@ -99,10 +99,7 @@ export class DashboardComponent implements OnInit {
     let anio: number | undefined = undefined;
 
     // Configurar parámetros según el periodo
-    if (this.periodoSeleccionado === 'semana') {
-      semanaOffset = this.semanaOffset;
-      anio = this.anioSemanas;
-    } else if (this.periodoSeleccionado === 'mes') {
+    if (this.periodoSeleccionado === 'mes') {
       anio = this.anioMeses;
     }
 
@@ -140,13 +137,13 @@ export class DashboardComponent implements OnInit {
       // Día a día: retroceder 1 semana
       this.currentDate.setDate(this.currentDate.getDate() - 7);
     } else if (this.periodoSeleccionado === 'semana') {
-      // Semana: retroceder 8 semanas (1 bloque)
-      this.semanaOffset++;
+      // Semana: retroceder 8 semanas
+      this.currentDate.setDate(this.currentDate.getDate() - (7 * 8));
     } else if (this.periodoSeleccionado === 'mes') {
       // Mes: retroceder 1 año
       this.anioMeses--;
     }
-    // Año: no hay navegación hacia atrás (solo muestra el año actual)
+    // Año: no hay navegación hacia atrás
 
     this.loadEstadisticasVentas();
   }
@@ -158,21 +155,17 @@ export class DashboardComponent implements OnInit {
     if (this.periodoSeleccionado === 'dia') {
       // Día a día: avanzar 1 semana
       this.currentDate.setDate(this.currentDate.getDate() + 7);
-      if (this.currentDate > hoy) {
-        this.currentDate = hoy;
-      }
+      if (this.currentDate > hoy) this.currentDate = hoy;
     } else if (this.periodoSeleccionado === 'semana') {
-      // Semana: avanzar 8 semanas (1 bloque) - solo si no estamos en el bloque actual
-      if (this.semanaOffset > 0) {
-        this.semanaOffset--;
-      }
+      // Semana: avanzar 8 semanas
+      this.currentDate.setDate(this.currentDate.getDate() + (7 * 8));
+      if (this.currentDate > hoy) this.currentDate = hoy;
     } else if (this.periodoSeleccionado === 'mes') {
-      // Mes: avanzar 1 año - solo si no estamos en el año actual
+      // Mes: avanzar 1 año
       if (this.anioMeses < añoActual) {
         this.anioMeses++;
       }
     }
-    // Año: no hay navegación hacia adelante
 
     this.loadEstadisticasVentas();
   }
