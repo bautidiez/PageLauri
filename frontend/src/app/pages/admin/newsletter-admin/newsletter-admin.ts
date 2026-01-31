@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -25,7 +25,8 @@ export class NewsletterAdminComponent {
 
     constructor(
         private http: HttpClient,
-        private toastService: ToastService
+        private toastService: ToastService,
+        private cdr: ChangeDetectorRef
     ) { }
 
     send(isTest: boolean = true) {
@@ -45,6 +46,7 @@ export class NewsletterAdminComponent {
 
         this.isLoading = true;
         this.lastStats = null;
+        this.cdr.detectChanges(); // Ensure update before request
 
         const payload = {
             subject: this.subject,
@@ -59,14 +61,16 @@ export class NewsletterAdminComponent {
         }).subscribe({
             next: (res: any) => {
                 this.isLoading = false;
-                this.toastService.show(res.message, 'success');
                 this.lastStats = res;
+                this.toastService.show(res.message, 'success');
+                this.cdr.detectChanges(); // Force update
             },
             error: (err) => {
                 this.isLoading = false;
                 console.error('Error enviando newsletter:', err);
                 const msg = err.error?.error || 'Error al enviar newsletter';
                 this.toastService.show(msg, 'error');
+                this.cdr.detectChanges(); // Force update
             }
         });
     }
