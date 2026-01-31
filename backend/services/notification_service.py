@@ -410,28 +410,32 @@ class NotificationService:
         print(f"DEBUG NEWSLETTER: Iniciando envío a {total} destinatarios. Test mode: {bool(test_email)}")
         
         # Iterar y enviar individualmente para mejor deliverability y personalización
-        with mail.connect() as conn:
-            for recipient in recipients:
-                try:
-                    email = recipient['email']
-                    nombre = recipient.get('nombre') or 'Cliente'
-                    
-                    msg = Message(
-                        subject=subject,
-                        recipients=[email],
-                        html=html_content
-                    )
-                    
-                    conn.send(msg)
-                    count += 1
-                    
-                    if not test_email and count % 10 == 0:
-                        import time
-                        time.sleep(1) 
+        try:
+            with mail.connect() as conn:
+                for recipient in recipients:
+                    try:
+                        email = recipient['email']
+                        nombre = recipient.get('nombre') or 'Cliente'
                         
-                except Exception as e:
-                    print(f"Error enviando newsletter a {recipient.get('email')}: {e}")
-                    continue
+                        msg = Message(
+                            subject=subject,
+                            recipients=[email],
+                            html=html_content
+                        )
+                        
+                        conn.send(msg)
+                        count += 1
+                        
+                        if not test_email and count % 10 == 0:
+                            import time
+                            time.sleep(1) 
+                            
+                    except Exception as e:
+                        print(f"Error enviando newsletter a {recipient.get('email')}: {e}")
+                        continue
+        except Exception as conn_err:
+            print(f"DEBUG NEWSLETTER: Error de conexión SMTP: {conn_err}")
+            raise conn_err # Re-raise to let the admin know
 
         print(f"DEBUG NEWSLETTER: Finalizado. Enviados: {count}/{total}")
         return count

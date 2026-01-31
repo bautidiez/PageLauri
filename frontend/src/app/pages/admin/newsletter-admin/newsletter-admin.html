@@ -26,7 +26,8 @@
                 <label>Email de Prueba</label>
                 <input type="email" [(ngModel)]="testEmail" placeholder="tu@email.com">
                 <button class="btn-test" (click)="send(true)" [disabled]="isLoading">
-                    🧪 Probar Envío
+                    <span *ngIf="!isLoading">🧪 Probar Envío</span>
+                    <span *ngIf="isLoading" class="loader-dots">⏳ Enviando...</span>
                 </button>
             </div>
 
@@ -35,7 +36,8 @@
             <div class="send-section">
                 <p class="warning-text">⚠️ Cuidado: Esto enviará el correo a todos los clientes suscritos.</p>
                 <button class="btn-send-all" (click)="send(false)" [disabled]="isLoading">
-                    ✈️ Enviar a TODOS
+                    <span *ngIf="!isLoading">✈️ Enviar a TODOS</span>
+                    <span *ngIf="isLoading">⏳ Enviando...</span>
                 </button>
             </div>
 
