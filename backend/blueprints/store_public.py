@@ -319,6 +319,18 @@ def get_cart():
         if not carrito:
             return jsonify({'items': [], 'updated_at': None}), 200
             
+        # Verificar expiración (3 días = 72 horas)
+        if carrito.updated_at:
+            delta = datetime.utcnow() - carrito.updated_at
+            if delta.total_seconds() > (72 * 3600):
+                # Expirado: Limpiar items y devolver vacío
+                ItemCarrito.query.filter_by(carrito_id=carrito.id).delete()
+                # Actualizamos fecha para resetear (o lo dejamos viejo/null?)
+                # Si borramos items, el carrito está "nuevo/vacío"
+                carrito.updated_at = datetime.utcnow()
+                db.session.commit()
+                return jsonify({'items': [], 'updated_at': None}), 200
+
         # Formato compatible con frontend CartItem
         items = []
         for item in carrito.items:
