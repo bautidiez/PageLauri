@@ -50,7 +50,16 @@
     color: #333;
 }
 
-.form-group input,
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 15px;
+    transition: border-color 0.2s;
+}
+
 .form-group textarea {
     width: 100%;
     padding: 12px;
@@ -59,6 +68,26 @@
     font-family: inherit;
     font-size: 15px;
     transition: border-color 0.2s;
+}
+
+.editor-container {
+    display: block;
+    background: #fff;
+    border-radius: 8px;
+    /* El borde lo pone Quill, pero podemos asegurar el radio */
+}
+
+/* Quill overrides if needed */
+::ng-deep .ql-toolbar {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+::ng-deep .ql-container {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    font-family: inherit;
+    font-size: 16px;
 }
 
 .form-group input:focus,

@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ToastService } from '../../../services/toast.service';
+import { QuillModule } from 'ngx-quill';
 
 @Component({
     selector: 'app-newsletter-admin',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, QuillModule],
     templateUrl: './newsletter-admin.html',
     styleUrl: './newsletter-admin.css'
 })

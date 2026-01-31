@@ -12,9 +12,10 @@
             </div>
 
             <div class="form-group">
-                <label>Mensaje (HTML o Texto)</label>
-                <textarea [(ngModel)]="content" rows="12" placeholder="Escribí tu mensaje aquí..."></textarea>
-                <small class="hint">Podés usar etiquetas HTML simples como &lt;b&gt;, &lt;br&gt;, &lt;h1&gt;.</small>
+                <label>Mensaje</label>
+                <quill-editor [(ngModel)]="content" placeholder="Escribí tu mensaje aquí..."
+                    [styles]="{height: '300px'}" class="editor-container">
+                </quill-editor>
             </div>
         </div>
 

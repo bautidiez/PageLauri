@@ -1,6 +1,7 @@
 /* Estilos globales - El Vestuario */
 
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+@import 'quill/dist/quill.snow.css';
 
 :root {
   --primary-color: #000;
