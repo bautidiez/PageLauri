@@ -47,6 +47,10 @@ export class GestionComponent implements OnInit {
     this.router.navigate(['/admin/promociones']);
   }
 
+  goToNewsletter() {
+    this.router.navigate(['/admin/newsletter']);
+  }
+
   goToPanelPrincipal() {
     this.router.navigate(['/admin']);
   }
