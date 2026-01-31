@@ -757,3 +757,46 @@ class VentaExterna(db.Model):
             'notas': self.notas,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
+class Carrito(db.Model):
+    """Modelo para carrito de compras persistente"""
+    __tablename__ = 'carritos'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    cliente_id = db.Column(db.Integer, db.ForeignKey('clientes.id'), nullable=False, unique=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relaciones
+    cliente = db.relationship('Cliente', backref=db.backref('carrito', uselist=False))
+    items = db.relationship('ItemCarrito', backref='carrito', lazy='joined', cascade='all, delete-orphan')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'cliente_id': self.cliente_id,
+            'items': [item.to_dict() for item in self.items],
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class ItemCarrito(db.Model):
+    """Items dentro del carrito persistente"""
+    __tablename__ = 'items_carrito'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    carrito_id = db.Column(db.Integer, db.ForeignKey('carritos.id'), nullable=False)
+    producto_id = db.Column(db.Integer, db.ForeignKey('productos.id'), nullable=False)
+    talle_id = db.Column(db.Integer, db.ForeignKey('talles.id'), nullable=False)
+    cantidad = db.Column(db.Integer, default=1)
+    
+    # Relaciones
+    producto = db.relationship('Producto')
+    talle = db.relationship('Talle')
+    
+    def to_dict(self):
+        return {
+            'producto_id': self.producto_id,
+            'producto': self.producto.to_dict(include_stock=False) if self.producto else None,
+            'talle_id': self.talle_id,
+            'talle': self.talle.to_dict() if self.talle else None,
+            'cantidad': self.cantidad
+        }

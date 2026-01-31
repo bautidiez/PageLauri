@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, send_from_directory, current_app
 from extensions import limiter, mail
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_mail import Message
 from cache_utils import cache, invalidate_cache, cached
 from models import *
@@ -280,6 +281,121 @@ def enviar_contacto():
         print(f"DEBUG CONTACTO: Error CRÍTICO en la ruta: {str(outer_e)}", flush=True)
         logger.error(f"Error CRÍTICO en enviar_contacto: {str(outer_e)}")
         return jsonify({'error': 'Error interno en el servidor'}), 500
+
+# ==================== CARRITO PERSISTENTE ====================
+
+@store_public_bp.route('/api/cart', methods=['GET'])
+@jwt_required()
+def get_cart():
+    """Obtiene el carrito persistente del usuario"""
+    try:
+        current_identity = get_jwt_identity() # Esto devuelve el ID o 'admin'
+        # Asumimos que es un cliente logueado
+        # get_jwt_identity puede devolver un string, asegurarnos que tenemos el cliente_id
+        
+        # En la implementación de login_cliente (auth.py), identity es el email o el id?
+        # Revisando auth.py (no mostrado pero inferido): usualmente es el ID o subject.
+        # Si get_jwt_identity devuelve el ID directamente:
+        
+        # Primero intentar obtener cliente por email si el identity es string no numérico
+        cliente = None
+        if isinstance(current_identity, str) and '@' in current_identity:
+             cliente = Cliente.query.filter_by(email=current_identity).first()
+        else:
+             # Si es numérico o string numérico
+             try:
+                 cliente_id = int(current_identity)
+                 cliente = Cliente.query.get(cliente_id)
+             except:
+                 pass
+        
+        # Si no encontramos cliente (quizás es un admin o token inválido para cliente)
+        if not cliente:
+            # Fallback: buscar en claims si JWT tiene info extra
+            # Pero por ahora devolvemos vacío o error
+             return jsonify({'items': []}), 200
+
+        carrito = Carrito.query.filter_by(cliente_id=cliente.id).first()
+        if not carrito:
+            return jsonify({'items': [], 'updated_at': None}), 200
+            
+        # Formato compatible con frontend CartItem
+        items = []
+        for item in carrito.items:
+            items.append({
+                'producto': item.producto.to_dict(include_stock=True), # Importante el stock para validaciones
+                'talle': item.talle.to_dict(),
+                'cantidad': item.cantidad,
+                'precio_unitario': item.producto.precio_base, # Siempre base, igual que frontend
+                'descuento': 0 # Frontend recalcula descuentos dinámicos
+            })
+            
+        return jsonify({
+            'items': items,
+            'updated_at': carrito.updated_at.isoformat() if carrito.updated_at else None
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error fetching cart: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@store_public_bp.route('/api/cart', methods=['POST'])
+@jwt_required()
+def sync_cart():
+    """Sincroniza (sobreescribe) el carrito del usuario con el enviado"""
+    try:
+        data = request.get_json()
+        new_items = data.get('items', [])
+        
+        current_identity = get_jwt_identity()
+        cliente = None
+        if isinstance(current_identity, str) and '@' in current_identity:
+             cliente = Cliente.query.filter_by(email=current_identity).first()
+        else:
+             try:
+                 cliente_id = int(current_identity)
+                 cliente = Cliente.query.get(cliente_id)
+             except:
+                 pass
+                 
+        if not cliente:
+            return jsonify({'error': 'Cliente no identificado'}), 401
+            
+        # Buscar o crear carrito
+        carrito = Carrito.query.filter_by(cliente_id=cliente.id).first()
+        if not carrito:
+            carrito = Carrito(cliente_id=cliente.id)
+            db.session.add(carrito)
+            db.session.flush() # Para tener ID
+            
+        # Limpiar items anteriores (Estrategia simple: Replace All)
+        # Podría optimizarse haciendo diff, pero replace es seguro para evitar inconsistencias
+        ItemCarrito.query.filter_by(carrito_id=carrito.id).delete()
+        
+        # Agregar nuevos items
+        for item in new_items:
+            prod_id = item.get('producto', {}).get('id') or item.get('producto_id')
+            talle_id = item.get('talle', {}).get('id') or item.get('talle_id')
+            qty = item.get('cantidad', 1)
+            
+            if prod_id and talle_id and qty > 0:
+                new_item = ItemCarrito(
+                    carrito_id=carrito.id,
+                    producto_id=int(prod_id),
+                    talle_id=int(talle_id),
+                    cantidad=int(qty)
+                )
+                db.session.add(new_item)
+        
+        carrito.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({'message': 'Carrito sincronizado', 'count': len(new_items)}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error syncing cart: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # ==================== ESTÁTICOS ====================
 

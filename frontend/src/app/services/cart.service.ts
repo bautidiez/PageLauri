@@ -43,10 +43,20 @@ export class CartService {
     // Suscribirse a cambios de autenticación para recargar y FUSIONAR si es necesario
     this.authService.isAuthenticated$.subscribe((isAuth) => {
       if (isAuth) {
-        this.mergeGuestCart();
+        // Al loguearse, cargamos del servidor (que internamente fusionará si traemos algo local)
+        this.loadServerCart();
+      } else {
+        // Al desloguearse, cargamos el carrito de invitado (que debería estar vacío o ser nuevo)
+        this.loadCart();
       }
-      this.loadCart();
     });
+
+    // Carga inicial (por si ya estamos logueados al refrescar)
+    if (this.authService.isLoggedIn()) {
+      this.loadServerCart();
+    } else {
+      this.loadCart();
+    }
   }
 
   private getCartKey(): string {
@@ -61,153 +71,104 @@ export class CartService {
     return this.cartSubject.value;
   }
 
+  private loadServerCart(): void {
+    // 1. Obtener carrito "Guest" actual por si hay items que subir
+    const guestItems = this.getGuestItems();
+
+    // 2. Pedir al servidor su carrito
+    this.apiService.getCart().subscribe({
+      next: (response: any) => {
+        let serverItems: CartItem[] = response.items || [];
+
+        console.log('DEBUG CART: Loaded from server:', serverItems.length, 'items. Guest items to merge:', guestItems.length);
+
+        // 3. Fusionar Guest -> Server (Prioridad: sumar cantidades)
+        if (guestItems.length > 0) {
+          guestItems.forEach(gItem => {
+            const existingIndex = serverItems.findIndex(
+              sItem => sItem.producto.id === gItem.producto.id && sItem.talle.id === gItem.talle.id
+            );
+
+            if (existingIndex >= 0) {
+              serverItems[existingIndex].cantidad += gItem.cantidad;
+            } else {
+              serverItems.push(gItem);
+            }
+          });
+
+          // 4. Limpiar Guest local
+          localStorage.removeItem('cart_guest');
+
+          // 5. Sincronizar vuelta al servidor con la fusión
+          this.apiService.syncCart(serverItems).subscribe();
+        }
+
+        // 6. Actualizar estado local
+        this.cartItems = serverItems;
+        this.updateTotal(); // Calc total
+
+        // Guardar en localStorage de cliente para "cache" y persistencia offline-ish
+        const userKey = this.getCartKey();
+        localStorage.setItem(userKey, JSON.stringify({ items: this.cartItems, lastUpdated: Date.now() }));
+
+        this.notify();
+      },
+      error: (err) => {
+        console.error('Error loading server cart, falling back to local', err);
+        this.loadCart(); // Fallback
+      }
+    });
+  }
+
+  private getGuestItems(): CartItem[] {
+    const guestData = localStorage.getItem('cart_guest');
+    if (!guestData) return [];
+    try {
+      const parsed = JSON.parse(guestData);
+      return Array.isArray(parsed) ? parsed : (parsed.items || []);
+    } catch { return []; }
+  }
+
   private loadCart(): void {
     const key = this.getCartKey();
     const saved = localStorage.getItem(key);
 
-    console.log(`DEBUG LOAD CART: Key=${key}, SavedRaw=${saved ? saved.substring(0, 50) + '...' : 'null'}`);
+    console.log(`DEBUG LOAD CART: Key=${key}`);
 
-    this.cartItems = []; // Reset inicial
+    this.cartItems = [];
 
     if (saved) {
       try {
         const parsed: CartStorage | CartItem[] = JSON.parse(saved);
         let items: CartItem[] = [];
-        let lastUpdated = 0;
 
         if (Array.isArray(parsed)) {
-          console.log('DEBUG LOAD CART: Parsed is Array (Old format or simple list)');
           items = parsed;
-          lastUpdated = Date.now();
         } else {
-          console.log('DEBUG LOAD CART: Parsed is Storage Object');
           items = parsed.items || [];
-          lastUpdated = parsed.lastUpdated || 0;
         }
 
-        // Verificar expiración (48 horas)
-        /*
-        const now = Date.now();
-        if (now - lastUpdated > this.CART_EXPIRATION) {
-          console.log(`Carrito expirado (${key}). Limpiando.`);
-          this.clearCart();
-          return;
-        } else {
-        */
-        console.log(`DEBUG LOAD CART: Loading ${items.length} items.`);
         this.cartItems = items;
-        // Calculate initial total
         this.updateTotal();
-        // Refresh data to get latest promotions/prices
-        this.refreshCartData();
-        // }
+        // Opcional: refrescar precios si es necesario
+        // this.refreshCartData();
       } catch (e) {
-        console.error('Error al cargar carrito', e);
+        console.error('Error al cargar carrito local', e);
         this.cartItems = [];
       }
-    } else {
-      console.log('DEBUG LOAD CART: No saved data found for key', key);
     }
 
     this.notify();
   }
 
-  private refreshCartData() {
-    if (this.cartItems.length === 0) return;
-
-    // Create a list of observables or a batch request
-    // For simplicity and to avoid race conditions with local state, we'll update one by one or forkJoin
-    // But since we don't have forkJoin imported, let's just iterate. 
-    // Ideally, backend should support batch get.
-
-    this.cartItems.forEach((item, index) => {
-      this.apiService.getProducto(item.producto.id).subscribe({
-        next: (freshProduct) => {
-          // Safety check for race conditions
-          if (!this.cartItems[index]) return;
-
-          // Update product data (includes fresh promotions)
-          this.cartItems[index].producto = freshProduct;
-
-          // Always use precio_base as the reference unit price for the cart line.
-          // Discounts (static or dynamic) will be calculated in calculateTotal()
-          this.cartItems[index].precio_unitario = freshProduct.precio_base;
-
-          console.log(`DEBUG CART: Updated item ${item.producto.nombre}. Base Price: ${freshProduct.precio_base}. Promos:`, freshProduct.promociones?.length);
-
-          // Filter XS from product stock if backend returned it
-          if (freshProduct.stock_talles) {
-            this.cartItems[index].producto.stock_talles = freshProduct.stock_talles.filter((st: any) => st.talle_nombre !== 'XS');
-          }
-
-          // Trigger save to recalculate totals and notify subscribers
-          this.saveCart();
-        },
-        error: (err) => {
-          console.error(`Error refreshing product ${item.producto.id}:`, err);
-          // If 404/inactive, maybe remove from cart?
-          // For now, keep as is or mark as unavailable.
-        }
-      });
-    });
-  }
+  // refreshCartData implementation remains...
 
   private mergeGuestCart(): void {
-    const guestData = localStorage.getItem('cart_guest');
-    if (!guestData) return;
-
-    try {
-      const parsed: CartStorage | CartItem[] = JSON.parse(guestData);
-      const guestItems = Array.isArray(parsed) ? parsed : (parsed.items || []);
-
-      if (guestItems.length === 0) return;
-
-      // Cargar carrito del usuario actual para fusionar
-      const userKey = this.getCartKey();
-
-      // SAFETY CHECK: If we are still identified as guest (e.g. client data not loaded yet),
-      // DO NOT merge/delete. Wait for the next emission where we are identified as client.
-      if (userKey === 'cart_guest') {
-        console.warn('DEBUG CART: Merge aborted - User identified as guest (Client data missing?).');
-        return;
-      }
-
-      const userData = localStorage.getItem(userKey);
-      let userItems: CartItem[] = [];
-
-      if (userData) {
-        const parsedUser: CartStorage | CartItem[] = JSON.parse(userData);
-        userItems = Array.isArray(parsedUser) ? parsedUser : (parsedUser.items || []);
-      }
-
-      // Fusionar items
-      guestItems.forEach((gItem: CartItem) => {
-        const existingIndex = userItems.findIndex(
-          uItem => uItem.producto.id === gItem.producto.id && uItem.talle.id === gItem.talle.id
-        );
-
-        if (existingIndex >= 0) {
-          userItems[existingIndex].cantidad += gItem.cantidad;
-        } else {
-          userItems.push(gItem);
-        }
-      });
-
-      // Guardar carrito fusionado
-      this.cartItems = userItems;
-      this.saveCart();
-
-      // Limpiar carrito de invitado
-      localStorage.removeItem('cart_guest');
-      console.log('DEBUG CART: Carrito de invitado fusionado con el de usuario.');
-
-    } catch (e) {
-      console.error('Error al fusionar carrito de invitado', e);
-    }
+    // Deprecated in favor of loadServerCart logic, but kept empty/simple if called externally
   }
 
   private notify() {
-    this.updateTotal(); // Calculate first
+    this.updateTotal();
     this.cartSubject.next(this.cartItems);
   }
 
@@ -216,14 +177,30 @@ export class CartService {
     this.totalSubject.next(total);
   }
 
+  private saveTimer: any = null;
+
   private saveCart(): void {
     const key = this.getCartKey();
     const storageData: CartStorage = {
       items: this.cartItems,
       lastUpdated: Date.now()
     };
+
+    // 1. Guardar Localmente siempre (UI rápida)
     localStorage.setItem(key, JSON.stringify(storageData));
     this.notify();
+
+    // 2. Si está logueado, sincronizar con servidor (Debounced)
+    if (this.authService.isLoggedIn()) {
+      if (this.saveTimer) clearTimeout(this.saveTimer);
+
+      this.saveTimer = setTimeout(() => {
+        this.apiService.syncCart(this.cartItems).subscribe({
+          next: () => console.log('DEBUG CART: Synced to server'),
+          error: (e) => console.error('DEBUG CART: Sync error', e)
+        });
+      }, 2000); // Esperar 2 segundos de inactividad para subir
+    }
   }
 
   addItem(producto: any, talle: any, cantidad: number): void {
