@@ -1213,3 +1213,67 @@ def send_marketing_newsletter():
     except Exception as e:
         logger.error(f"Error sending newsletter: {e}")
         return jsonify({'error': str(e)}), 500
+@store_admin_bp.route('/api/admin/newsletter/test-connection', methods=['GET'])
+@jwt_required()
+def test_email_connection():
+    """Prueba la conexión SMTP con Gmail y devuelve el estado"""
+    from flask import current_app
+    from flask_mail import Mail
+    import socket
+    
+    try:
+        # Check env vars first
+        server = current_app.config.get('MAIL_SERVER')
+        port = current_app.config.get('MAIL_PORT')
+        username = current_app.config.get('MAIL_USERNAME')
+        password = current_app.config.get('MAIL_PASSWORD')
+        
+        info = {
+            'server': server,
+            'port': port,
+            'username': username,
+            'password_length': len(password) if password else 0,
+            'use_tls': current_app.config.get('MAIL_USE_TLS'),
+            'use_ssl': current_app.config.get('MAIL_USE_SSL')
+        }
+        
+        print(f"DEBUG SMTP TEST: Configuración: {info}")
+        
+        # Test connection
+        mail = current_app.extensions['mail']
+        
+        # Try explicit connection with short timeout via socket first?
+        # Flask-Mail doesn't expose timeout easily in connect(). 
+        # But we can try a raw socket connect to see if port is open.
+        try:
+            sock = socket.create_connection((server, port), timeout=5)
+            sock.close()
+            print("DEBUG SMTP TEST: Socket TCP OK")
+        except Exception as e:
+            return jsonify({
+                'status': 'error', 
+                'message': f'Puerto cerrado o bloqueado (Timeout TCP): {str(e)}',
+                'config': info
+            }), 500
+
+        # Now try Login
+        with mail.connect() as conn:
+            # If we get here, connection and login worked
+            pass
+            
+        return jsonify({
+            'status': 'ok', 
+            'message': 'Conexión SMTP exitosa. Credenciales válidas.',
+            'config': info
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        trace = traceback.format_exc()
+        print(f"DEBUG SMTP TEST: Error: {e}")
+        return jsonify({
+            'status': 'error', 
+            'message': str(e),
+            'trace': trace,
+            'config': info
+        }), 500
