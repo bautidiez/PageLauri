@@ -1248,29 +1248,135 @@
 
 /* Cleaned up redundant btn-coupon styles */
 
-@media (max-width: 900px) {
+/* Responsive Styles for Checkout v2 */
+@media (max-width: 992px) {
     .checkout-content {
         grid-template-columns: 1fr;
         gap: 40px;
     }
 
     .summary-sidebar {
-        order: -1;
+        order: 2;
+        /* Move summary to bottom by default on tablet */
         position: static;
+        width: 100%;
+    }
+
+    .stepper-header {
+        max-width: 100%;
         margin-bottom: 30px;
+    }
+
+    .checkout-v2-container {
+        margin: 30px auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .checkout-content {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .main-form {
+        order: 1;
+        width: 100%;
+    }
+
+    .summary-sidebar {
+        order: 2;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .summary-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Stepper adjustments */
+    .stepper-header {
+        margin-bottom: 20px;
+    }
+
+    .step span {
+        display: none;
+        /* Hide text on small screens, keep numbers */
+    }
+
+    .step-num {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    /* Form fields */
+    .form-grid {
+        grid-template-columns: 1fr;
+        /* Stack form fields */
+        gap: 15px;
+    }
+
+    .field.full {
+        grid-column: auto;
+    }
+
+    .field input,
+    .field select {
+        padding: 14px;
+        /* Larger touch target */
+        font-size: 16px;
+        /* Prevent iOS zoom */
+    }
+
+    /* Buttons */
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        padding: 15px;
+        display: block;
+        text-align: center;
     }
 
     .actions {
         flex-direction: column-reverse;
         /* Volver below Continue */
-        gap: 15px;
+        gap: 10px;
     }
 
-    .btn-secondary {
-        width: 100%;
+    .actions .btn-secondary {
+        margin-top: 10px;
         border: none;
-        /* Make generic 'back' link style on mobile */
         text-decoration: underline;
-        padding: 10px;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    /* Success Screen Mobile */
+    .success-two-col-layout {
+        flex-direction: column;
+    }
+
+    .success-left-panel,
+    .success-right-panel {
+        padding: 30px 20px;
+        flex: 1;
+    }
+
+    .success-header-flex {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .order-id-block {
+        margin: 0 auto 30px;
+    }
+
+    .final-actions-left {
+        justify-content: center;
+        width: 100%;
+        flex-direction: column;
     }
 }

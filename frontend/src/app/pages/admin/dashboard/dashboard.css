@@ -419,6 +419,12 @@
   line-height: 1.6;
 }
 
+@media (max-width: 1024px) {
+  .acciones-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
@@ -438,6 +444,10 @@
 
   .estadisticas-generales {
     grid-template-columns: 1fr;
+  }
+
+  .acciones-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .grafico-barras {
@@ -461,5 +471,11 @@
 
   .periodo-btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .acciones-grid {
+    grid-template-columns: 1fr;
   }
 }

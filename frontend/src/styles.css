@@ -46,7 +46,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   zoom: 0.9;
-  /* Zoom de 90% para toda la página */
+  /* Zoom de 90% para desktop */
+}
+
+@media (max-width: 1024px) {
+  body {
+    zoom: 1;
+    /* Reset zoom for tablets and mobile */
+    -webkit-text-size-adjust: 100%;
+  }
 }
 
 h1,
@@ -235,16 +243,42 @@ textarea:focus {
 }
 
 /* Responsive */
+/* Responsive */
+@media (max-width: 1024px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 30px 15px;
+  }
+}
+
 @media (max-width: 768px) {
   .products-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    justify-content: center;
-    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    /* 2 columns for tablet/large mobile */
+    gap: 15px;
     padding: 20px 10px;
   }
 
   .product-image {
-    height: 200px;
+    height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    /* 2 columns for small mobile (User Request) */
+    gap: 10px;
+    padding: 15px 5px;
+    /* Less padding to fit 2 cols better */
+  }
+
+  .product-image {
+    height: 180px;
+    /* Reduced height for smaller cards */
+    aspect-ratio: auto;
+    /* Allow natural aspect or fixed height */
   }
 }
 

@@ -470,14 +470,27 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: 0;
+  /* Remove padding from container, move to link */
   color: #333;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s;
   cursor: pointer;
+  position: relative;
 }
+
+.cat-link-text {
+  flex: 1;
+  padding: 10px 20px;
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 
 .mega-item:hover,
 .mega-item.active {
@@ -589,18 +602,77 @@
 
   .menu-toggle {
     display: block;
+    padding: 10px;
+    /* Larger touch target */
+    font-size: 24px;
   }
 
-  .header-main-content {
-    flex-wrap: wrap;
+  /* Header adjustments for mobile */
+  .header-content-single-line {
+    justify-content: space-between;
+    gap: 5px;
+    padding: 5px 10px;
+  }
+
+  .logo {
+    margin-left: 0;
+    /* Reset margin */
+  }
+
+  .logo img {
+    height: 40px;
+    /* Smaller logo on mobile */
   }
 
   .logo h1 {
-    font-size: 20px;
+    font-size: 18px;
+    display: none;
+    /* Hide text on mobile to save space if needed, or keep small */
   }
 
-  .cart-btn {
-    padding: 6px 12px;
-    font-size: 12px;
+  /* Compact search for mobile */
+  .search-box-simple {
+    flex: 1;
+    /* Allow to take available space */
+    max-width: 150px;
+  }
+
+  .search-input-simple {
+    width: 100%;
+    /* Fluid width */
+    padding: 6px 10px 6px 28px;
+    font-size: 13px;
+  }
+
+  .search-icon-left {
+    width: 14px;
+    height: 14px;
+    left: 8px;
+  }
+
+  /* Compact cart */
+  .cart-btn-simple {
+    margin-right: 0;
+    padding: 6px 8px;
+    gap: 4px;
+  }
+
+  .cart-btn-simple .cart-price {
+    display: none;
+    /* Hide price on mobile, show only icon + badge */
+  }
+
+  .cart-btn-simple .cart-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 380px) {
+
+  /* Even smaller screens */
+  .search-box-simple {
+    display: none;
+    /* Hide search bar on very small screens if needed, or move to menu */
   }
 }

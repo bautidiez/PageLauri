@@ -50,19 +50,25 @@
               <div class="mega-menu-content">
                 <!-- Columna 1: Categorías Principales -->
                 <div class="mega-column main-cats">
-                  <a routerLink="/productos" class="mega-item total-link" (mouseenter)="clearActiveCategory()"
-                    (click)="closeProductsMenuNow()">
+                  <a routerLink="/productos" class="mega-item total-link" (click)="closeProductsMenuNow()">
                     Ver todos los productos
                   </a>
                   <a routerLink="/productos" [queryParams]="{ofertas: 'true'}" class="mega-item offers-link"
-                    (mouseenter)="clearActiveCategory()" (click)="closeProductsMenuNow()">
+                    (click)="closeProductsMenuNow()">
                     🔥 OFERTAS
                   </a>
                   <hr class="mega-divider">
+
                   <div *ngFor="let cat of categoriasTree" class="mega-item hierarchical-item"
-                    [class.active]="activeCategory?.id === cat.id" (mouseenter)="setActiveCategory(cat)"
-                    [routerLink]="['/categoria', cat.slug || cat.id]" (click)="closeProductsMenuNow()">
-                    {{ cat.nombre }}
+                    [class.active]="activeCategory?.id === cat.id" (mouseenter)="setActiveCategory(cat)">
+
+                    <!-- Link Area -->
+                    <a [routerLink]="['/categoria', cat.slug || cat.id]" (click)="closeProductsMenuNow()"
+                      class="cat-link-text">
+                      {{ cat.nombre }}
+                    </a>
+
+                    <!-- Arrow for Submenu hover (Desktop) or Tap (Mobile) -->
                     <span class="arrow" *ngIf="cat.subcategorias && cat.subcategorias.length > 0">›</span>
                   </div>
                 </div>
