@@ -222,6 +222,18 @@ class Producto(db.Model):
         }
         if include_stock:
             data['stock_talles'] = [st.to_dict() for st in self.stock_talles if st.talle and st.talle.nombre != 'XS']
+            
+            # Incluir productos relacionados para selector de colores
+            # Evitar recursividad infinita enviando info mínima
+            data['relacionados'] = []
+            for rel in self.relacionados:
+                data['relacionados'].append({
+                    'id': rel.id,
+                    'nombre': rel.nombre,
+                    'color': rel.color,
+                    'color_hex': rel.color_hex,
+                    'slug': rel.id # Usar ID por ahora
+                })
         return data
 
 class Talle(db.Model):

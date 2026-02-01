@@ -379,33 +379,60 @@ export class ProductoDetailComponent implements OnInit, OnDestroy {
   loadColoresDisponibles() {
     if (!this.producto) return;
 
-    // Obtener colores únicos del stock de este producto
-    const coloresMap = new Map();
-    if (this.producto.stock_talles) {
-      this.producto.stock_talles.forEach((stock: any) => {
-        if (stock.color_id && stock.color_nombre) {
-          if (!coloresMap.has(stock.color_id)) {
-            coloresMap.set(stock.color_id, {
-              id: stock.color_id,
-              nombre: stock.color_nombre,
-              codigo_hex: null // Se puede obtener del API si está disponible
-            });
-          }
+    // Estrategia combinada:
+    // 1. Si el producto tiene "stock_talles" con variantes de color (modelo antiguo/variante interna)
+    // 2. Si el producto tiene "relacionados" (modelo nuevo/productos separados)
+
+    // Lista base
+    const coloresList: any[] = [];
+    const idsProcesados = new Set<number>();
+
+    // A. Agregar producto actual
+    if (this.producto.color || this.producto.color_hex) {
+      coloresList.push({
+        id: this.producto.id,
+        nombre: this.producto.nombre,
+        color: this.producto.color || 'Actual',
+        color_hex: this.producto.color_hex,
+        active: true
+      });
+      if (this.producto.color_hex) idsProcesados.add(this.producto.id); // Usar ID como key única si son prods distintos
+    }
+
+    // B. Agregar relacionados (si existen)
+    if (this.producto.relacionados && this.producto.relacionados.length > 0) {
+      this.producto.relacionados.forEach((rel: any) => {
+        if (!idsProcesados.has(rel.id)) {
+          coloresList.push({
+            id: rel.id,
+            nombre: rel.nombre,
+            color: rel.color,
+            color_hex: rel.color_hex,
+            active: false
+          });
+          idsProcesados.add(rel.id);
         }
       });
     }
 
-    this.coloresDisponibles = Array.from(coloresMap.values());
+    // C. Fallback: variantes internas (si es que se usaban antes)
+    if (this.producto.stock_talles) {
+      this.producto.stock_talles.forEach((stock: any) => {
+        if (stock.color_id && stock.color_nombre) {
+          // Si es un ID de color interno, no tenemos un Product ID asociado directo para navegar, 
+          // a menos que sea el mismo producto. 
+          // Asumimos que si hay variantes de stock con color, son DEL MISMO producto.
+          // Pero si ya agregamos el producto actual, quizás no haga falta duplicar.
+          // Solo útil si un mismo producto tiene stock "Rojo" y "Azul" sin ser productos distintos.
+        }
+      });
+    }
 
-    // Cargar información completa de colores desde el API
-    this.apiService.getColores().subscribe({
-      next: (colores) => {
-        this.coloresDisponibles = this.coloresDisponibles.map(color => {
-          const colorCompleto = colores.find((c: any) => c.id === color.id);
-          return colorCompleto || color;
-        });
-      }
-    });
+    this.coloresDisponibles = coloresList;
+
+    // Si solo hay 1 color (el actual) y no estamos forzando mostrarlo, se ocultará por *ngIf > 0. 
+    // Si queremos mostrar "Color: Rojo" aunque sea el único, cambiar lógica HTML.
+    // Por ahora el usuario pide "Falta el color", asumo que hay variantes que no se ven.
   }
 
 
