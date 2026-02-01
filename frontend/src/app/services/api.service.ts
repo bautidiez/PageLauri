@@ -189,6 +189,11 @@ export class ApiService {
     );
   }
 
+  // Alias compatible con componentes admin (getProductosMini)
+  getProductosMini(query: string): Observable<any> {
+    return this.searchProducts(query);
+  }
+
   // Add stock by sizes (increments existing stock)
   addStockBySizes(productId: number, increments: { [size: string]: number }): Observable<any> {
     return this.http.post(

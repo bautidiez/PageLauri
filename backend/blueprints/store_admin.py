@@ -86,7 +86,9 @@ def search_products():
             'id': p.id,
             'nombre': p.nombre,
             'precio_base': p.precio_base,
-            'precio_actual': p.get_precio_actual()
+            'precio_actual': p.get_precio_actual(),
+            'color': p.color,
+            'color_hex': p.color_hex
         } for p in productos]), 200
         
     except Exception as e:
