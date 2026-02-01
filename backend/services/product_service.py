@@ -108,17 +108,19 @@ class ProductService:
         if filters.get('version'):
             query = query.filter(Producto.version == filters['version'])
 
-        # Ordenamiento GLOBAL: Agotados siempre al final
-        # has_stock será True (1) si existe al menos un talle con cantidad > 0, False (0) si no.
-        # Ordenamos by has_stock DESC (1 first, 0 last) -> Disponibles primero, Agotados al final.
-        stmt_has_stock = select(1).where(
-            and_(
-                StockTalle.producto_id == Producto.id,
-                StockTalle.cantidad > 0
-            )
-        ).exists()
+        # Ordenamiento GLOBAL: Agotados siempre al final (Strict)
+        # Estrategia: Obtener IDs de productos con stock > 0
+        productos_con_stock_query = db.session.query(StockTalle.producto_id).filter(
+            StockTalle.cantidad > 0
+        ).distinct()
         
-        query = query.order_by(stmt_has_stock.desc())
+        # This creates a CASE expression: CASE WHEN id IN (...) THEN 1 ELSE 2 END
+        stock_priority = case(
+            (Producto.id.in_(productos_con_stock_query), 1),
+            else_=2
+        )
+        
+        query = query.order_by(stock_priority.asc())
 
         # Ordenamiento secundario (usuario)
         orden = filters.get('ordenar_por', 'nuevo')
