@@ -288,6 +288,9 @@ export class ProductosComponent implements OnInit, OnDestroy {
         this.totalProducts = data.total || this.productos.length;
         this.hasMoreProducts = this.productos.length < this.totalProducts;
 
+        // Ordenar: agotados al final
+        this.ordenarProductosAgotadosAlFinal();
+
         console.log('📋 [ProductosComponent] PRODUCTOS ASIGNADOS:', this.productos.length, 'productos');
         console.log('📋 Array productos:', this.productos);
 
@@ -343,6 +346,10 @@ export class ProductosComponent implements OnInit, OnDestroy {
         this.productos = [...this.productos, ...newProducts]; // APPEND
         this.totalProducts = data.total || this.productos.length;
         this.hasMoreProducts = this.productos.length < this.totalProducts;
+
+        // Ordenar: agotados al final (re-ordenar toda la lista)
+        this.ordenarProductosAgotadosAlFinal();
+
         this.extraerOpcionesFiltros();
         this.loadingMore = false;
         this.cdr.detectChanges(); // Force UI update
@@ -776,5 +783,15 @@ export class ProductosComponent implements OnInit, OnDestroy {
       // If no parent, go to root (Productos)
       this.router.navigate(['/productos']);
     }
+  }
+
+  private ordenarProductosAgotadosAlFinal() {
+    this.productos.sort((a, b) => {
+      // Si ambos tienen el mismo estado, mantener orden relativo (estable)
+      if (!!a.esta_agotado === !!b.esta_agotado) return 0;
+      // Si a está agotado, va después (1)
+      // Si b está agotado, a va antes (-1)
+      return a.esta_agotado ? 1 : -1;
+    });
   }
 }
