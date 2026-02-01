@@ -3,7 +3,7 @@ import { HomeComponent } from './pages/home/home';
 import { ProductosComponent } from './pages/productos/productos';
 import { ProductoDetailComponent } from './pages/producto-detail/producto-detail';
 import { CartComponent } from './pages/cart/cart';
-
+import { CheckoutComponent } from './pages/checkout/checkout';
 import { ContactoComponent } from './pages/contacto/contacto';
 import { PoliticaCambioComponent } from './pages/politica-cambio/politica-cambio';
 import { GuiaTallesComponent } from './pages/guia-talles/guia-talles';
