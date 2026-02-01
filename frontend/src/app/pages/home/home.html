@@ -54,7 +54,7 @@
             <div class="product-badge-promo" *ngIf="producto.promociones && producto.promociones.length > 0">
               {{ getBadgeText(producto) }}
             </div>
-            <div class="product-badge agotado" *ngIf="!producto.tiene_stock">Agotado</div>
+            <div class="product-badge agotado" *ngIf="producto.esta_agotado">Agotado</div>
           </div>
           <div class="product-info">
             <h3 class="product-title">{{ producto.nombre }}</h3>
@@ -101,7 +101,7 @@
             </div>
             <div class="product-badge oferta"
               *ngIf="tieneOferta(producto) && (!producto.promociones || producto.promociones.length === 0)">Oferta</div>
-            <div class="product-badge agotado" *ngIf="!producto.tiene_stock">Agotado</div>
+            <div class="product-badge agotado" *ngIf="producto.esta_agotado">Agotado</div>
           </div>
           <div class="product-info">
             <h3 class="product-title">{{ producto.nombre }}</h3>

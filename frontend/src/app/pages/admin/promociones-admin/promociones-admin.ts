@@ -229,7 +229,16 @@ export class PromocionesAdminComponent implements OnInit {
 
     // Cargar visualmente productos seleccionados
     if (this.nuevaPromocion.productos_ids.length > 0) {
-      this.productosSeleccionados = this.productos.filter(p => this.nuevaPromocion.productos_ids.includes(p.id));
+      if (promocion.productos_nombres && promocion.productos_nombres.length === promocion.productos_ids.length) {
+        // Usar los nombres que vienen de la promoción (más seguro que filtrar productos paginados)
+        this.productosSeleccionados = promocion.productos_ids.map((id, index) => ({
+          id: id,
+          nombre: promocion.productos_nombres![index]
+        }));
+      } else {
+        // Fallback: tratar de encontrar en la lista cargada
+        this.productosSeleccionados = this.productos.filter(p => this.nuevaPromocion.productos_ids.includes(p.id));
+      }
     } else {
       this.productosSeleccionados = [];
     }
