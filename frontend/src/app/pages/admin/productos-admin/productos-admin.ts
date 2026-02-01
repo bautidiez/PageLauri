@@ -348,74 +348,81 @@ export class ProductosAdminComponent implements OnInit {
 
   editar(producto: any) {
     this.productoEditando = producto;
+    this.loading = true; // Bloquear UI
 
-    // Encontrar la categoría del producto y toda su jerarquía
-    const categoriaProducto = this.categorias.find((c: any) => c.id === producto.categoria_id);
+    this.apiService.getProducto(producto.id).subscribe({
+      next: (fullProducto) => {
+        this.loading = false;
+        const productoFrescos = fullProducto;
 
-    if (categoriaProducto) {
-      // Determinar la jerarquía de categorías
-      if (categoriaProducto.categoria_padre_id) {
-        // Hay al menos 1 nivel padre
-        const categoriaNivel1 = this.categorias.find((c: any) => c.id === categoriaProducto.categoria_padre_id);
+        // --- LÓGICA DE CATEGORÍAS (Usando datos frescos) ---
+        const categoriaProducto = this.categorias.find((c: any) => c.id === productoFrescos.categoria_id);
 
-        if (categoriaNivel1 && categoriaNivel1.categoria_padre_id) {
-          // Hay 3 niveles: Liga -> Temporada -> Remeras
-          this.categoriaPadreSeleccionada = categoriaNivel1.categoria_padre_id;
-          this.onCategoriaPadreChange();
-          this.subcategoriaNivel1Seleccionada = categoriaNivel1.id;
-          this.onSubcategoriaNivel1Change();
-          this.nuevoProducto.categoria_id = producto.categoria_id;
-        } else if (categoriaNivel1) {
-          // Hay 2 niveles: Temporada -> Remeras
-          this.categoriaPadreSeleccionada = categoriaNivel1.id;
-          this.onCategoriaPadreChange();
-          this.subcategoriaNivel1Seleccionada = producto.categoria_id;
-          this.onSubcategoriaNivel1Change();
+        if (categoriaProducto) {
+          if (categoriaProducto.categoria_padre_id) {
+            const categoriaNivel1 = this.categorias.find((c: any) => c.id === categoriaProducto.categoria_padre_id);
+
+            if (categoriaNivel1 && categoriaNivel1.categoria_padre_id) {
+              this.categoriaPadreSeleccionada = categoriaNivel1.categoria_padre_id;
+              this.onCategoriaPadreChange();
+              this.subcategoriaNivel1Seleccionada = categoriaNivel1.id;
+              this.onSubcategoriaNivel1Change();
+              this.nuevoProducto.categoria_id = productoFrescos.categoria_id;
+            } else if (categoriaNivel1) {
+              this.categoriaPadreSeleccionada = categoriaNivel1.id;
+              this.onCategoriaPadreChange();
+              this.subcategoriaNivel1Seleccionada = productoFrescos.categoria_id;
+              this.onSubcategoriaNivel1Change();
+            }
+          } else {
+            this.categoriaPadreSeleccionada = productoFrescos.categoria_id;
+            this.subcategoriasNivel1 = [];
+            this.subcategoriasNivel2 = [];
+            this.mostrarSubcategorias = false;
+            this.nuevoProducto.categoria_id = productoFrescos.categoria_id;
+          }
         }
-      } else {
-        // Es una categoría principal (Shorts u Ofertas)
-        this.categoriaPadreSeleccionada = producto.categoria_id;
-        this.subcategoriasNivel1 = [];
-        this.subcategoriasNivel2 = [];
-        this.mostrarSubcategorias = false;
-        this.nuevoProducto.categoria_id = producto.categoria_id;
+
+        this.colorSeleccionado = productoFrescos.color_hex || '';
+        this.productoRelacionadoId = productoFrescos.producto_relacionado_id || null;
+
+        this.nuevoProducto = {
+          nombre: productoFrescos.nombre,
+          descripcion: productoFrescos.descripcion || '',
+          precio_base: productoFrescos.precio_base,
+          precio_descuento: productoFrescos.precio_descuento,
+          categoria_id: productoFrescos.categoria_id,
+          activo: productoFrescos.activo,
+          destacado: productoFrescos.destacado,
+          color: productoFrescos.color || '',
+          color_hex: productoFrescos.color_hex || '',
+          producto_relacionado_id: productoFrescos.producto_relacionado_id || null,
+          dorsal: productoFrescos.dorsal || '',
+          numero: productoFrescos.numero || null,
+          version: productoFrescos.version || '',
+          productos_relacionados: []
+        };
+
+        // Cargar productos relacionados (con datos frescos)
+        // La propiedad en to_dict es 'relacionados', en create es 'productos_relacionados'
+        if (productoFrescos.relacionados && Array.isArray(productoFrescos.relacionados)) {
+          this.productosRelacionadosSeleccionados = [...productoFrescos.relacionados];
+        } else {
+          this.productosRelacionadosSeleccionados = [];
+        }
+
+        this.imagenesSeleccionadas = [];
+        this.imagenesPreview = [];
+        this.imagenesExistentes = productoFrescos.imagenes || [];
+        this.mostrarFormulario = true;
+      },
+      error: (err) => {
+        this.loading = false;
+        alert('Error cargando los detalles del producto.');
+        console.error(err);
       }
-    }
+    });
 
-    this.colorSeleccionado = producto.color_hex || '';
-    this.productoRelacionadoId = producto.producto_relacionado_id || null;
-    this.nuevoProducto = {
-      nombre: producto.nombre,
-      descripcion: producto.descripcion || '',
-      precio_base: producto.precio_base,
-      precio_descuento: producto.precio_descuento,
-      categoria_id: producto.categoria_id,
-      activo: producto.activo,
-      destacado: producto.destacado,
-      color: producto.color || '',
-      color_hex: producto.color_hex || '',
-      producto_relacionado_id: producto.producto_relacionado_id || null,
-      dorsal: producto.dorsal || '',
-      numero: producto.numero || null,
-      version: producto.version || '',
-      productos_relacionados: []
-    };
-
-    // Cargar productos relacionados (si existen backend los devuelve)
-    if (producto.productos_relacionados && Array.isArray(producto.productos_relacionados)) {
-      this.productosRelacionadosSeleccionados = [...producto.productos_relacionados];
-    } else if (producto.producto_relacionado_id) {
-      // Fallback legacy (si solo viniera el ID y no la lista)
-      // Idealmente el backend ya devuelve la lista en 'productos_relacionados'
-      this.productosRelacionadosSeleccionados = [];
-    } else {
-      this.productosRelacionadosSeleccionados = [];
-    }
-
-    this.imagenesSeleccionadas = [];
-    this.imagenesPreview = [];
-    this.imagenesExistentes = producto.imagenes || [];
-    this.mostrarFormulario = true;
   }
 
   guardar() {
