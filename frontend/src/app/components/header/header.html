@@ -114,21 +114,21 @@
               </div>
 
               <div *ngFor="let producto of searchResults" class="search-result-item"
-                (click)="selectSearchResult(producto)">
+                (mousedown)="selectSearchResult(producto)">
                 <img [src]="apiService.getFormattedImageUrl(producto.imagenes?.[0]?.url)" alt="Img" class="result-img">
                 <div class="result-info">
                   <span class="result-name">{{ producto.nombre }}</span>
                   <div class="result-prices">
-                    <span class="result-price" [class.discounted]="producto.precio_descuento > 0">${{
+                    <span class="result-price" [class.discounted]="producto.precio_descuento > 0">{{
                       (producto.precio_descuento || producto.precio_base) | currency:'ARS':'symbol-narrow':'1.0-0'
                       }}</span>
-                    <span class="result-original-price" *ngIf="producto.precio_descuento > 0">${{ producto.precio_base |
+                    <span class="result-original-price" *ngIf="producto.precio_descuento > 0">{{ producto.precio_base |
                       currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
                   </div>
                 </div>
               </div>
 
-              <div *ngIf="searchResults.length > 0" class="view-all-results" (click)="buscarProductos()">
+              <div *ngIf="searchResults.length > 0" class="view-all-results" (mousedown)="buscarProductos()">
                 Ver todos los resultados
               </div>
             </ng-container>

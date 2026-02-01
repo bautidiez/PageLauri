@@ -63,17 +63,17 @@ export class HeaderComponent implements OnInit {
 
     // Configurar búsqueda predictiva
     this.searchTerms.pipe(
-      debounceTime(300), // Esperar 300ms después de cada pulsación
-      distinctUntilChanged(), // Ignorar si el término es igual al anterior
+      debounceTime(200), // Más rápido (200ms)
+      distinctUntilChanged(),
       tap(() => {
         this.isSearching = true;
         this.showSearchResults = true;
+        this.cdr.markForCheck(); // Forzar actualización UI estado loading
       }),
       switchMap((term: string) => {
         if (!term.trim()) {
           return of({ items: [] });
         }
-        // Usar page_size=6 para mostrar pocos resultados pero suficientes
         return this.apiService.getProductos({ busqueda: term, page_size: 6 }).pipe(
           catchError(error => {
             console.error('Error en búsqueda predictiva:', error);
@@ -84,6 +84,7 @@ export class HeaderComponent implements OnInit {
     ).subscribe((data: any) => {
       this.isSearching = false;
       this.searchResults = data.items || [];
+      this.cdr.detectChanges(); // Forzar actualización final
     });
   }
 
