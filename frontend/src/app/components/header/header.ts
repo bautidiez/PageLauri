@@ -1,5 +1,6 @@
 import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, catchError, tap } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -27,13 +28,19 @@ export class HeaderComponent implements OnInit {
   activeCategory: any | null = null;
   busqueda = '';
 
+  // Autocomplete
+  private searchTerms = new Subject<string>();
+  searchResults: any[] = [];
+  showSearchResults = false;
+  isSearching = false;
+
   private menuCloseTimeout: any;
 
   constructor(
     private router: Router,
     public cartService: CartService, // Make public for template access if needed, or use property
     private authService: AuthService,
-    private apiService: ApiService,
+    public apiService: ApiService, // Public for template usage of helper methods
     private el: ElementRef,
     private cdr: ChangeDetectorRef
   ) {
@@ -49,11 +56,34 @@ export class HeaderComponent implements OnInit {
       // We don't need to manually set cartTotal anymore, AsyncPipe handles total$
     });
 
-    // ... (rest of ngOnInit)
-
     // Suscribirse para cambios futuros
     this.authService.isAuthenticated$.subscribe(() => {
       this.updateAuthState();
+    });
+
+    // Configurar búsqueda predictiva
+    this.searchTerms.pipe(
+      debounceTime(300), // Esperar 300ms después de cada pulsación
+      distinctUntilChanged(), // Ignorar si el término es igual al anterior
+      tap(() => {
+        this.isSearching = true;
+        this.showSearchResults = true;
+      }),
+      switchMap((term: string) => {
+        if (!term.trim()) {
+          return of({ items: [] });
+        }
+        // Usar page_size=6 para mostrar pocos resultados pero suficientes
+        return this.apiService.getProductos({ busqueda: term, page_size: 6 }).pipe(
+          catchError(error => {
+            console.error('Error en búsqueda predictiva:', error);
+            return of({ items: [] });
+          })
+        );
+      })
+    ).subscribe((data: any) => {
+      this.isSearching = false;
+      this.searchResults = data.items || [];
     });
   }
 
@@ -145,21 +175,45 @@ export class HeaderComponent implements OnInit {
     this.authService.logout();
   }
 
+  // Búsqueda
+  onSearchInput(term: string): void {
+    this.busqueda = term;
+    this.searchTerms.next(term);
+  }
+
   buscarProductos() {
     if (this.busqueda.trim()) {
+      this.showSearchResults = false; // Ocultar dropdown al buscar
       this.router.navigate(['/productos'], { queryParams: { busqueda: this.busqueda.trim() } });
     }
   }
 
+  selectSearchResult(producto: any) {
+    this.busqueda = ''; // Limpiar búsqueda o mantenerla, según preferencia. Usualmente limpiar al ir al detalle.
+    this.showSearchResults = false;
+    this.router.navigate(['/productos', producto.id]);
+  }
+
   onSearchBlur() {
-    // Mantener el valor del buscador si hay texto
+    // Retrasar el cierre para permitir el click en el resultado
+    setTimeout(() => {
+      this.showSearchResults = false;
+    }, 200);
+  }
+
+  onSearchFocus() {
+    if (this.busqueda.trim()) {
+      this.showSearchResults = true;
+    }
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
+    // Cerrar menú de productos si click fuera
     if (!this.el.nativeElement.contains(event.target)) {
       this.isProductsMenuOpen = false;
       this.clearActiveCategory();
+      this.showSearchResults = false;
     }
   }
 }

@@ -99,8 +99,40 @@
         <!-- Buscador estilo imagen -->
         <div class="search-box-simple">
           <span class="search-icon-left"></span>
-          <input type="text" class="search-input-simple" placeholder="Buscar" [(ngModel)]="busqueda"
-            (keyup.enter)="buscarProductos()">
+          <input type="text" class="search-input-simple" placeholder="Buscar" [ngModel]="busqueda"
+            (ngModelChange)="onSearchInput($event)" (keyup.enter)="buscarProductos()" (focus)="onSearchFocus()"
+            (blur)="onSearchBlur()">
+
+          <!-- Dropdown de resultados predictivos -->
+          <div class="search-results-dropdown"
+            *ngIf="showSearchResults && (isSearching || searchResults.length > 0 || busqueda)">
+            <div class="search-loading" *ngIf="isSearching">Buscando...</div>
+
+            <ng-container *ngIf="!isSearching">
+              <div *ngIf="searchResults.length === 0" class="no-results">
+                No se encontraron productos.
+              </div>
+
+              <div *ngFor="let producto of searchResults" class="search-result-item"
+                (click)="selectSearchResult(producto)">
+                <img [src]="apiService.getFormattedImageUrl(producto.imagenes?.[0]?.url)" alt="Img" class="result-img">
+                <div class="result-info">
+                  <span class="result-name">{{ producto.nombre }}</span>
+                  <div class="result-prices">
+                    <span class="result-price" [class.discounted]="producto.precio_descuento > 0">${{
+                      (producto.precio_descuento || producto.precio_base) | currency:'ARS':'symbol-narrow':'1.0-0'
+                      }}</span>
+                    <span class="result-original-price" *ngIf="producto.precio_descuento > 0">${{ producto.precio_base |
+                      currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="searchResults.length > 0" class="view-all-results" (click)="buscarProductos()">
+                Ver todos los resultados
+              </div>
+            </ng-container>
+          </div>
         </div>
 
         <!-- Carrito con Badge -->
