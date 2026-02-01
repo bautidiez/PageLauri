@@ -646,7 +646,7 @@ export class ProductosAdminComponent implements OnInit {
     this.loading = true; // Optional: separate loading state for search
 
     // Usar endpoint optimizado para búsqueda (trae ID, nombre, color, hex)
-    this.apiService.getProductosMini(termino).subscribe({
+    this.apiService.searchProducts(termino).subscribe({
       next: (data) => {
         // Data puede ser array o objeto paginado
         const items = Array.isArray(data) ? data : (data.items || []);
@@ -696,7 +696,7 @@ export class ProductosAdminComponent implements OnInit {
     }
 
     // Usar la misma API search
-    this.apiService.getProductosMini(termino).subscribe({
+    this.apiService.searchProducts(termino).subscribe({
       next: (data) => {
         const items = Array.isArray(data) ? data : (data.items || []);
         // Filtrar nombres únicos para no repetir
