@@ -50,35 +50,40 @@
               <div class="mega-menu-content">
                 <!-- Columna 1: Categorías Principales -->
                 <div class="mega-column main-cats">
-                  <a routerLink="/productos" class="mega-item total-link" (click)="closeProductsMenuNow()">
-                    Ver todos los productos
-                  </a>
-                  <a routerLink="/productos" [queryParams]="{ofertas: 'true'}" class="mega-item offers-link"
-                    (click)="closeProductsMenuNow()">
-                    🔥 OFERTAS
-                  </a>
+                  <div class="mega-item total-link">
+                    <a routerLink="/productos" class="full-link" (click)="closeProductsMenuNow()">Ver todos los
+                      productos</a>
+                  </div>
+
+                  <div class="mega-item offers-link">
+                    <a routerLink="/productos" [queryParams]="{ofertas: 'true'}" class="full-link"
+                      (click)="closeProductsMenuNow()">🔥 OFERTAS</a>
+                  </div>
+
                   <hr class="mega-divider">
 
+                  <!-- Categorías -->
                   <div *ngFor="let cat of categoriasTree" class="mega-item hierarchical-item"
                     [class.active]="activeCategory?.id === cat.id" (mouseenter)="setActiveCategory(cat)">
 
-                    <!-- Link Area -->
+                    <!-- Enlace directo a la categoría -->
                     <a [routerLink]="['/categoria', cat.slug || cat.id]" (click)="closeProductsMenuNow()"
                       class="cat-link-text">
                       {{ cat.nombre }}
                     </a>
 
-                    <!-- Arrow for Submenu hover (Desktop) or Tap (Mobile) -->
+                    <!-- Indicador de submenú (Solo visual o hover) -->
                     <span class="arrow" *ngIf="cat.subcategorias && cat.subcategorias.length > 0">›</span>
                   </div>
                 </div>
 
                 <!-- Columna 2: Subcategorías (Dinámica) -->
                 <div class="mega-column sub-cats" *ngIf="activeCategory?.subcategorias?.length > 0">
-                  <div *ngFor="let sub of activeCategory.subcategorias" class="mega-item sub-item"
-                    [routerLink]="['/categoria', activeCategory.slug || activeCategory.id, sub.slug || sub.id]"
-                    (click)="closeProductsMenuNow()">
-                    {{ sub.nombre }}
+                  <div *ngFor="let sub of activeCategory.subcategorias" class="mega-item sub-item">
+                    <a [routerLink]="['/categoria', activeCategory.slug || activeCategory.id, sub.slug || sub.id]"
+                      (click)="closeProductsMenuNow()" class="cat-link-text">
+                      {{ sub.nombre }}
+                    </a>
                   </div>
                 </div>
               </div>

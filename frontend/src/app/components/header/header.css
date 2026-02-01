@@ -333,9 +333,13 @@
   margin: 0;
   letter-spacing: 2px;
   transition: all 0.3s;
+  /* Estado permanente "hover" como pidió el usuario */
+  transform: scale(1.05);
 }
 
 .logo:hover .logo-text {
+  /* Mantener la escala o aumentar muy levemente si se desea efecto extra, 
+     pero el usuario pidió que "se vea como cuando pongo el mouse" por defecto */
   transform: scale(1.05);
 }
 
@@ -481,7 +485,8 @@
   position: relative;
 }
 
-.cat-link-text {
+.cat-link-text,
+.full-link {
   flex: 1;
   padding: 10px 20px;
   color: inherit;

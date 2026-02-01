@@ -267,17 +267,17 @@ textarea:focus {
 
 @media (max-width: 480px) {
   .products-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
     /* 2 columns for small mobile (User Request) */
-    gap: 10px;
-    padding: 15px 5px;
+    gap: 10px !important;
+    padding: 15px 5px !important;
     /* Less padding to fit 2 cols better */
   }
 
   .product-image {
-    height: 180px;
+    height: 180px !important;
     /* Reduced height for smaller cards */
-    aspect-ratio: auto;
+    aspect-ratio: auto !important;
     /* Allow natural aspect or fixed height */
   }
 }
