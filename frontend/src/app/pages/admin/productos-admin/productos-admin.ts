@@ -415,6 +415,7 @@ export class ProductosAdminComponent implements OnInit {
         this.imagenesPreview = [];
         this.imagenesExistentes = productoFrescos.imagenes || [];
         this.mostrarFormulario = true;
+        this.cdr.detectChanges(); // Forzar actualización de vista
       },
       error: (err) => {
         this.loading = false;
