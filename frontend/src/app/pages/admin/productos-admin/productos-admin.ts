@@ -635,6 +635,7 @@ export class ProductosAdminComponent implements OnInit {
   }
 
   // --- MÉTODOS PARA PRODUCTO RELACIONADO (AUTOCOMPLETE) ---
+  buscandoRelacionados = false; // Nueva variable de estado local
 
   buscarProductoRelacionado() {
     if (!this.busquedaProductoRelacionado || this.busquedaProductoRelacionado.length < 2) {
@@ -643,7 +644,7 @@ export class ProductosAdminComponent implements OnInit {
     }
 
     const termino = this.busquedaProductoRelacionado;
-    this.loading = true; // Optional: separate loading state for search
+    this.buscandoRelacionados = true;
 
     // Usar endpoint optimizado para búsqueda (trae ID, nombre, color, hex)
     this.apiService.searchProducts(termino).subscribe({
@@ -655,12 +656,12 @@ export class ProductosAdminComponent implements OnInit {
           p.id !== this.nuevoProducto.id && // No mostrarse a sí mismo
           (!this.productoEditando || p.id !== this.productoEditando.id)
         );
-        this.loading = false;
+        this.buscandoRelacionados = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error buscando productos:', err);
-        this.loading = false;
+        this.buscandoRelacionados = false;
       }
     });
 

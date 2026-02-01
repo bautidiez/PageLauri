@@ -129,6 +129,9 @@ def create_producto():
                    rel_prod = Producto.query.get(rel_id)
                    if rel_prod:
                        producto.relacionados.append(rel_prod)
+                       # Bidireccional: Asegurar que el otro producto también apunte a este
+                       if producto not in rel_prod.relacionados:
+                           rel_prod.relacionados.append(producto)
 
             db.session.add(producto)
             db.session.commit()
@@ -222,7 +225,13 @@ def manage_product(id):
             nuevos_relacionados = []
             for rel_id in data['productos_relacionados']:
                 p = Producto.query.get(rel_id)
-                if p: nuevos_relacionados.append(p)
+                if p: 
+                    nuevos_relacionados.append(p)
+                    # Bidireccionalidad al AGREGAR:
+                    # Si estoy editando el prod A y lo relaciono con B, B debe apuntar a A
+                    # Nota: Esto no elimina automáticamente la relación inversa si se quita aquí.
+                    if producto not in p.relacionados:
+                        p.relacionados.append(producto)
             producto.relacionados = nuevos_relacionados
             
         db.session.commit()
