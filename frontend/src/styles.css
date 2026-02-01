@@ -254,14 +254,16 @@ textarea:focus {
 
 @media (max-width: 768px) {
   .products-grid {
-    grid-template-columns: repeat(2, 1fr);
-    /* 2 columns for tablet/large mobile */
-    gap: 15px;
-    padding: 20px 10px;
+    grid-template-columns: repeat(2, 1fr) !important;
+    /* Force 2 columns for tablet/large mobile */
+    gap: 15px !important;
+    padding: 20px 10px !important;
   }
 
   .product-image {
-    height: 250px;
+    height: 200px !important;
+    /* Adjusted height */
+    aspect-ratio: auto !important;
   }
 }
 

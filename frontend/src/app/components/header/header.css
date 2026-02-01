@@ -309,16 +309,18 @@
 }
 
 .logo img {
-  height: 70px;
-  /* Reducido */
+  height: 80px;
+  /* Aumentado por defecto */
   width: auto;
   object-fit: contain;
   transition: transform 0.3s;
+  transform: scale(1.05);
+  /* Escala permanente */
 }
 
 .logo:hover .logo-img {
-  height: 70px;
-  width: auto;
+  height: 80px;
+  transform: scale(1.05);
 }
 
 .logo-text {

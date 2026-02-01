@@ -129,10 +129,12 @@
 
     <!-- Categorías dinámicas -->
     <ng-container *ngFor="let cat of categoriasTree">
-      <a [routerLink]="['/categoria', cat.slug]" (click)="menuOpen = false">{{ cat.nombre }}</a>
+      <a [routerLink]="['/categoria', cat.slug || cat.id]" (click)="menuOpen = false; $event.stopPropagation()">
+        {{ cat.nombre }}
+      </a>
       <!-- Subcategorías (si existen) -->
-      <a *ngFor="let sub of cat.subcategorias" [routerLink]="['/categoria', cat.slug, sub.slug]"
-        (click)="menuOpen = false" class="subcategoria-mobile">
+      <a *ngFor="let sub of cat.subcategorias" [routerLink]="['/categoria', cat.slug || cat.id, sub.slug || sub.id]"
+        (click)="menuOpen = false; $event.stopPropagation()" class="subcategoria-mobile">
         &nbsp;&nbsp;› {{ sub.nombre }}
       </a>
     </ng-container>
