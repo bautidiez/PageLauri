@@ -1,5 +1,5 @@
 from models import Producto, Categoria, Color, StockTalle, db
-from sqlalchemy import or_, case
+from sqlalchemy import or_, case, select, exists, and_
 from extensions import limiter
 
 class ProductService:
@@ -108,7 +108,19 @@ class ProductService:
         if filters.get('version'):
             query = query.filter(Producto.version == filters['version'])
 
-        # Ordenamiento
+        # Ordenamiento GLOBAL: Agotados siempre al final
+        # has_stock será True (1) si existe al menos un talle con cantidad > 0, False (0) si no.
+        # Ordenamos by has_stock DESC (1 first, 0 last) -> Disponibles primero, Agotados al final.
+        stmt_has_stock = select(1).where(
+            and_(
+                StockTalle.producto_id == Producto.id,
+                StockTalle.cantidad > 0
+            )
+        ).exists()
+        
+        query = query.order_by(stmt_has_stock.desc())
+
+        # Ordenamiento secundario (usuario)
         orden = filters.get('ordenar_por', 'nuevo')
         
         # Si hay búsqueda, priorizar por relevancia
