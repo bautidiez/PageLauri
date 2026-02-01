@@ -325,12 +325,7 @@ def register_hooks(app):
 register_hooks(app)
 
 # Reparar Base de Datos (Agregar columna si falta)
-with app.app_context():
-    try:
-        from repair_db_sqa import repair_db_sqlalchemy
-        repair_db_sqlalchemy(db)
-    except Exception as e:
-        print(f"Error en repair_db automático: {e}")
+
 
 # Para correr la aplicación, ejecutar: python run.py
 
