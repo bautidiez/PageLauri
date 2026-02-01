@@ -642,12 +642,29 @@ export class ProductosAdminComponent implements OnInit {
       return;
     }
 
-    const termino = this.busquedaProductoRelacionado.toLowerCase();
-    this.productosRelacionadosFiltrados = this.productos.filter(p =>
-      p.nombre.toLowerCase().includes(termino) &&
-      p.id !== this.nuevoProducto.id &&
-      (!this.productoEditando || p.id !== this.productoEditando.id)
-    ).slice(0, 10); // Limitar a 10 resultados
+    const termino = this.busquedaProductoRelacionado;
+    this.loading = true; // Optional: separate loading state for search
+
+    // Usar endpoint optimizado para búsqueda (trae ID, nombre, color, hex)
+    this.apiService.getProductosMini(termino).subscribe({
+      next: (data) => {
+        // Data puede ser array o objeto paginado
+        const items = Array.isArray(data) ? data : (data.items || []);
+
+        this.productosRelacionadosFiltrados = items.filter((p: any) =>
+          p.id !== this.nuevoProducto.id && // No mostrarse a sí mismo
+          (!this.productoEditando || p.id !== this.productoEditando.id)
+        );
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error buscando productos:', err);
+        this.loading = false;
+      }
+    });
+
+    // Fallback local removido para garantizar consistencia global
   }
 
   seleccionarProductoRelacionado(producto: any) {
