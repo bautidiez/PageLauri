@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -159,7 +160,13 @@ export class HomeComponent implements OnInit {
 
   suscribirNewsletter() {
     // Por ahora solo muestra un mensaje, se puede implementar backend después
-    alert('¡Gracias por suscribirte! Te mantendremos informado de nuestras novedades.');
+    Swal.fire({
+      icon: 'success',
+      title: '¡Suscripción exitosa!',
+      text: '¡Gracias por suscribirte! Te mantendremos informado de nuestras novedades.',
+      confirmButtonColor: '#000000',
+      confirmButtonText: 'Aceptar'
+    });
     this.newsletterNombre = '';
     this.newsletterEmail = '';
   }

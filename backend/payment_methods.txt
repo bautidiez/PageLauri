@@ -1,5 +1,0 @@
-------------------------------
-ID: 2 | Nombre: transferencia | Activo: True
-ID: 3 | Nombre: tarjeta_debito | Activo: True
-ID: 4 | Nombre: tarjeta_credito | Activo: True
-------------------------------

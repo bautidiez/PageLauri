@@ -1,7 +1,0 @@
-REMERAS COUNT: 1
-ID:13 Name:Remeras Slug:remeras Parent:79
-SHORTS COUNT: 1
-ID:8 Name:Shorts Slug:shorts Parent:79
-ROOTS COUNT: 2
-ID:79 Name:Indumentaria Slug:indumentaria
-ID:80 Name:Accesorios Slug:accesorios

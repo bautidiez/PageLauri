@@ -1,3 +1,0 @@
-Column 'cliente_dni' DOES NOT EXIST
-
-All columns in 'pedido' table:

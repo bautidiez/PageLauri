@@ -1,8 +1,0 @@
-Sort by Orden: SUCCESS
-Total Categorias: 36
-Total Raiz (None): 2
-Raiz: ID=79 Name='Indumentaria' Active=True SubsCount=2
-   - Sub: ID=8 Name='Shorts' Active=True
-   - Sub: ID=13 Name='Remeras' Active=True
-Raiz: ID=80 Name='Accesorios' Active=True SubsCount=0
-Total Raiz (0): 0

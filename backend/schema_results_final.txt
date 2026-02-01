@@ -1,1 +1,0 @@
-Column 'cliente_dni' EXISTS in 'pedidos'
