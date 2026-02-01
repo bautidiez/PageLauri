@@ -101,7 +101,17 @@
       <form (ngSubmit)="guardar()" enctype="multipart/form-data">
         <div class="form-group">
           <label>Nombre *</label>
-          <input type="text" [(ngModel)]="nuevoProducto.nombre" name="nombre" required>
+          <div class="autocomplete-wrapper">
+            <input type="text" [(ngModel)]="nuevoProducto.nombre" name="nombre" (input)="buscarSugerenciasNombre()"
+              class="autocomplete-input" autocomplete="off" required>
+            <!-- Lista de sugerencias de nombre -->
+            <div class="autocomplete-dropdown" *ngIf="sugerenciasNombre.length > 0">
+              <div *ngFor="let prod of sugerenciasNombre" class="autocomplete-option"
+                (click)="seleccionarNombreSugerido(prod.nombre)">
+                {{ prod.nombre }}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">

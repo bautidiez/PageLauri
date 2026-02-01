@@ -685,6 +685,36 @@ export class ProductosAdminComponent implements OnInit {
     this.productosRelacionadosFiltrados = [];
   }
 
+  // --- AUTOCOMPLETE NOMBRE ---
+  sugerenciasNombre: any[] = [];
+
+  buscarSugerenciasNombre() {
+    const termino = this.nuevoProducto.nombre;
+    if (!termino || termino.length < 3) {
+      this.sugerenciasNombre = [];
+      return;
+    }
+
+    // Usar la misma API search
+    this.apiService.getProductosMini(termino).subscribe({
+      next: (data) => {
+        const items = Array.isArray(data) ? data : (data.items || []);
+        // Filtrar nombres únicos para no repetir
+        const nombresUnicos = new Set();
+        this.sugerenciasNombre = items.filter((p: any) => {
+          if (nombresUnicos.has(p.nombre)) return false;
+          nombresUnicos.add(p.nombre);
+          return true;
+        });
+      }
+    });
+  }
+
+  seleccionarNombreSugerido(nombre: string) {
+    this.nuevoProducto.nombre = nombre;
+    this.sugerenciasNombre = []; // Ocultar sugerencias
+  }
+
   getCleanCategoryPath(catId: number | null, pathNodes: number[] = []): string {
     if (!catId) return '';
 
